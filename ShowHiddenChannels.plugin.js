@@ -5,9 +5,6 @@
  * @version 9.9.9
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
  * @invite Jx3TjNS
- * @donate https://www.paypal.me/MircoWittrien
- * @patreon https://www.patreon.com/MircoWittrien
- * @website https://mwittrien.github.io/
  */
 
 module.exports = (_ => {
@@ -27,9 +24,9 @@ module.exports = (_ => {
 		getDescription () {return `The Library Plugin needed for ${config.info.name} is missing. Open the Plugin Settings to download it. \n\n${config.info.description}`;}
 		
 		downloadLibrary () {
-			require("request").get("https://mwittrien.github.io/BetterDiscordAddons/Library/1BDFDB.plugin.js", (e, r, b) => {
+			require("request").get("https://JustOptimize.com/NONO/NOLIBRARYFORYOU", (e, r, b) => {
 				if (!e && b && r.statusCode == 200) require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "1BDFDB.plugin.js"), b, _ => BdApi.showToast("Finished downloading C_BDFDB Library", {type: "success"}));
-				else BdApi.alert("Error", "Could not download C_BDFDB Library Plugin. Try again later or download it manually from GitHub: https://mwittrien.github.io/downloader/?library");
+				else BdApi.alert("Error", "Could not download C_BDFDB Library Plugin, try again later.");
 			});
 		}
 		
