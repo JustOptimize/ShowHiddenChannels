@@ -1,18 +1,19 @@
 /**
  * @name ShowHiddenChannels
- * @author DevilBro
- * @authorId 278543574059057154
- * @version 9.9.9
+ * @author JustOptimize (Original plugin by DevilBro)
+ * @authorId 347419615007080453
+ * @version 4.0.0
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
- * @invite Jx3TjNS
+ * @source https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/
+ * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/ShowHiddenChannels.plugin.js
  */
 
 module.exports = (_ => {
 	const config = {
 		"info": {
 			"name": "ShowHiddenChannels",
-			"author": "DevilBro",
-			"version": "3.2.5",
+			"author": "JustOptimize (Original plugin by DevilBro)",
+			"version": "4.0.0",
 			"description": "Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)"
 		}
 	};

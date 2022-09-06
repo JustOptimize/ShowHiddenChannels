@@ -1,10 +1,9 @@
 /**
  * @name C_BDFDB
- * @author DevilBro
- * @authorId 278543574059057154
- * @version 2.5.8
- * @description Required Library for DevilBro's Plugins
- * @invite Jx3TjNS
+ * @author JustOptimize (Original plugin by DevilBro)
+ * @authorId 347419615007080453
+ * @version 3.0.0
+ * @description Required Library for ShowHiddenChannels plugin
  * @source https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/1BDFDB.plugin.js
  */
