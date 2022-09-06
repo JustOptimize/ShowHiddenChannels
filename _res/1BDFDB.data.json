@@ -1,7 +1,7 @@
 {
 	"PluginNameMap": {},
 	"PluginUrlMap": {
-		"BDFDB": "https://raw.githubusercontent.com/JustOptimize/return-seeHiddenMessages/main/1BDFDB.plugin.js"
+		"BDFDB": "https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/1BDFDB.plugin.js"
 	},
 	"LibraryRequires": ["electron", "fs", "path", "process", "request"],
 	"DiscordObjects": {
