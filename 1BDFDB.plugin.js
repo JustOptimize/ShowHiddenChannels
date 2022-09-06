@@ -2,7 +2,7 @@
  * @name C_BDFDB
  * @author JustOptimize (Original plugin by DevilBro)
  * @authorId 347419615007080453
- * @version 3.0.1
+ * @version 3.0.2
  * @description Required Library for ShowHiddenChannels plugin
  * @source https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/1BDFDB.plugin.js
@@ -48,6 +48,9 @@ module.exports = (_ => {
 							value: true,
 							isDisabled: data => data.nativeValue,
 							hasNote: data => data.disabled && data.value
+						},
+						showLibraryDevtools: {
+							value: false
 						},
 						useChromium: {
 							value: false,
@@ -889,24 +892,6 @@ module.exports = (_ => {
 							href: "https://www.patreon.com/MircoWittrien",
 							name: "Patreon",
 							icon: "PATREON"
-						}, {
-							name: C_BDFDB.LanguageUtils.LibraryStringsFormat("send", "Solana"),
-							icon: "PHANTOM",
-							onClick: _ => {
-								C_BDFDB.LibraryRequires.electron.clipboard.write({text: InternalData.mySolana});
-								C_BDFDB.NotificationUtils.toast(C_BDFDB.LanguageUtils.LibraryStringsFormat("clipboard_success", "Phantom Wallet Key"), {
-									type: "success"
-								});
-							}
-						}, {
-							name: C_BDFDB.LanguageUtils.LibraryStringsFormat("send", "Ethereum"),
-							icon: "METAMASK",
-							onClick: _ => {
-								C_BDFDB.LibraryRequires.electron.clipboard.write({text: InternalData.myEthereum});
-								C_BDFDB.NotificationUtils.toast(C_BDFDB.LanguageUtils.LibraryStringsFormat("clipboard_success", "MetaMask Wallet Key"), {
-									type: "success"
-								});
-							}
 						}].map(data => C_BDFDB.ReactUtils.createElement(data.href ? Internal.LibraryComponents.Anchor : Internal.LibraryComponents.Clickable, {
 							className: C_BDFDB.disCN.changelogsociallink,
 							href: data.href || "",
@@ -8639,7 +8624,9 @@ module.exports = (_ => {
 				
 					const pluginQueue = window.C_BDFDB_Global && C_BDFDB.ArrayUtils.is(window.C_BDFDB_Global.pluginQueue) ? window.C_BDFDB_Global.pluginQueue : [];
 
-					if (C_BDFDB.UserUtils.me.id == InternalData.myId || C_BDFDB.UserUtils.me.id == "350635509275557888") {
+
+					//* Developer Mode *//
+					if (Internal.settings.general.showLibraryDevtools) {
 						C_BDFDB.DevUtils = {};
 						C_BDFDB.DevUtils.generateClassId = Internal.generateClassId;
 						C_BDFDB.DevUtils.findByIndex = function (index) {
