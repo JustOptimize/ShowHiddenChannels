@@ -4274,27 +4274,6 @@ module.exports = (_ => {
 					}
 					return false;
 				};
-				C_BDFDB.NumberUtils.getVersionDifference = function (newV, oldV) {
-					if (!newV || !oldV) return false;
-					newV = newV.toString().replace(/["'`]/g, "").split(/,|\./g).map(n => parseInt(n)).filter(n => (n || n == 0) && !isNaN(n));
-					oldV = oldV.toString().replace(/["'`]/g, "").split(/,|\./g).map(n => parseInt(n)).filter(n => (n || n == 0) && !isNaN(n));
-					let length = Math.max(newV.length, oldV.length);
-					if (!length) return false;
-					if (newV.length > oldV.length) {
-						let tempArray = new Array(newV.length - oldV.length);
-						for (let i = 0; i < tempArray.length; i++) tempArray[i] = 0;
-						oldV = tempArray.concat(oldV);
-					}
-					else if (newV.length < oldV.length) {
-						let tempArray = new Array(oldV.length - newV.length);
-						for (let i = 0; i < tempArray.length; i++) tempArray[i] = 0;
-						newV = tempArray.concat(newV);
-					}
-					let oldValue = 0, newValue = 0;
-					for (let i in oldV.reverse()) oldValue += (oldV[i] * (10 ** i));
-					for (let i in newV.reverse()) newValue += (newV[i] * (10 ** i));
-					return (newValue - oldValue) / (10 ** (length-1));
-				};
 
 				C_BDFDB.DiscordUtils = {};
 				C_BDFDB.DiscordUtils.openLink = function (url, config = {}) {
