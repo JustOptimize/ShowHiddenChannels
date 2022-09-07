@@ -671,15 +671,7 @@ module.exports = (_ => {
 						let newName = (body.match(/"name"\s*:\s*"([^"]+)"/) || [])[1] || pluginName;
 						let newVersion = (body.match(/@version ([0-9]+\.[0-9]+\.[0-9]+)|['"]([0-9]+\.[0-9]+\.[0-9]+)['"]/i) || []).filter(n => n)[1];
 						if (!newVersion) return callback(null);
-						if (pluginName == newName && C_BDFDB.NumberUtils.getVersionDifference(newVersion, PluginStores.updateData.plugins[url].version) > 0.2) {
-							C_BDFDB.NotificationUtils.toast(C_BDFDB.LanguageUtils.LibraryStringsFormat("toast_plugin_force_updated", pluginName), {
-								type: "warning",
-								disableInteractions: true
-							});
-							C_BDFDB.PluginUtils.downloadUpdate(pluginName, url);
-							return callback(2);
-						}
-						else if (C_BDFDB.NumberUtils.compareVersions(newVersion, PluginStores.updateData.plugins[url].version)) {
+						if (C_BDFDB.NumberUtils.compareVersions(newVersion, PluginStores.updateData.plugins[url].version)) {
 							if (PluginStores.updateData.plugins[url]) PluginStores.updateData.plugins[url].outdated = true;
 							C_BDFDB.PluginUtils.showUpdateNotice(pluginName, url);
 							return callback(1);
