@@ -2,10 +2,10 @@
  * @name ShowHiddenChannels
  * @author JustOptimize (Original plugin by DevilBro)
  * @authorId 347419615007080453
- * @version 4.0.0
+ * @version 4.0.1
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
- * @source https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/
- * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/ShowHiddenChannels.plugin.js
+ * @source https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/
+ * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js
  */
 
 module.exports = (_ => {
@@ -13,7 +13,7 @@ module.exports = (_ => {
 		"info": {
 			"name": "ShowHiddenChannels",
 			"author": "JustOptimize (Original plugin by DevilBro)",
-			"version": "4.0.0",
+			"version": "4.0.1",
 			"description": "Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)"
 		}
 	};
@@ -25,9 +25,9 @@ module.exports = (_ => {
 		getDescription () {return `The Library Plugin needed for ${config.info.name} is missing. Open the Plugin Settings to download it. \n\n${config.info.description}`;}
 		
 		downloadLibrary () {
-			require("request").get("https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/1BDFDB.plugin.js", (e, r, b) => {
+			require("request").get("https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/1BDFDB.plugin.js", (e, r, b) => {
 				if (!e && b && r.statusCode == 200) require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "1BDFDB.plugin.js"), b, _ => BdApi.showToast("Finished downloading C_BDFDB Library", {type: "success"}));
-				else BdApi.alert("Error", "Could not download C_BDFDB Library Plugin. Try again later or download it manually from GitHub: https://raw.githubusercontent.com/JustOptimize/return-seeHiddenChannels/main/1BDFDB.plugin.js");
+				else BdApi.alert("Error", "Could not download C_BDFDB Library Plugin. Try again later or download it manually from GitHub: https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/1BDFDB.plugin.js");
 			});
 		}
 		
