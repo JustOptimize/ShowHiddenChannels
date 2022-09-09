@@ -5,7 +5,7 @@
  * @version 4.0.2
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
  * @source https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/
- * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/returnShowHiddenChannels.plugin.js
  */
 
 module.exports = (_ => {
