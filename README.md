@@ -1,3 +1,5 @@
+This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITHOUT LIBRARY branch
+
 # Retun ShowHiddenChannels
 <p align="left">
     <b>The return of the "banned" plugin ShowHiddenChannels.</b><br>
@@ -10,15 +12,20 @@ On September 5th, 2022, Betterdiscord [announced](https://discord.com/channels/8
 
 Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/ShowHiddenChannels) was discontinued and removed on the same day.
 
-### Install
+### Install (Without Library version)
 - Download returnShowHiddenChannels.plugin.js from this repository
 - Move it into the plugins folder
+- Enable it
 - Done
 
-### Update
-The plugin updates itself but you can encounter errors if:
-- You have the C_BDFDB / 1BDFDB library which is no longer needed; you can remove it with its additional files: 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json.
-- You have the old ShowHiddenChannels.plugin.js plugin, to fix you delete that too.
+If you had the With Library version delete the library, the plugin (ShowHiddenChannels.plugin.js), 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json.
+
+### Install (With Library)
+- Follow the same steps
+- Click download on the download prompt if you don't have the library
+- Done
+
+If you had the Without Library version remove that plugin
 
 ### Features
 
