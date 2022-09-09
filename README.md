@@ -1,3 +1,5 @@
+This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITH LIBRARY branch
+
 # Retun ShowHiddenChannels
 <p align="left">
     <b>The return of the "banned" plugin ShowHiddenChannels.</b><br>
