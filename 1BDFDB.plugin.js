@@ -2,8 +2,8 @@
  * @name C_BDFDB
  * @author JustOptimize (Original plugin by DevilBro)
  * @authorId 347419615007080453
- * @version 3.0.4
- * @description Required Library for ShowHiddenChannels plugin
+ * @version 3.0.5
+ * @description Now this library is no longer required for the ShowHiddenChannels plugin; You can now delete this library and it's files (1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json).
  * @source https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/1BDFDB.plugin.js
  */

@@ -10,13 +10,17 @@ On September 5th, 2022, Betterdiscord [announced](https://discord.com/channels/8
 
 Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/ShowHiddenChannels) was discontinued and removed on the same day.
 
-### Additional Features
+### Install
+- Download ShowHiddenChannels.plugin.js from this repository
+- Move it into the plugins folder
+- Done
 
-- Removed Forced Auto Update (This shouldn't even have been here in the first place)
-- Added a DevTool toggleable setting (Instead of relying on the developer discord id)
-- Removed Cryptocurrency links (I don't support crypto)
+In case you have the C_BDFDB / 1BDFDB library which is no longer needed, you can remove it with its additional files: 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json
+### Features
+
+- Uses the original library
 
 ### TODO
 
-- Start using the original library
 - Find a way to patch the library (To add features)
+- Add a DevTool toggleable setting (Instead of relying on the developer discord id)
