@@ -15,8 +15,10 @@ Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree
 - Move it into the plugins folder
 - Done
 
-In case you have the C_BDFDB / 1BDFDB library which is no longer needed, you can remove it with its additional files: 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json.
-And in case you have the old ShowHiddenChannels.plugin.js plugin delete that too.
+### Update
+The plugin updates itself but you can encounter errors if:
+- You have the C_BDFDB / 1BDFDB library which is no longer needed; you can remove it with its additional files: 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json.
+- You have the old ShowHiddenChannels.plugin.js plugin, to fix you delete that too.
 
 ### Features
 
