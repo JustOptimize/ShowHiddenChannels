@@ -2,7 +2,7 @@
  * @name ShowHiddenChannels
  * @author JustOptimize (Original plugin by DevilBro)
  * @authorId 347419615007080453
- * @version 4.0.1
+ * @version 4.0.2
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
  * @source https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/With-Library/
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/With-Library/ShowHiddenChannels.plugin.js
@@ -59,7 +59,14 @@ module.exports = (_ => {
 		var blackList = [], overrideTypes = [];
 		var hiddenChannelCache = {};
 		var accessModal;
+
+		const _hiddenChannel = ".hidden-9f2Dsa";
+		const _accessmodal = ".accessModal-w5HjsV";
 		
+		// How i got them:
+		// console.log("Access: "+BDFDB.dotCNS._showhiddenchannelsaccessmodal );
+		// console.log("Hidden: "+BDFDB.dotCNS._showhiddenchannelshiddenchannel );
+
 		const channelGroupMap = {
 			GUILD_TEXT: "SELECTABLE",
 			GUILD_VOICE: "VOCAL",
@@ -204,7 +211,7 @@ module.exports = (_ => {
 				};
 				
 				this.css = `
-					${C_BDFDB.dotCNS._showhiddenchannelsaccessmodal + C_BDFDB.dotCN.messagespopoutemptyplaceholder} {
+					${_accessmodal + C_BDFDB.dotCN.messagespopoutemptyplaceholder} {
 						position: absolute;
 						bottom: 0;
 						width: 100%;
@@ -415,7 +422,7 @@ module.exports = (_ => {
 			
 			processChannelItem (e) {
 				if (e.instance.props.channel && this.isChannelHidden(e.instance.props.channel.id)) {
-					if (!e.returnvalue) e.instance.props.className = C_BDFDB.DOMUtils.formatClassName(e.instance.props.className, C_BDFDB.disCN._showhiddenchannelshiddenchannel);
+					if (!e.returnvalue) e.instance.props.className = C_BDFDB.DOMUtils.formatClassName(e.instance.props.className, _hiddenChannel);
 					else {
 						let [children, index] = C_BDFDB.ReactUtils.findParent(e.returnvalue, {name: "ChannelItemIcon"});
 						let channelChildren = C_BDFDB.ReactUtils.findChild(e.returnvalue, {props: [["className", C_BDFDB.disCN.channelchildren]]});
@@ -568,7 +575,7 @@ module.exports = (_ => {
 					size: "MEDIUM",
 					header: C_BDFDB.LanguageUtils.LanguageStrings.CHANNEL + " " + C_BDFDB.LanguageUtils.LanguageStrings.ACCESSIBILITY,
 					subHeader: "#" + channel.name,
-					className: C_BDFDB.disCN._showhiddenchannelsaccessmodal,
+					className: _accessmodal,
 					contentClassName: C_BDFDB.DOMUtils.formatClassName(!isThread && C_BDFDB.disCN.listscroller),
 					onOpen: modalInstance => {if (modalInstance) accessModal = modalInstance;},
 					children: isThread ? infoStrings : [
