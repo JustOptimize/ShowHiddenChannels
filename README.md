@@ -1,6 +1,7 @@
 # Retun ShowHiddenChannels
 <p align="left">
     <b>The return of the "banned" plugin ShowHiddenChannels.</b><br>
+    A plugin wich displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
 </p>
 
 ### The Story
