@@ -1,9 +1,9 @@
 This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITHOUT LIBRARY branch
 
-# Retun ShowHiddenChannels
+# Return ShowHiddenChannels
 <p align="left">
     <b>The return of the "banned" plugin ShowHiddenChannels.</b><br>
-    A plugin wich displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
+    A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
 </p>
 
 ### The Story
