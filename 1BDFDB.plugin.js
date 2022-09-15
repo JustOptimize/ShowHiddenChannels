@@ -1084,7 +1084,7 @@ module.exports = (_ => {
 				
 					const backupObj = getBackup(dataFileName, dataFilePath);
 					if (backupObj.backup && backupObj.hashIsSame) parseData(backupObj.backup);
-					else request.get(`https://api.github.com/repos/JustOptimize/return-ShowHiddenChannels/contents/_res/${dataFileName}?ref=With-Library`, (e, r, b) => {
+					else request.get(`https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/With-Library/_res/${dataFileName}`, (e, r, b) => {
 						if ((e || !b || r.statusCode != 200) && tryAgain) return C_BDFDB.TimeUtils.timeout(_ => requestLibraryData(), 10000);
 						if (!e && b && r.statusCode == 200) {
 							if (backupObj.backup && backupObj.backup.replace(/\s/g, "") == b.replace(/\s/g, "")) {
