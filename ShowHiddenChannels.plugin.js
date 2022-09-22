@@ -235,6 +235,22 @@ module.exports = (_ => {
 					return e.returnValue ? (this.isChannelHidden(e.methodArguments[0]) ? 0 : e.returnValue) : e.returnValue;
 				}});
 
+				C_BDFDB.PatchUtils.patch(this, C_BDFDB.LibraryModules.UnreadChannelUtils, "hasNotableUnread", {after: e => {
+					return e.returnValue && !this.isChannelHidden(e.methodArguments[0]);
+				}});
+
+				C_BDFDB.PatchUtils.patch(this, C_BDFDB.LibraryModules.UnreadChannelUtils, "getUnreadCount", {after: e => {
+					return e.returnValue ? (this.isChannelHidden(e.methodArguments[0]) ? 0 : e.returnValue) : e.returnValue;
+				}});
+
+				C_BDFDB.PatchUtils.patch(this, C_BDFDB.LibraryModules.UnreadChannelUtils, "hasAnyUnread", {after: e => {
+					return e.returnValue ? (this.isChannelHidden(e.methodArguments[0]) ? 0 : e.returnValue) : e.returnValue;
+				}});
+
+				C_BDFDB.PatchUtils.patch(this, C_BDFDB.LibraryModules.UnreadChannelUtils, "hasRelevantUnread", {after: e => {
+					return e.returnValue ? (this.isChannelHidden(e.methodArguments[0]) ? 0 : e.returnValue) : e.returnValue;
+				}});
+
 				this.forceUpdateAll();
 			}
 			
