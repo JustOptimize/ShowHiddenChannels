@@ -2,7 +2,7 @@
  * @name ShowHiddenChannels
  * @author JustOptimize (Original plugin by DevilBro)
  * @authorId 347419615007080453
- * @version 4.0.2
+ * @version 4.0.3
  * @description Displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels/
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/With-Library/ShowHiddenChannels.plugin.js
