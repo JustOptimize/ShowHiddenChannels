@@ -8,13 +8,18 @@
  * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/With-Library/1BDFDB.plugin.js
  */
 
-module.exports = (_ => {
+ module.exports = (_ => {
 	if (window.C_BDFDB_Global && window.C_BDFDB_Global.PluginUtils && typeof window.C_BDFDB_Global.PluginUtils.cleanUp == "function") window.C_BDFDB_Global.PluginUtils.cleanUp(window.C_BDFDB_Global);
 	
-	var C_BDFDB, Internal, LibraryConstants, LibraryModules, LibraryRequires, DiscordObjects, PluginStores;
+	var C_BDFDB, Internal, LibraryStores, LibraryModules, LibraryRequires, DiscordConstants, DiscordObjects, PluginStores;
 	
 	C_BDFDB = {
-		started: true
+		started: true,
+		changeLog: {
+			fixed: {
+				"No more Console Spam": "Fixed some Stuff that spammed the Console with Errors and could cause Crashs, this is not a final Fix and it will take several days or even weeks till all my Plugins are fixed"
+			}
+		}
 	};
 	
 	return class C_BDFDB_Frame {
@@ -67,20 +72,6 @@ module.exports = (_ => {
 				},
 			});
 			for (let key in Internal.defaults) Internal.settings[key] = {};
-			
-			LibraryConstants = {
-				ToastIcons: {
-					info: "INFO",
-					danger: "CLOSE_CIRCLE",
-					success: "CHECKMARK_CIRCLE",
-					warning: "WARNING"
-				},
-				ToastPositions: {
-					center: "toastscenter",
-					left: "toastsleft",
-					right: "toastsright"
-				}
-			};
 			
 			PluginStores = {
 				loaded: {},
@@ -567,7 +558,7 @@ module.exports = (_ => {
 				C_BDFDB.LogUtils.log(C_BDFDB.LanguageUtils.LibraryStringsFormat("toast_plugin_started", ""), plugin);
 				if (Internal.settings.general.showToasts && !C_BDFDB.BDUtils.getSettings(C_BDFDB.BDUtils.settingsIds.showToasts)) C_BDFDB.NotificationUtils.toast(C_BDFDB.LanguageUtils.LibraryStringsFormat("toast_plugin_started", `${plugin.name} v${plugin.version}`), {
 					disableInteractions: true,
-					barColor: C_BDFDB.DiscordConstants.Colors.STATUS_GREEN
+					barColor: Internal.DiscordConstants.Colors.STATUS_GREEN
 				});
 				
 				if (plugin.css) C_BDFDB.DOMUtils.appendLocalStyle(plugin.name, plugin.css);
@@ -584,7 +575,7 @@ module.exports = (_ => {
 				C_BDFDB.LogUtils.log(C_BDFDB.LanguageUtils.LibraryStringsFormat("toast_plugin_stopped", ""), plugin);
 				if (Internal.settings.general.showToasts && !C_BDFDB.BDUtils.getSettings(C_BDFDB.BDUtils.settingsIds.showToasts)) C_BDFDB.NotificationUtils.toast(C_BDFDB.LanguageUtils.LibraryStringsFormat("toast_plugin_stopped", `${plugin.name} v${plugin.version}`), {
 					disableInteractions: true,
-					barColor: C_BDFDB.DiscordConstants.Colors.STATUS_RED
+					barColor: Internal.DiscordConstants.Colors.STATUS_RED
 				});
 				
 				const url = Internal.getPluginURL(plugin);
@@ -609,9 +600,9 @@ module.exports = (_ => {
 						if (typeof plugin.setLabelsByLanguage == "function") plugin.labels = plugin.setLabelsByLanguage();
 						if (typeof plugin.changeLanguageStrings == "function") plugin.changeLanguageStrings();
 					};
-					if (Internal.LibraryModules.LanguageStore.chosenLocale || Internal.LibraryModules.LanguageStore._chosenLocale || C_BDFDB.DicordUtils.getSettings("locale")) translate();
+					if (C_BDFDB.DiscordUtils.getLanguage()) translate();
 					else C_BDFDB.TimeUtils.interval(interval => {
-						if (Internal.LibraryModules.LanguageStore.chosenLocale || Internal.LibraryModules.LanguageStore._chosenLocale || C_BDFDB.DicordUtils.getSettings("locale")) {
+						if (C_BDFDB.DiscordUtils.getLanguage()) {
 							C_BDFDB.TimeUtils.clear(interval);
 							translate();
 						}
@@ -623,6 +614,7 @@ module.exports = (_ => {
 					if (!C_BDFDB.ObjectUtils.is(plugin)) return;
 					if (plugin == window.C_BDFDB_Global) {
 						if (Internal.removeChunkObserver) Internal.removeChunkObserver();
+						if (Internal.patchObserverData && Internal.patchObserverData.observer && typeof Internal.patchObserverData.observer.disconnect == "function") Internal.patchObserverData.observer.disconnect();
 						let updateNotice = C_BDFDB.dotCN && document.querySelector(C_BDFDB.dotCN.noticeupdate);
 						if (updateNotice) updateNotice.close();
 						C_BDFDB.TimeUtils.clear(PluginStores && PluginStores.updateData && PluginStores.updateData.interval);
@@ -1154,18 +1146,21 @@ module.exports = (_ => {
 					else return "";
 				};
 				
-				Internal.findModule = function (type, cacheString, filter, defaultExport, noWarnings = false) {
+				Internal.findModule = function (type, cacheString, filter, config = {}) {
 					if (!C_BDFDB.ObjectUtils.is(Cache.modules[type])) Cache.modules[type] = {module: {}, export: {}};
-					if (defaultExport && Cache.modules[type].export[cacheString]) return Cache.modules[type].export[cacheString];
-					else if (!defaultExport && Cache.modules[type].module[cacheString]) return Cache.modules[type].module[cacheString];
+					let defaultExport = typeof config.defaultExport != "boolean" ? true : config.defaultExport;
+					if (!config.all && defaultExport && Cache.modules[type].export[cacheString]) return Cache.modules[type].export[cacheString];
+					else if (!config.all && !defaultExport && Cache.modules[type].module[cacheString]) return Cache.modules[type].module[cacheString];
 					else {
-						let m = C_BDFDB.ModuleUtils.find(filter, {defaultExport: defaultExport});
+						let m = C_BDFDB.ModuleUtils.find(filter, config);
 						if (m) {
-							if (defaultExport) Cache.modules[type].export[cacheString] = m;
-							else Cache.modules[type].module[cacheString] = m;
+							if (!config.all) {
+								if (defaultExport) Cache.modules[type].export[cacheString] = m;
+								else Cache.modules[type].module[cacheString] = m;
+							}
 							return m;
 						}
-						else if (!noWarnings) C_BDFDB.LogUtils.warn(`${cacheString} [${type}] not found in WebModules`);
+						else if (!config.noWarnings) C_BDFDB.LogUtils.warn(`${cacheString} [${type}] not found in WebModules`);
 					}
 				};
 				
@@ -1216,9 +1211,15 @@ module.exports = (_ => {
 					const found = [];
 					if (!onlySearchUnloaded) for (let i in req.c) if (req.c.hasOwnProperty(i)) {
 						let m = req.c[i].exports, r = null;
-						if (m && (typeof m == "object" || typeof m == "function") && !!(r = filter(m))) {
-							if (all) found.push(defaultExport ? r : req.c[i]);
-							else return defaultExport ? r : req.c[i];
+						if (m && (typeof m == "object" || typeof m == "function")) {
+							if (!!(r = filter(m))) {
+								if (all) found.push(defaultExport ? r : req.c[i]);
+								else return defaultExport ? r : req.c[i];
+							}
+							else for (let key of Object.keys(m)) if (key.length < 4 && m[key] && !!(r = filter(m[key]))) {
+								if (all) found.push(defaultExport ? r : req.c[i]);
+								else return defaultExport ? r : req.c[i];
+							}
 						}
 						if (m && m.__esModule && m.default && (typeof m.default == "object" || typeof m.default == "function")) {
 							if (!!(r = filter(m.default))) {
@@ -1251,66 +1252,39 @@ module.exports = (_ => {
 				};
 				C_BDFDB.ModuleUtils.findByProperties = function (...properties) {
 					properties = properties.flat(10);
-					let arg2 = properties.pop();
-					let arg1 = properties.pop();
-					let defaultExport = true, noWarnings = false;
-					if (typeof arg2 != "boolean") properties.push(...[arg1, arg2].filter(n => n));
-					else {
-						if (typeof arg1 != "boolean") {
-							if (arg1) properties.push(arg1);
-							defaultExport = arg2;
-						}
-						else {
-							defaultExport = arg1;
-							noWarnings = arg2;
-						}
+					let config = properties.pop();
+					if (typeof config == "string") {
+						properties.push(config);
+						config = {};
 					}
 					return Internal.findModule("prop", JSON.stringify(properties), m => properties.every(prop => {
 						const value = m[prop];
 						return value !== undefined && !(typeof value == "string" && !value);
-					}) && m, defaultExport, noWarnings);
+					}) && m, config);
 				};
-				C_BDFDB.ModuleUtils.findByName = function (name, defaultExport, noWarnings = false) {
-					return Internal.findModule("name", JSON.stringify(name), m => m.displayName === name && m || m.render && m.render.displayName === name && m || m.constructor && m.constructor.displayName === name && m || m[name] && m[name].displayName === name && m[name] || typeof m.getName == "function" && m.getName() == name && m, typeof defaultExport != "boolean" ? true : defaultExport, noWarnings);
+				C_BDFDB.ModuleUtils.findByName = function (name, config = {}) {
+					return Internal.findModule("name", JSON.stringify(name), m => m.displayName === name && m || m.render && m.render.displayName === name && m || m.constructor && m.constructor.displayName === name && m || m[name] && m[name].displayName === name && m[name] || typeof m.getName == "function" && m.getName() == name && m, config);
 				};
 				C_BDFDB.ModuleUtils.findByString = function (...strings) {
 					strings = strings.flat(10);
-					let arg2 = strings.pop();
-					let arg1 = strings.pop();
-					let defaultExport = true, noWarnings = false;
-					if (typeof arg2 != "boolean") strings.push(...[arg1, arg2].filter(n => n));
-					else {
-						if (typeof arg1 != "boolean") {
-							if (arg1) strings.push(arg1);
-							defaultExport = arg2;
-						}
-						else {
-							defaultExport = arg1;
-							noWarnings = arg2;
-						}
+					let config = strings.pop();
+					if (typeof config == "string") {
+						strings.push(config);
+						config = {};
 					}
-					return Internal.findModule("string", JSON.stringify(strings), m => Internal.hasModuleStrings(m, strings) && m, defaultExport, noWarnings);
+					return Internal.findModule("string", JSON.stringify(strings), m => Internal.hasModuleStrings(m, strings) && m, config);
 				};
 				C_BDFDB.ModuleUtils.findByPrototypes = function (...protoProps) {
 					protoProps = protoProps.flat(10);
-					let arg2 = protoProps.pop();
-					let arg1 = protoProps.pop();
-					let defaultExport = true, noWarnings = false;
-					if (typeof arg2 != "boolean") protoProps.push(...[arg1, arg2].filter(n => n));
-					else {
-						if (typeof arg1 != "boolean") {
-							if (arg1) protoProps.push(arg1);
-							defaultExport = arg2;
-						}
-						else {
-							defaultExport = arg1;
-							noWarnings = arg2;
-						}
+					let config = protoProps.pop();
+					if (typeof config == "string") {
+						protoProps.push(config);
+						config = {};
 					}
 					return Internal.findModule("proto", JSON.stringify(protoProps), m => m.prototype && protoProps.every(prop => {
 						const value = m.prototype[prop];
 						return value !== undefined && !(typeof value == "string" && !value);
-					}) && m, defaultExport, noWarnings);
+					}) && m, config);
 				};
 				C_BDFDB.ModuleUtils.findStringObject = function (props, config = {}) {
 					return C_BDFDB.ModuleUtils.find(m => {
@@ -1324,6 +1298,59 @@ module.exports = (_ => {
 						return (!config.length || (config.smaller ? amount < config.length : amount == config.length)) && [props].flat(10).every(string => stringified.indexOf(`${string}:`) > -1) && m;
 					}, {onlySearchUnloaded: true});
 				};
+				
+				DiscordConstants = {};
+				Internal.DiscordConstants = new Proxy(DiscordConstants, {
+					get: function (_, item) {
+						if (InternalData.CustomDiscordConstants && InternalData.CustomDiscordConstants[item]) return InternalData.CustomDiscordConstants[item];
+						if (DiscordConstants[item]) return DiscordConstants[item];
+						if (!InternalData.DiscordConstants[item]) {
+							C_BDFDB.LogUtils.warn([item, "Object not found in DiscordConstants"]);
+							return {};
+						}
+						DiscordConstants[item] = C_BDFDB.ModuleUtils.findByProperties(InternalData.DiscordConstants[item]);
+						return DiscordConstants[item] ? DiscordConstants[item] : {};
+					}
+				});
+				C_BDFDB.DiscordConstants = Internal.DiscordConstants;
+				
+				DiscordObjects = {};
+				Internal.DiscordObjects = new Proxy(DiscordObjects, {
+					get: function (_, item) {
+						if (DiscordObjects[item]) return DiscordObjects[item];
+						if (!InternalData.DiscordObjects[item]) return (function () {});
+						let defaultExport = InternalData.DiscordObjects[item].exported == undefined ? true : InternalData.DiscordObjects[item].exported;
+						if (InternalData.DiscordObjects[item].name) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByName(InternalData.DiscordObjects[item].name, {defaultExport});
+						else if (InternalData.DiscordObjects[item].props) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByPrototypes(InternalData.DiscordObjects[item].props, {defaultExport});
+						else if (InternalData.DiscordObjects[item].strings) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByString(InternalData.DiscordObjects[item].strings, {defaultExport});
+						if (InternalData.DiscordObjects[item].value) DiscordObjects[item] = (DiscordObjects[item] || {})[InternalData.DiscordObjects[item].value];
+						return DiscordObjects[item] ? DiscordObjects[item] : (function () {});
+					}
+				});
+				C_BDFDB.DiscordObjects = Internal.DiscordObjects;
+				
+				LibraryRequires = {};
+				Internal.LibraryRequires = new Proxy(LibraryRequires, {
+					get: function (_, item) {
+						if (LibraryRequires[item]) return LibraryRequires[item];
+						if (InternalData.LibraryRequires.indexOf(item) == -1) return (function () {});
+						try {LibraryRequires[item] = require(item);}
+						catch (err) {}
+						return LibraryRequires[item] ? LibraryRequires[item] : (function () {});
+					}
+				});
+				C_BDFDB.LibraryRequires = Internal.LibraryRequires;
+				
+				LibraryStores = {};
+				Internal.LibraryStores = new Proxy(LibraryStores, {
+					get: function (_, item) {
+						if (LibraryStores[item]) return LibraryStores[item];
+						LibraryStores[item] = C_BDFDB.ModuleUtils.find(m => m && typeof m.getName == "function" && m.getName() == item && m);
+						if (!LibraryStores[item]) C_BDFDB.LogUtils.warn([item, "could not be found in Webmodule Stores"]);
+						return LibraryStores[item] ? LibraryStores[item] : null;
+					}
+				});
+				C_BDFDB.LibraryStores = Internal.LibraryStores;
 			
 				C_BDFDB.ObserverUtils = {};
 				C_BDFDB.ObserverUtils.connect = function (plugin, eleOrSelec, observer, config = {childList: true}) {
@@ -1545,18 +1572,19 @@ module.exports = (_ => {
 				
 				var Toasts = [], NotificationBars = [];
 				var ToastQueues = {}, DesktopNotificationQueue = {queue: [], running: false};
-				for (let key in LibraryConstants.ToastPositions) ToastQueues[LibraryConstants.ToastPositions[key]] = {queue: [], full: false};
+				for (let key in Internal.DiscordConstants.ToastPositions) ToastQueues[Internal.DiscordConstants.ToastPositions[key]] = {queue: [], full: false};
 				
 				C_BDFDB.NotificationUtils = {};
 				C_BDFDB.NotificationUtils.toast = function (children, config = {}) {
 					if (!children) return;
 					let app = document.querySelector(C_BDFDB.dotCN.appmount) || document.body;
 					if (!app) return;
-					let position = config.position && LibraryConstants.ToastPositions[config.position] || Internal.settings.choices.toastPosition && LibraryConstants.ToastPositions[Internal.settings.choices.toastPosition] || LibraryConstants.ToastPositions.right;
+					let position = config.position && Internal.DiscordConstants.ToastPositions[config.position] || Internal.settings.choices.toastPosition && Internal.DiscordConstants.ToastPositions[Internal.settings.choices.toastPosition] || Internal.DiscordConstants.ToastPositions.right;
+					let queue = ToastQueues[position] || {};
 					
 					const runQueue = _ => {
-						if (ToastQueues[position].full) return;
-						let data = ToastQueues[position].queue.shift();
+						if (queue.full) return;
+						let data = queue.queue.shift();
 						if (!data) return;
 						
 						let id = C_BDFDB.NumberUtils.generateId(Toasts);
@@ -1607,7 +1635,7 @@ module.exports = (_ => {
 									if (!toasts.querySelectorAll(C_BDFDB.dotCN.toast).length) toasts.remove();
 								}, 300);
 							}
-							ToastQueues[position].full = false;
+							queue.full = false;
 							runQueue();
 						};
 						
@@ -1639,8 +1667,8 @@ module.exports = (_ => {
 						let icon = data.config.avatar ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.AvatarComponents.default, {
 							src: data.config.avatar,
 							size: Internal.LibraryComponents.AvatarComponents.Sizes.SIZE_24
-						}) : ((data.config.icon || data.config.type && LibraryConstants.ToastIcons[data.config.type]) ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.SvgIcon, {
-							name: data.config.type && LibraryConstants.ToastIcons[data.config.type] && Internal.LibraryComponents.SvgIcon.Names[LibraryConstants.ToastIcons[data.config.type]],
+						}) : ((data.config.icon || data.config.type && Internal.DiscordConstants.ToastIcons[data.config.type]) ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.SvgIcon, {
+							name: data.config.type && Internal.DiscordConstants.ToastIcons[data.config.type] && Internal.LibraryComponents.SvgIcon.Names[Internal.DiscordConstants.ToastIcons[data.config.type]],
 							iconSVG: data.config.icon,
 							width: 18,
 							height: 18,
@@ -1694,7 +1722,7 @@ module.exports = (_ => {
 							}
 						}, {}), data.toast);
 						
-						ToastQueues[position].full = (C_BDFDB.ArrayUtils.sum(Array.from(toasts.childNodes).map(c => {
+						queue.full = (C_BDFDB.ArrayUtils.sum(Array.from(toasts.childNodes).map(c => {
 							let height = C_BDFDB.DOMUtils.getRects(c).height;
 							return height > 50 ? height : 50;
 						})) - 100) > C_BDFDB.DOMUtils.getRects(app).height;
@@ -1704,7 +1732,7 @@ module.exports = (_ => {
 					
 					let toast = C_BDFDB.DOMUtils.create(`<div class="${C_BDFDB.disCNS.toast + C_BDFDB.disCN.toastopening}"></div>`);
 					toast.update = _ => {};
-					ToastQueues[position].queue.push({children, config, toast});
+					queue.queue.push({children, config, toast});
 					runQueue();
 					return toast;
 				};
@@ -1925,8 +1953,8 @@ module.exports = (_ => {
 					};
 					const setText = newText => {
 						if (C_BDFDB.ObjectUtils.is(config.guild)) {
-							let isMuted = Internal.LibraryModules.MutedUtils.isMuted(config.guild.id);
-							let muteConfig = Internal.LibraryModules.MutedUtils.getMuteConfig(config.guild.id);
+							let isMuted = Internal.LibraryStores.UserGuildSettingsStore.isMuted(config.guild.id);
+							let muteConfig = Internal.LibraryStores.UserGuildSettingsStore.getMuteConfig(config.guild.id);
 							
 							let children = [typeof newText == "function" ? newText() : newText].flat(10).filter(n => typeof n == "string" || C_BDFDB.ReactUtils.isValidElement(n));
 							
@@ -1937,7 +1965,7 @@ module.exports = (_ => {
 										children: [
 											C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.GuildComponents.Badge, {
 												guild: config.guild,
-												size: Internal.LibraryModules.StringUtils.cssValueToNumber(Internal.DiscordClassModules.TooltipGuild.iconSize),
+												size: C_BDFDB.StringUtils.cssValueToNumber(Internal.DiscordClassModules.TooltipGuild.iconSize),
 												className: C_BDFDB.disCN.tooltiprowicon
 											}),
 											C_BDFDB.ReactUtils.createElement("span", {
@@ -2093,7 +2121,6 @@ module.exports = (_ => {
 				};
 				
 				Internal.forceInitiateProcess = function (pluginDataObjs, instance, type) {
-					//console.log("forceInitiateProcess", pluginDataObjs, instance, type);
 					pluginDataObjs = [pluginDataObjs].flat(10).filter(n => n);
 					if (pluginDataObjs.length && instance && type) {
 						let forceRender = false;
@@ -2127,7 +2154,7 @@ module.exports = (_ => {
 				Internal.initiateProcess = function (plugin, type, e) {
 					plugin = plugin == C_BDFDB && Internal || plugin;
 					if (C_BDFDB.ObjectUtils.is(plugin) && !plugin.stopping && e.instance) {
-						type = Internal.LibraryModules.StringUtils.upperCaseFirstChar(type.split(" _ _ ")[1] || type).replace(/[^A-z0-9]|_/g, "");
+						type = C_BDFDB.StringUtils.upperCaseFirstChar(type.split(" _ _ ")[1] || type).replace(/[^A-z0-9]|_/g, "");
 						if (typeof plugin[`process${type}`] == "function") {
 							if (typeof e.methodname == "string" && (e.methodname.indexOf("componentDid") == 0 || e.methodname.indexOf("componentWill") == 0)) {
 								e.node = C_BDFDB.ReactUtils.findDOMNode(e.instance);
@@ -2190,7 +2217,7 @@ module.exports = (_ => {
 							}
 							
 							let patchSpecial = (func, argument) => {
-								let module = C_BDFDB.ModuleUtils[func](argument, config.exported);
+								let module = C_BDFDB.ModuleUtils[func](argument, {defaultExport: config.exported});
 								let exports = module && !config.exported && module.exports || module;
 								exports = config.path && C_BDFDB.ObjectUtils.get(exports, config.path) || exports;
 								exports && Internal.patchComponent(pluginData, Internal.isMemoOrForwardRef(exports) ? exports.default : exports, config);
@@ -2275,8 +2302,8 @@ module.exports = (_ => {
 						}
 					}
 					else {
-						let unmappedType = config.mappedType.split(" _ _ ")[1] || config.mappedType;
-						let constructor = C_BDFDB.ReactUtils.findConstructor(ins, unmappedType) || C_BDFDB.ReactUtils.findConstructor(ins, unmappedType, {up: true});
+						let trueType = config.mappedType.split(" _ _ ")[0];
+						let constructor = C_BDFDB.ReactUtils.findConstructor(ins, trueType) || C_BDFDB.ReactUtils.findConstructor(ins, trueType, {up: true});
 						if (constructor) {
 							Internal.patchComponent(pluginDataObjs, constructor, config);
 							C_BDFDB.PatchUtils.forceAllUpdates(pluginDataObjs.map(n => n.plugin), config.mappedType);
@@ -2490,25 +2517,16 @@ module.exports = (_ => {
 							if (C_BDFDB.ArrayUtils.sum(updateDataArray.map(n => n.filteredModules.length + n.specialModules.length))) {
 								try {
 									let filteredModules = C_BDFDB.ArrayUtils.removeCopies(updateDataArray.map(n => n.filteredModules).flat(10));
-									//console.log("filtered",filteredModules);
 									let specialModules = C_BDFDB.ArrayUtils.removeCopies(updateDataArray.map(n => n.specialModules).flat(10));
-									//console.log("special",specialModules);
 									const appInsDown = C_BDFDB.ReactUtils.findOwner(app, {name: filteredModules, type: specialModules, all: true, unlimited: true, group: true});
-									//console.log("appinsdown",appInsDown);
 									const appInsUp = C_BDFDB.ReactUtils.findOwner(app, {name: filteredModules, type: specialModules, all: true, unlimited: true, group: true, up: true});
 									for (let type in appInsDown) {
 										let filteredPlugins = plugins.filter(n => updateData[n.name].filteredModules.includes(type) || updateData[n.name].specialModuleTypes.includes(type)).map(n => ({plugin: n, patchTypes: updateData[n.name].patchTypes}));
-										for (let ins of appInsDown[type]){
-											//console.log("appInsDown", type, ins);
-											Internal.forceInitiateProcess(filteredPlugins, ins, type);
-										};
+										for (let ins of appInsDown[type]) Internal.forceInitiateProcess(filteredPlugins, ins, type);
 									}
 									for (let type in appInsUp) {
 										let filteredPlugins = plugins.filter(n => updateData[n.name].filteredModules.includes(type) || updateData[n.name].specialModuleTypes.includes(type)).map(n => ({plugin: n, patchTypes: updateData[n.name].patchTypes}));
-										for (let ins of appInsUp[type]){
-											//console.log("appInsDown", type, ins);
-											Internal.forceInitiateProcess(filteredPlugins, ins, type);
-										}
+										for (let ins of appInsUp[type]) Internal.forceInitiateProcess(filteredPlugins, ins, type);
 									}
 									if (bdSettings) {
 										const bdSettingsIns = C_BDFDB.ReactUtils.findOwner(bdSettings, {name: filteredModules, type: specialModules, all: true, unlimited: true});
@@ -2523,35 +2541,6 @@ module.exports = (_ => {
 						}
 					}
 				};
-
-				C_BDFDB.DiscordConstants = C_BDFDB.ModuleUtils.findByProperties("Permissions", "ActivityTypes");
-				
-				DiscordObjects = {};
-				Internal.DiscordObjects = new Proxy(DiscordObjects, {
-					get: function (_, item) {
-						if (DiscordObjects[item]) return DiscordObjects[item];
-						if (!InternalData.DiscordObjects[item]) return (function () {});
-						let defaultExport = InternalData.DiscordObjects[item].exported == undefined ? true : InternalData.DiscordObjects[item].exported;
-						if (InternalData.DiscordObjects[item].name) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByName(InternalData.DiscordObjects[item].name, defaultExport);
-						else if (InternalData.DiscordObjects[item].props) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByPrototypes(InternalData.DiscordObjects[item].props, defaultExport);
-						else if (InternalData.DiscordObjects[item].strings) DiscordObjects[item] = C_BDFDB.ModuleUtils.findByString(InternalData.DiscordObjects[item].strings, defaultExport);
-						if (InternalData.DiscordObjects[item].value) DiscordObjects[item] = (DiscordObjects[item] || {})[InternalData.DiscordObjects[item].value];
-						return DiscordObjects[item] ? DiscordObjects[item] : (function () {});
-					}
-				});
-				C_BDFDB.DiscordObjects = Internal.DiscordObjects;
-				
-				LibraryRequires = {};
-				Internal.LibraryRequires = new Proxy(LibraryRequires, {
-					get: function (_, item) {
-						if (LibraryRequires[item]) return LibraryRequires[item];
-						if (InternalData.LibraryRequires.indexOf(item) == -1) return (function () {});
-						try {LibraryRequires[item] = require(item);}
-						catch (err) {}
-						return LibraryRequires[item] ? LibraryRequires[item] : (function () {});
-					}
-				});
-				C_BDFDB.LibraryRequires = Internal.LibraryRequires;
 				
 				LibraryModules = {};
 				LibraryModules.LanguageStore = C_BDFDB.ModuleUtils.find(m => m.Messages && m.Messages.IMAGE && m);
@@ -2561,31 +2550,45 @@ module.exports = (_ => {
 					get: function (_, item) {
 						if (LibraryModules[item]) return LibraryModules[item];
 						if (!InternalData.LibraryModules[item]) return null;
+						let defaultExport = typeof InternalData.LibraryModules[item].exported != "boolean" ? true : InternalData.LibraryModules[item].exported;
 						if (InternalData.LibraryModules[item].props) {
 							if (InternalData.LibraryModules[item].nonProps) {
 								LibraryModules[item] = C_BDFDB.ModuleUtils.find(m => InternalData.LibraryModules[item].props.every(prop => {
 									const value = m[prop];
 									return value !== undefined && !(typeof value == "string" && !value);
-								}) && InternalData.LibraryModules[item].nonProps.every(prop => m[prop] === undefined) && m);
+								}) && InternalData.LibraryModules[item].nonProps.every(prop => m[prop] === undefined) && m, {defaultExport});
 								if (!LibraryModules[item]) C_BDFDB.LogUtils.warn(`${JSON.stringify([InternalData.LibraryModules[item].props, InternalData.LibraryModules[item].nonProps].flat(10))} [props + nonProps] not found in WebModules`);
 							}
-							else LibraryModules[item] = C_BDFDB.ModuleUtils.findByProperties(InternalData.LibraryModules[item].props);
+							else LibraryModules[item] = C_BDFDB.ModuleUtils.findByProperties(InternalData.LibraryModules[item].props, {defaultExport});
 						}
-						else if (InternalData.LibraryModules[item].name) LibraryModules[item] = C_BDFDB.ModuleUtils.findByName(InternalData.LibraryModules[item].name);
-						else if (InternalData.LibraryModules[item].strings) LibraryModules[item] = C_BDFDB.ModuleUtils.findByString(InternalData.LibraryModules[item].strings);
+						else if (InternalData.LibraryModules[item].name) LibraryModules[item] = C_BDFDB.ModuleUtils.findByName(InternalData.LibraryModules[item].name, {defaultExport});
+						else if (InternalData.LibraryModules[item].strings) LibraryModules[item] = C_BDFDB.ModuleUtils.findByString(InternalData.LibraryModules[item].strings, {defaultExport});
 						if (InternalData.LibraryModules[item].value) LibraryModules[item] = (LibraryModules[item] || {})[InternalData.LibraryModules[item].value];
+						if (LibraryModules[item] && InternalData.LibraryModulesFunctionsMap && InternalData.LibraryModulesFunctionsMap[item]) {
+							let module = LibraryModules[item], mapped = {};
+							LibraryModules[item] = new Proxy(Object.assign({}, module, InternalData.LibraryModulesFunctionsMap[item]), {
+								get: function (_, item2) {
+									if (mapped[item2]) return module[mapped[item2]];
+									if (!InternalData.LibraryModulesFunctionsMap[item][item2]) return module[item2];
+									let foundFunc = Object.entries(module).find(n => InternalData.LibraryModulesFunctionsMap[item][item2].flat(10).every(string => n && n.toString().indexOf(string) > -1));
+									if (foundFunc) {
+										mapped[item2] = foundFunc[0];
+										return foundFunc[1];
+									}
+								}
+							});
+						}
 						return LibraryModules[item] ? LibraryModules[item] : null;
 					}
 				});
-				
 				C_BDFDB.LibraryModules = Internal.LibraryModules;
 				
 				if (Internal.LibraryModules.KeyCodeUtils) Internal.LibraryModules.KeyCodeUtils.getString = function (keyArray) {
-					return Internal.LibraryModules.KeyCodeUtils.toString([keyArray].flat(10).filter(n => n).map(keyCode => [C_BDFDB.DiscordConstants.KeyboardDeviceTypes.KEYBOARD_KEY, Internal.LibraryModules.KeyCodeUtils.keyToCode((Object.entries(Internal.LibraryModules.KeyEvents.codes).find(n => n[1] == keyCode && Internal.LibraryModules.KeyCodeUtils.keyToCode(n[0], null)) || [])[0], null) || keyCode]), true);
+					return Internal.LibraryModules.KeyCodeUtils.toString([keyArray].flat(10).filter(n => n).map(keyCode => [Internal.DiscordConstants.KeyboardDeviceTypes.KEYBOARD_KEY, Internal.LibraryModules.KeyCodeUtils.keyToCode((Object.entries(Internal.LibraryModules.KeyEvents.codes).find(n => n[1] == keyCode && Internal.LibraryModules.KeyCodeUtils.keyToCode(n[0], null)) || [])[0], null) || keyCode]), true);
 				};
 				
-				C_BDFDB.ReactUtils = Object.assign({}, Internal.LibraryModules.React, Internal.LibraryModules.ReactDOM);
-				C_BDFDB.ReactUtils.childrenToArray = function (parent) {
+				const MyReact = {};
+				MyReact.childrenToArray = function (parent) {
 					if (parent && parent.props && parent.props.children && !C_BDFDB.ArrayUtils.is(parent.props.children)) {
 						const child = parent.props.children;
 						parent.props.children = [];
@@ -2593,7 +2596,7 @@ module.exports = (_ => {
 					}
 					return parent.props.children;
 				}
-				C_BDFDB.ReactUtils.createElement = function (component, props = {}, errorWrap = false) {
+				MyReact.createElement = function (component, props = {}, errorWrap = false) {
 					if (component && component.defaultProps) for (let key in component.defaultProps) if (props[key] == null) props[key] = component.defaultProps[key];
 					try {
 						let child = Internal.LibraryModules.React.createElement(component || "div", props) || null;
@@ -2603,23 +2606,24 @@ module.exports = (_ => {
 					catch (err) {C_BDFDB.LogUtils.error(["Could not create React Element!", err]);}
 					return null;
 				};
-				C_BDFDB.ReactUtils.objectToReact = function (obj) {
+				MyReact.objectToReact = function (obj) {
 					if (!obj) return null;
 					else if (typeof obj == "string") return obj;
 					else if (C_BDFDB.ObjectUtils.is(obj)) return C_BDFDB.ReactUtils.createElement(obj.type || obj.props && obj.props.href && "a" || "div", !obj.props ?  {} : Object.assign({}, obj.props, {
-						children: obj.props.children ? C_BDFDB.ReactUtils.objectToReact(obj.props.children) : null
+						children: obj.props.children ? MyReact.objectToReact(obj.props.children) : null
 					}));
-					else if (C_BDFDB.ArrayUtils.is(obj)) return obj.map(n => C_BDFDB.ReactUtils.objectToReact(n));
+					else if (C_BDFDB.ArrayUtils.is(obj)) return obj.map(n => MyReact.objectToReact(n));
 					else return null;
 				};
-				C_BDFDB.ReactUtils.markdownParse = function (str) {
-					if (!C_BDFDB.ReactUtils.markdownParse.parser || !C_BDFDB.ReactUtils.markdownParse.render) {
-						C_BDFDB.ReactUtils.markdownParse.parser = Internal.LibraryModules.SimpleMarkdownParser.parserFor(Internal.LibraryModules.SimpleMarkdownParser.defaultRules);
-						C_BDFDB.ReactUtils.markdownParse.render = Internal.LibraryModules.SimpleMarkdownParser.reactFor(Internal.LibraryModules.SimpleMarkdownParser.ruleOutput(Internal.LibraryModules.SimpleMarkdownParser.defaultRules, "react"));
+				MyReact.markdownParse = function (str) {
+					if (!Internal.LibraryModules.SimpleMarkdownParser) return null;
+					if (!MyReact.markdownParse.parser || !MyReact.markdownParse.render) {
+						MyReact.markdownParse.parser = Internal.LibraryModules.SimpleMarkdownParser.parserFor(Internal.LibraryModules.SimpleMarkdownParser.defaultRules);
+						MyReact.markdownParse.render = Internal.LibraryModules.SimpleMarkdownParser.reactFor(Internal.LibraryModules.SimpleMarkdownParser.ruleOutput(Internal.LibraryModules.SimpleMarkdownParser.defaultRules, "react"));
 					}
-					return C_BDFDB.ReactUtils.markdownParse.render(C_BDFDB.ReactUtils.markdownParse.parser(str, {inline: true}));
+					return MyReact.render && MyReact.parser ? MyReact.render(MyReact.parser(str, {inline: true})) : null;
 				};
-				C_BDFDB.ReactUtils.elementToReact = function (node, ref) {
+				MyReact.elementToReact = function (node, ref) {
 					if (C_BDFDB.ReactUtils.isValidElement(node)) return node;
 					else if (!Node.prototype.isPrototypeOf(node)) return null;
 					else if (node.nodeType == Node.TEXT_NODE) return node.nodeValue;
@@ -2635,12 +2639,12 @@ module.exports = (_ => {
 						let camelprop = key.replace(/-([a-z]?)/g, (m, g) => g.toUpperCase());
 						if (attributes.style[camelprop] != null) importantStyles.push(key);
 					}
-					for (let child of node.childNodes) attributes.children.push(C_BDFDB.ReactUtils.elementToReact(child));
+					for (let child of node.childNodes) attributes.children.push(MyReact.elementToReact(child));
 					attributes.className = C_BDFDB.DOMUtils.formatClassName(attributes.className, attributes.class);
 					delete attributes.class;
 					return C_BDFDB.ReactUtils.forceStyle(C_BDFDB.ReactUtils.createElement(node.tagName, attributes), importantStyles);
 				};
-				C_BDFDB.ReactUtils.forceStyle = function (reactEle, styles) {
+				MyReact.forceStyle = function (reactEle, styles) {
 					if (!C_BDFDB.ReactUtils.isValidElement(reactEle)) return null;
 					if (!C_BDFDB.ObjectUtils.is(reactEle.props.style) || !C_BDFDB.ArrayUtils.is(styles) || !styles.length) return reactEle;
 					let ref = reactEle.ref;
@@ -2654,7 +2658,7 @@ module.exports = (_ => {
 					};
 					return reactEle;
 				};
-				C_BDFDB.ReactUtils.findChild = function (nodeOrInstance, config) {
+				MyReact.findChild = function (nodeOrInstance, config) {
 					if (!nodeOrInstance || !C_BDFDB.ObjectUtils.is(config) || !config.name && !config.key && !config.props && !config.filter) return config.all ? [] : null;
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
 					if (!C_BDFDB.ObjectUtils.is(instance) && !C_BDFDB.ArrayUtils.is(instance)) return null;
@@ -2739,7 +2743,7 @@ module.exports = (_ => {
 						return key != null && props[key] != null && value != null && (key == "className" ? (" " + props[key] + " ").indexOf(" " + value + " ") > -1 : C_BDFDB.equals(props[key], value));
 					}
 				};
-				C_BDFDB.ReactUtils.setChild = function (parent, stringOrChild) {
+				MyReact.setChild = function (parent, stringOrChild) {
 					if (!C_BDFDB.ReactUtils.isValidElement(parent) || (!C_BDFDB.ReactUtils.isValidElement(stringOrChild) && typeof stringOrChild != "string" && !C_BDFDB.ArrayUtils.is(stringOrChild))) return;
 					let set = false;
 					checkParent(parent);
@@ -2764,7 +2768,7 @@ module.exports = (_ => {
 						}
 					}
 				};
-				C_BDFDB.ReactUtils.findConstructor = function (nodeOrInstance, types, config = {}) {
+				MyReact.findConstructor = function (nodeOrInstance, types, config = {}) {
 					if (!C_BDFDB.ObjectUtils.is(config)) return null;
 					if (!nodeOrInstance || !types) return config.all ? (config.group ? {} : []) : null;
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
@@ -2829,13 +2833,13 @@ module.exports = (_ => {
 						return result;
 					}
 				};
-				C_BDFDB.ReactUtils.findDOMNode = function (instance) {
+				MyReact.findDOMNode = function (instance) {
 					if (Node.prototype.isPrototypeOf(instance)) return instance;
 					if (!instance || !instance.updater || typeof instance.updater.isMounted !== "function" || !instance.updater.isMounted(instance)) return null;
 					let node = Internal.LibraryModules.ReactDOM.findDOMNode(instance) || C_BDFDB.ObjectUtils.get(instance, "child.stateNode");
 					return Node.prototype.isPrototypeOf(node) ? node : null;
 				};
-				C_BDFDB.ReactUtils.findOwner = function (nodeOrInstance, config) {
+				MyReact.findOwner = function (nodeOrInstance, config) {
 					if (!C_BDFDB.ObjectUtils.is(config)) return null;
 					if (!nodeOrInstance || !config.name && !config.type && !config.key && !config.props && !config.filter) return config.all ? (config.group ? {} : []) : null;
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
@@ -2909,7 +2913,7 @@ module.exports = (_ => {
 						return result;
 					}
 				};
-				C_BDFDB.ReactUtils.findParent = function (nodeOrInstance, config) {
+				MyReact.findParent = function (nodeOrInstance, config) {
 					if (!nodeOrInstance || !C_BDFDB.ObjectUtils.is(config) || !config.name && !config.key && !config.props && !config.filter) return [null, -1];
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
 					if (!C_BDFDB.ObjectUtils.is(instance) && !C_BDFDB.ArrayUtils.is(instance) || instance.props && typeof instance.props.children == "function") return [null, -1];
@@ -2985,7 +2989,7 @@ module.exports = (_ => {
 						return key != null && props[key] != null && value != null && (key == "className" ? (" " + props[key] + " ").indexOf(" " + value + " ") > -1 : C_BDFDB.equals(props[key], value));
 					}
 				};
-				C_BDFDB.ReactUtils.findProps = function (nodeOrInstance, config) {
+				MyReact.findProps = function (nodeOrInstance, config) {
 					if (!C_BDFDB.ObjectUtils.is(config)) return null;
 					if (!nodeOrInstance || !config.name && !config.key) return null;
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
@@ -3025,7 +3029,7 @@ module.exports = (_ => {
 						return result;
 					}
 				};
-				C_BDFDB.ReactUtils.findValue = function (nodeOrInstance, searchKey, config = {}) {
+				MyReact.findValue = function (nodeOrInstance, searchKey, config = {}) {
 					if (!C_BDFDB.ObjectUtils.is(config)) return null;
 					if (!nodeOrInstance || typeof searchKey != "string") return config.all ? [] : null;
 					let instance = Node.prototype.isPrototypeOf(nodeOrInstance) ? C_BDFDB.ReactUtils.getInstance(nodeOrInstance) : nodeOrInstance;
@@ -3089,17 +3093,17 @@ module.exports = (_ => {
 						return result;
 					}
 				};
-				C_BDFDB.ReactUtils.forceUpdate = function (...instances) {
+				MyReact.forceUpdate = function (...instances) {
 					for (let ins of instances.flat(10).filter(n => n)) if (ins.updater && typeof ins.updater.isMounted == "function" && ins.updater.isMounted(ins)) ins.forceUpdate();
 				};
-				C_BDFDB.ReactUtils.getInstance = function (node) {
+				MyReact.getInstance = function (node) {
 					if (!C_BDFDB.ObjectUtils.is(node)) return null;
 					return node[Object.keys(node).find(key => key.startsWith("__reactInternalInstance") || key.startsWith("__reactFiber"))];
 				};
-				C_BDFDB.ReactUtils.isCorrectInstance = function (instance, name) {
+				MyReact.isCorrectInstance = function (instance, name) {
 					return instance && ((instance.type && (instance.type.render && instance.type.render.displayName === name || instance.type.displayName === name || instance.type.name === name || instance.type === name)) || instance.render && (instance.render.displayName === name || instance.render.name === name) || instance.displayName == name || instance.name === name);
 				};
-				C_BDFDB.ReactUtils.render = function (component, node) {
+				MyReact.render = function (component, node) {
 					if (!C_BDFDB.ReactUtils.isValidElement(component) || !Node.prototype.isPrototypeOf(node)) return;
 					try {
 						Internal.LibraryModules.ReactDOM.render(component, node);
@@ -3114,7 +3118,7 @@ module.exports = (_ => {
 					}
 					catch (err) {C_BDFDB.LogUtils.error(["Could not render React Element!", err]);}
 				};
-				C_BDFDB.ReactUtils.hookCall = function (callback, args) {
+				MyReact.hookCall = function (callback, args) {
 					if (typeof callback != "function") return null;
 					let returnValue = null, tempNode = document.createElement("div");
 					C_BDFDB.ReactUtils.render(C_BDFDB.ReactUtils.createElement(_ => {
@@ -3124,15 +3128,23 @@ module.exports = (_ => {
 					C_BDFDB.ReactUtils.unmountComponentAtNode(tempNode);
 					return returnValue;
 				};
+				C_BDFDB.ReactUtils = new Proxy(LibraryModules, {
+					get: function (_, item) {
+						if (MyReact[item]) return MyReact[item];
+						else if (LibraryModules.React[item]) return LibraryModules.React[item];
+						else if (LibraryModules.ReactDOM[item]) return LibraryModules.ReactDOM[item];
+						else return null;
+					}
+				});
 
 				C_BDFDB.MessageUtils = {};
 				C_BDFDB.MessageUtils.isSystemMessage = function (message) {
-					return message && !C_BDFDB.DiscordConstants.USER_MESSAGE_TYPES.has(message.type) && (message.type !== C_BDFDB.DiscordConstants.MessageTypes.APPLICATION_COMMAND || message.interaction == null);
+					return message && !Internal.DiscordConstants.MessageTypeGroups.USER_MESSAGE.has(message.type) && (message.type !== Internal.DiscordConstants.MessageTypes.CHAT_INPUT_COMMAND || message.interaction == null);
 				};
 				C_BDFDB.MessageUtils.rerenderAll = function (instant) {
 					C_BDFDB.TimeUtils.clear(C_BDFDB.MessageUtils.rerenderAll.timeout);
 					C_BDFDB.MessageUtils.rerenderAll.timeout = C_BDFDB.TimeUtils.timeout(_ => {
-						let channelId = Internal.LibraryModules.LastChannelStore.getChannelId();
+						let channelId = Internal.LibraryStores.SelectedChannelStore.getChannelId();
 						if (channelId) {
 							if (C_BDFDB.DMUtils.isDMChannel(channelId)) C_BDFDB.DMUtils.markAsRead(channelId);
 							else C_BDFDB.ChannelUtils.markAsRead(channelId);
@@ -3150,13 +3162,13 @@ module.exports = (_ => {
 				};
 				C_BDFDB.MessageUtils.openMenu = function (message, e = mousePosition, slim = false) {
 					if (!message) return;
-					let channel = Internal.LibraryModules.ChannelStore.getChannel(message.channel_id);
+					let channel = Internal.LibraryStores.ChannelStore.getChannel(message.channel_id);
 					if (!channel) return;
 					e = C_BDFDB.ListenerUtils.copyEvent(e.nativeEvent || e, (e.nativeEvent || e).currentTarget);
-					let menu = C_BDFDB.ModuleUtils.findByName(slim ? "MessageSearchResultContextMenu" : "MessageContextMenu", false, true);
+					let menu = C_BDFDB.ModuleUtils.findByName(slim ? "MessageSearchResultContextMenu" : "MessageContextMenu", {defaultExport: false, noWarnings: true});
 					if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {message, channel})));
 					else Internal.lazyLoadModuleImports(C_BDFDB.ModuleUtils.findByString(slim ? ["SearchResult", "message:", "openContextMenu"] : ["useHoveredMessage", "useContextMenuUser", "openContextMenu"])).then(_ => {
-						menu = C_BDFDB.ModuleUtils.findByName(slim ? "MessageSearchResultContextMenu" : "MessageContextMenu", false);
+						menu = C_BDFDB.ModuleUtils.findByName(slim ? "MessageSearchResultContextMenu" : "MessageContextMenu", {defaultExport: false});
 						if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {message, channel})));
 					});
 				};
@@ -3165,11 +3177,11 @@ module.exports = (_ => {
 				C_BDFDB.UserUtils.is = function (user) {
 					return user && user instanceof Internal.DiscordObjects.User;
 				};
-				const myDataUser = Internal.LibraryModules.UserStore && Internal.LibraryModules.UserStore.getCurrentUser && Internal.LibraryModules.UserStore.getCurrentUser();
+				const myDataUser = Internal.LibraryStores.UserStore && Internal.LibraryStores.UserStore.getCurrentUser && Internal.LibraryStores.UserStore.getCurrentUser();
 				if (myDataUser && C_BDFDB.UserUtils._id != myDataUser.id) C_BDFDB.UserUtils._id = myDataUser.id;
 				C_BDFDB.UserUtils.me = new Proxy(myDataUser || {}, {
 					get: function (list, item) {
-						const user = Internal.LibraryModules.UserStore && Internal.LibraryModules.UserStore.getCurrentUser && Internal.LibraryModules.UserStore.getCurrentUser();
+						const user = Internal.LibraryStores.UserStore && Internal.LibraryStores.UserStore.getCurrentUser && Internal.LibraryStores.UserStore.getCurrentUser();
 						if (user && C_BDFDB.UserUtils._id != user.id) {
 							Cache.data = {};
 							C_BDFDB.UserUtils._id = user.id;
@@ -3180,52 +3192,53 @@ module.exports = (_ => {
 				C_BDFDB.UserUtils.getStatus = function (id = C_BDFDB.UserUtils.me.id) {
 					id = typeof id == "number" ? id.toFixed() : id;
 					let activity = C_BDFDB.UserUtils.getActivity(id);
-					return activity && activity.type == C_BDFDB.DiscordConstants.ActivityTypes.STREAMING ? "streaming" : Internal.LibraryModules.StatusMetaUtils.getStatus(id);
+					return activity && activity.type == Internal.DiscordConstants.ActivityTypes.STREAMING ? "streaming" : Internal.LibraryStores.PresenceStore.getStatus(id);
 				};
 				C_BDFDB.UserUtils.getStatusColor = function (status, useColor) {
+					if (!Internal.DiscordConstants.Colors) return null;
 					status = typeof status == "string" ? status.toLowerCase() : null;
 					switch (status) {
-						case "online": return useColor ? C_BDFDB.DiscordConstants.Colors.STATUS_GREEN_600 : "var(--C_BDFDB-green)";
-						case "idle": return useColor ? C_BDFDB.DiscordConstants.Colors.STATUS_YELLOW : "var(--C_BDFDB-yellow)";
-						case "dnd": return useColor ? C_BDFDB.DiscordConstants.Colors.STATUS_RED : "var(--C_BDFDB-red)";
-						case "playing": return useColor ? C_BDFDB.DiscordConstants.Colors.BRAND : "var(--C_BDFDB-blurple)";
-						case "listening": return C_BDFDB.DiscordConstants.Colors.SPOTIFY;
-						case "streaming": return C_BDFDB.DiscordConstants.Colors.TWITCH;
-						default: return C_BDFDB.DiscordConstants.Colors.STATUS_GREY;
+						case "online": return useColor ? Internal.DiscordConstants.Colors.STATUS_GREEN_600 : "var(--C_BDFDB-green)";
+						case "idle": return useColor ? Internal.DiscordConstants.Colors.STATUS_YELLOW : "var(--C_BDFDB-yellow)";
+						case "dnd": return useColor ? Internal.DiscordConstants.Colors.STATUS_RED : "var(--C_BDFDB-red)";
+						case "playing": return useColor ? Internal.DiscordConstants.Colors.BRAND : "var(--C_BDFDB-blurple)";
+						case "listening": return Internal.DiscordConstants.Colors.SPOTIFY;
+						case "streaming": return Internal.DiscordConstants.Colors.TWITCH;
+						default: return Internal.DiscordConstants.Colors.STATUS_GREY;
 					}
 				};
 				C_BDFDB.UserUtils.getActivity = function (id = C_BDFDB.UserUtils.me.id) {
-					for (let activity of Internal.LibraryModules.StatusMetaUtils.getActivities(id)) if (activity.type != C_BDFDB.DiscordConstants.ActivityTypes.CUSTOM_STATUS) return activity;
+					for (let activity of Internal.LibraryStores.PresenceStore.getActivities(id)) if (activity.type != Internal.DiscordConstants.ActivityTypes.CUSTOM_STATUS) return activity;
 					return null;
 				};
 				C_BDFDB.UserUtils.getCustomStatus = function (id = C_BDFDB.UserUtils.me.id) {
-					for (let activity of Internal.LibraryModules.StatusMetaUtils.getActivities(id)) if (activity.type == C_BDFDB.DiscordConstants.ActivityTypes.CUSTOM_STATUS) return activity;
+					for (let activity of Internal.LibraryStores.PresenceStore.getActivities(id)) if (activity.type == Internal.DiscordConstants.ActivityTypes.CUSTOM_STATUS) return activity;
 					return null;
 				};
 				C_BDFDB.UserUtils.getAvatar = function (id = C_BDFDB.UserUtils.me.id) {
-					let user = Internal.LibraryModules.UserStore.getUser(id);
+					let user = Internal.LibraryStores.UserStore.getUser(id);
 					if (!user) return window.location.origin + "/assets/1f0bfc0865d324c2587920a7d80c609b.png";
 					else return ((user.avatar ? "" : window.location.origin) + Internal.LibraryModules.IconUtils.getUserAvatarURL(user)).split("?")[0];
 				};
-				C_BDFDB.UserUtils.getBanner = function (id = C_BDFDB.UserUtils.me.id, guildId = Internal.LibraryModules.LastGuildStore.getGuildId(), canAnimate = false) {
+				C_BDFDB.UserUtils.getBanner = function (id = C_BDFDB.UserUtils.me.id, guildId = Internal.LibraryStores.SelectedGuildStore.getGuildId(), canAnimate = false) {
 					let displayProfile = Internal.LibraryModules.MemberDisplayUtils.getDisplayProfile(id, guildId);
 					return (Internal.LibraryModules.IconUtils.getUserBannerURL(Object.assign({banner: displayProfile && displayProfile.banner, id: id}, {canAnimate})) || "").split("?")[0];
 				};
-				C_BDFDB.UserUtils.can = function (permission, id = C_BDFDB.UserUtils.me.id, channelId = Internal.LibraryModules.LastChannelStore.getChannelId()) {
-					if (!C_BDFDB.DiscordConstants.Permissions[permission]) C_BDFDB.LogUtils.warn([permission, "not found in Permissions"]);
+				C_BDFDB.UserUtils.can = function (permission, id = C_BDFDB.UserUtils.me.id, channelId = Internal.LibraryStores.SelectedChannelStore.getChannelId()) {
+					if (!Internal.DiscordConstants.Permissions[permission]) C_BDFDB.LogUtils.warn([permission, "not found in Permissions"]);
 					else {
-						let channel = Internal.LibraryModules.ChannelStore.getChannel(channelId);
-						if (channel) return Internal.LibraryModules.PermissionRoleUtils.can({permission: C_BDFDB.DiscordConstants.Permissions[permission], user: id, context: channel});
+						let channel = Internal.LibraryStores.ChannelStore.getChannel(channelId);
+						if (channel) return Internal.LibraryModules.PermissionRoleUtils.can({permission: Internal.DiscordConstants.Permissions[permission], user: id, context: channel});
 					}
 					return false;
 				};
 				C_BDFDB.UserUtils.openMenu = function (user, guildId, e = mousePosition) {
 					if (!user || !guildId) return;
 					e = C_BDFDB.ListenerUtils.copyEvent(e.nativeEvent || e, (e.nativeEvent || e).currentTarget);
-					let menu = C_BDFDB.ModuleUtils.findByName("GuildChannelUserContextMenu", false, true);
+					let menu = C_BDFDB.ModuleUtils.findByName("GuildChannelUserContextMenu", {defaultExport: false, noWarnings: true});
 					if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {user, guildId})));
 					else Internal.lazyLoadModuleImports(C_BDFDB.ModuleUtils.findByString("openUserContextMenu", "user:", "openContextMenu")).then(_ => {
-						menu = C_BDFDB.ModuleUtils.findByName("GuildChannelUserContextMenu", false);
+						menu = C_BDFDB.ModuleUtils.findByName("GuildChannelUserContextMenu", {defaultExport: false});
 						if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {user, guildId})));
 					});
 				};
@@ -3237,37 +3250,37 @@ module.exports = (_ => {
 					return guild instanceof Internal.DiscordObjects.Guild || Object.keys(new Internal.DiscordObjects.Guild({})).every(key => keys.indexOf(key) > -1);
 				};
 				C_BDFDB.GuildUtils.getIcon = function (id) {
-					let guild = Internal.LibraryModules.GuildStore.getGuild(id);
+					let guild = Internal.LibraryStores.GuildStore.getGuild(id);
 					if (!guild || !guild.icon) return "";
 					return Internal.LibraryModules.IconUtils.getGuildIconURL(guild).split("?")[0];
 				};
 				C_BDFDB.GuildUtils.getBanner = function (id) {
-					let guild = Internal.LibraryModules.GuildStore.getGuild(id);
+					let guild = Internal.LibraryStores.GuildStore.getGuild(id);
 					if (!guild || !guild.banner) return "";
 					return Internal.LibraryModules.IconUtils.getGuildBannerURL(guild).split("?")[0];
 				};
 				C_BDFDB.GuildUtils.getFolder = function (id) {
-					return Internal.LibraryModules.FolderStore.guildFolders.filter(n => n.folderId).find(n => n.guildIds.includes(id));
+					return Internal.LibraryModules.SortedGuildUtils.guildFolders.filter(n => n.folderId).find(n => n.guildIds.includes(id));
 				};
 				C_BDFDB.GuildUtils.openMenu = function (guild, e = mousePosition) {
 					if (!guild) return;
 					e = C_BDFDB.ListenerUtils.copyEvent(e.nativeEvent || e, (e.nativeEvent || e).currentTarget);
-					let menu = C_BDFDB.ModuleUtils.findByName("GuildContextMenuWrapper", false, true);
+					let menu = C_BDFDB.ModuleUtils.findByName("GuildContextMenuWrapper", {defaultExport: false, noWarnings: true});
 					if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {guild})));
 					else Internal.lazyLoadModuleImports(C_BDFDB.ModuleUtils.findByString("renderUnavailableBadge", "guild:", "openContextMenu")).then(_ => {
-						menu = C_BDFDB.ModuleUtils.findByName("GuildContextMenuWrapper", false);
+						menu = C_BDFDB.ModuleUtils.findByName("GuildContextMenuWrapper", {defaultExport: false});
 						if (menu) Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, e2 => C_BDFDB.ReactUtils.createElement(menu.exports.default, Object.assign({}, e2, {guild})));
 					});
 				};
 				C_BDFDB.GuildUtils.markAsRead = function (guildIds) {
-					guildIds = [guildIds].flat(10).filter(id => id && typeof id == "string" && Internal.LibraryModules.GuildStore.getGuild(id));
+					guildIds = [guildIds].flat(10).filter(id => id && typeof id == "string" && Internal.LibraryStores.GuildStore.getGuild(id));
 					if (!guildIds) return;
-					let channels = guildIds.map(id => [C_BDFDB.ObjectUtils.toArray(Internal.LibraryModules.GuildChannelStore.getChannels(id)), Internal.LibraryModules.GuildEventStore.getGuildScheduledEventsForGuild(id)]).flat(10).map(n => n && (n.channel && n.channel.id || n.id)).flat().filter(n => n);
+					let channels = guildIds.map(id => [C_BDFDB.ObjectUtils.toArray(Internal.LibraryStores.GuildChannelStore.getChannels(id)), Internal.LibraryStores.GuildScheduledEventStore.getGuildScheduledEventsForGuild(id)]).flat(10).map(n => n && (n.channel && n.channel.id || n.id)).flat().filter(n => n);
 					if (channels.length) C_BDFDB.ChannelUtils.markAsRead(channels);
 					let eventChannels = guildIds.map(id => ({
 						channelId: id,
-						readStateType: Internal.LibraryModules.UnreadStateTypes.GUILD_EVENT,
-						messageId: Internal.LibraryModules.UnreadChannelUtils.lastMessageId(id, Internal.LibraryModules.UnreadStateTypes.GUILD_EVENT)
+						readStateType: Internal.DiscordConstants.ReadStateTypes.GUILD_EVENT,
+						messageId: Internal.LibraryStores.ReadStateStore.lastMessageId(id, Internal.DiscordConstants.ReadStateTypes.GUILD_EVENT)
 					})).filter(n => n.messageId);
 					if (eventChannels.length) Internal.LibraryModules.AckUtils.bulkAck(eventChannels);
 				};
@@ -3283,10 +3296,10 @@ module.exports = (_ => {
 					return C_BDFDB.ReactUtils.findValue(div, "folderId", {up: true});
 				};
 				C_BDFDB.FolderUtils.getDefaultName = function (folderId) {
-					let folder = Internal.LibraryModules.FolderStore.getGuildFolderById(folderId);
+					let folder = Internal.LibraryModules.SortedGuildUtils.getGuildFolderById(folderId);
 					if (!folder) return "";
-					let rest = 2 * C_BDFDB.DiscordConstants.MAX_GUILD_FOLDER_NAME_LENGTH;
-					let names = [], allNames = folder.guildIds.map(guildId => (Internal.LibraryModules.GuildStore.getGuild(guildId) || {}).name).filter(n => n);
+					let rest = 2 * Internal.DiscordConstants.MAX_GUILD_FOLDER_NAME_LENGTH;
+					let names = [], allNames = folder.guildIds.map(guildId => (Internal.LibraryStores.GuildStore.getGuild(guildId) || {}).name).filter(n => n);
 					for (let name of allNames) if (name.length < rest || names.length === 0) {
 						names.push(name);
 						rest -= name.length;
@@ -3301,22 +3314,26 @@ module.exports = (_ => {
 					return channel instanceof Internal.DiscordObjects.Channel || Object.keys(new Internal.DiscordObjects.Channel({})).every(key => keys.indexOf(key) > -1);
 				};
 				C_BDFDB.ChannelUtils.isTextChannel = function (channelOrId) {
-					let channel = typeof channelOrId == "string" ? Internal.LibraryModules.ChannelStore.getChannel(channelOrId) : channelOrId;
-					return C_BDFDB.ObjectUtils.is(channel) && (channel.type == C_BDFDB.DiscordConstants.ChannelTypes.GUILD_TEXT || channel.type == C_BDFDB.DiscordConstants.ChannelTypes.GUILD_STORE || channel.type == C_BDFDB.DiscordConstants.ChannelTypes.GUILD_ANNOUNCEMENT);
+					let channel = typeof channelOrId == "string" ? Internal.LibraryStores.ChannelStore.getChannel(channelOrId) : channelOrId;
+					return C_BDFDB.ObjectUtils.is(channel) && (channel.type == Internal.DiscordConstants.ChannelTypes.GUILD_TEXT || channel.type == Internal.DiscordConstants.ChannelTypes.GUILD_STORE || channel.type == Internal.DiscordConstants.ChannelTypes.GUILD_ANNOUNCEMENT);
 				};
 				C_BDFDB.ChannelUtils.isThread = function (channelOrId) {
-					let channel = typeof channelOrId == "string" ? Internal.LibraryModules.ChannelStore.getChannel(channelOrId) : channelOrId;
+					let channel = typeof channelOrId == "string" ? Internal.LibraryStores.ChannelStore.getChannel(channelOrId) : channelOrId;
 					return channel && channel.isThread();
 				};
+				C_BDFDB.ChannelUtils.isForumPost = function (channelOrId) {
+					let channel = typeof channelOrId == "string" ? Internal.LibraryStores.ChannelStore.getChannel(channelOrId) : channelOrId;
+					return channel && channel.parentChannelThreadType && channel.parentChannelThreadType == Internal.DiscordConstants.ChannelTypes.GUILD_FORUM;
+				};
 				C_BDFDB.ChannelUtils.isEvent = function (channelOrId) {
-					let channel = typeof channelOrId == "string" ? Internal.LibraryModules.GuildEventStore.getGuildScheduledEvent(channelOrId) : channelOrId;
-					return channel && Internal.LibraryModules.GuildEventStore.getGuildScheduledEvent(channel.id) && true;
+					let channel = typeof channelOrId == "string" ? Internal.LibraryStores.GuildScheduledEventStore.getGuildScheduledEvent(channelOrId) : channelOrId;
+					return channel && Internal.LibraryStores.GuildScheduledEventStore.getGuildScheduledEvent(channel.id) && true;
 				};
 				C_BDFDB.ChannelUtils.markAsRead = function (channelIds) {
-					let unreadChannels = [channelIds].flat(10).filter(id => id && typeof id == "string" && (C_BDFDB.LibraryModules.ChannelStore.getChannel(id) || {}).type != C_BDFDB.DiscordConstants.ChannelTypes.GUILD_CATEGORY && (Internal.LibraryModules.UnreadChannelUtils.hasUnread(id) || Internal.LibraryModules.UnreadChannelUtils.getMentionCount(id) > 0)).map(id => ({
+					let unreadChannels = [channelIds].flat(10).filter(id => id && typeof id == "string" && (C_BDFDB.LibraryStores.ChannelStore.getChannel(id) || {}).type != Internal.DiscordConstants.ChannelTypes.GUILD_CATEGORY && (Internal.LibraryStores.ReadStateStore.hasUnread(id) || Internal.LibraryStores.ReadStateStore.getMentionCount(id) > 0)).map(id => ({
 						channelId: id,
-						readStateType: Internal.LibraryModules.UnreadStateTypes.CHANNEL,
-						messageId: Internal.LibraryModules.UnreadChannelUtils.lastMessageId(id)
+						readStateType: Internal.DiscordConstants.ReadStateTypes.CHANNEL,
+						messageId: Internal.LibraryStores.ReadStateStore.lastMessageId(id)
 					}));
 					if (unreadChannels.length) Internal.LibraryModules.AckUtils.bulkAck(unreadChannels);
 				};
@@ -3337,17 +3354,17 @@ module.exports = (_ => {
 				
 				C_BDFDB.DMUtils = {};
 				C_BDFDB.DMUtils.isDMChannel = function (id) {
-					let channel = Internal.LibraryModules.ChannelStore.getChannel(id);
+					let channel = Internal.LibraryStores.ChannelStore.getChannel(id);
 					return C_BDFDB.ObjectUtils.is(channel) && (channel.isDM() || channel.isGroupDM());
 				};
 				C_BDFDB.DMUtils.getIcon = function (id) {
-					let channel = Internal.LibraryModules.ChannelStore.getChannel(id);
+					let channel = Internal.LibraryStores.ChannelStore.getChannel(id);
 					if (!channel) return "";
 					if (!channel.icon) return channel.isDM() ? C_BDFDB.UserUtils.getAvatar(channel.recipients[0]) : (channel.isGroupDM() ? window.location.origin + Internal.LibraryModules.IconUtils.getChannelIconURL(channel).split("?")[0] : null);
 					return Internal.LibraryModules.IconUtils.getChannelIconURL(channel).split("?")[0];
 				};
 				C_BDFDB.DMUtils.markAsRead = function (dmIds) {
-					let unreadDMs = [dmIds].flat(10).filter(id => id && typeof id == "string" && C_BDFDB.DMUtils.isDMChannel(id) && (Internal.LibraryModules.UnreadChannelUtils.hasUnread(id) || Internal.LibraryModules.UnreadChannelUtils.getMentionCount(id) > 0));
+					let unreadDMs = [dmIds].flat(10).filter(id => id && typeof id == "string" && C_BDFDB.DMUtils.isDMChannel(id) && (Internal.LibraryStores.ReadStateStore.hasUnread(id) || Internal.LibraryStores.ReadStateStore.getMentionCount(id) > 0));
 					if (unreadDMs.length) for (let i in unreadDMs) C_BDFDB.TimeUtils.timeout(_ => Internal.LibraryModules.AckUtils.ack(unreadDMs[i]), i * 1000);
 				};
 				
@@ -3974,7 +3991,13 @@ module.exports = (_ => {
 						let name = plugin.name || (typeof plugin.getName == "function" ? plugin.getName() : null);
 						name = typeof name == "string" ? name : null;
 						let oldTransitionState = 0;
-						Internal.LibraryModules.ModalUtils.openModal(props => {
+						!Internal.LibraryModules.ModalUtils ? BdApi.alert(C_BDFDB.ReactUtils.createElement("div", {
+								style: {"display": "flex", "flex-direction": "column"},
+								children: [
+									config.header,
+									typeof config.subHeader == "string" || C_BDFDB.ReactUtils.isValidElement(config.subHeader) ? config.subHeader : (name || "")
+								].filter(n => n).map(n => C_BDFDB.ReactUtils.createElement("span", {children: n}))
+							}), config.content || config.children) : Internal.LibraryModules.ModalUtils.openModal(props => {
 							modalProps = props;
 							return C_BDFDB.ReactUtils.createElement(class C_BDFDB_Modal extends Internal.LibraryModules.React.Component {
 								render() {
@@ -4059,7 +4082,7 @@ module.exports = (_ => {
 				const RealMenuItems = C_BDFDB.ModuleUtils.findByProperties("MenuItem", "MenuGroup");
 				C_BDFDB.ContextMenuUtils = {};
 				C_BDFDB.ContextMenuUtils.open = function (plugin, e, children) {
-					Internal.LibraryModules.ContextMenuUtils.openContextMenu(e, _ => C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.Menu, {
+					Internal.LibraryModules.ContextMenuUtils.openContextMenu(e || mousePosition, _ => C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.Menu, {
 						navId: "C_BDFDB-context",
 						onClose: Internal.LibraryModules.ContextMenuUtils.closeContextMenu,
 						children: children
@@ -4100,33 +4123,34 @@ module.exports = (_ => {
 					config.id = config.id && [config.id].flat().filter(n => n);
 					let contextMenu = C_BDFDB.ReactUtils.findChild(returnvalue, {props: "navId"}) || (C_BDFDB.ArrayUtils.is(returnvalue) ? {props: {children: returnvalue}} : null);
 					if (contextMenu) {
-						for (let i in contextMenu.props.children) {
-							if (contextMenu.props.children[i] && contextMenu.props.children[i].type == RealMenuItems.MenuGroup) {
-								if (C_BDFDB.ArrayUtils.is(contextMenu.props.children[i].props.children)) {
-									for (let j in contextMenu.props.children[i].props.children) if (check(contextMenu.props.children[i].props.children[j])) {
-										if (config.group) return [contextMenu.props.children, parseInt(i)];
-										else return [contextMenu.props.children[i].props.children, parseInt(j)];
+						let children = C_BDFDB.ArrayUtils.is(contextMenu.props.children) ? contextMenu.props.children : [contextMenu.props.children];
+						for (let i in children) {
+							if (children[i] && children[i].type == RealMenuItems.MenuGroup) {
+								if (C_BDFDB.ArrayUtils.is(children[i].props.children)) {
+									for (let j in children[i].props.children) if (check(children[i].props.children[j])) {
+										if (config.group) return [children, parseInt(i)];
+										else return [children[i].props.children, parseInt(j)];
 									}
 								}
-								else if (contextMenu.props.children[i] && contextMenu.props.children[i].props) {
-									if (check(contextMenu.props.children[i].props.children)) {
-										if (config.group) return [contextMenu.props.children, parseInt(i)];
+								else if (children[i] && children[i].props) {
+									if (check(children[i].props.children)) {
+										if (config.group) return [children, parseInt(i)];
 										else {
-											contextMenu.props.children[i].props.children = [contextMenu.props.children[i].props.children];
-											return [contextMenu.props.children[i].props.children, 0];
+											children[i].props.children = [children[i].props.children];
+											return [children[i].props.children, 0];
 										}
 									}
-									else if (contextMenu.props.children[i].props.children && contextMenu.props.children[i].props.children.props && C_BDFDB.ArrayUtils.is(contextMenu.props.children[i].props.children.props.children)) {
-										for (let j in contextMenu.props.children[i].props.children.props.children) if (check(contextMenu.props.children[i].props.children.props.children[j])) {
-											if (config.group) return [contextMenu.props.children, parseInt(i)];
-											else return [contextMenu.props.children[i].props.children.props.children, parseInt(j)];
+									else if (children[i].props.children && children[i].props.children.props && C_BDFDB.ArrayUtils.is(children[i].props.children.props.children)) {
+										for (let j in children[i].props.children.props.children) if (check(children[i].props.children.props.children[j])) {
+											if (config.group) return [children, parseInt(i)];
+											else return [children[i].props.children.props.children, parseInt(j)];
 										}
 									}
 								}
 							}
-							else if (check(contextMenu.props.children[i])) return [contextMenu.props.children, parseInt(i)];
+							else if (check(children[i])) return [children, parseInt(i)];
 						}
-						return [contextMenu.props.children, -1];
+						return [children, -1];
 					}
 					return [null, -1];
 					function check (child) {
@@ -4138,6 +4162,19 @@ module.exports = (_ => {
 				};
 
 				C_BDFDB.StringUtils = {};
+				C_BDFDB.StringUtils.upperCaseFirstChar = function (string) {
+					if (typeof string != "string") return "";
+					else return "".concat(string.charAt(0).toUpperCase()).concat(string.slice(1));
+				};
+				C_BDFDB.StringUtils.getAcronym = function (string) {
+					if (typeof string != "string") return "";
+					return string.replace(/'s /g," ").replace(/\w+/g, n => n[0]).replace(/\s/g, "");
+				};
+				C_BDFDB.StringUtils.cssValueToNumber = function (string) {
+					if (typeof string != "string") return 0;
+					const value = parseInt(string, 10);
+					return isNaN(value) ? 0 : value;
+				};
 				C_BDFDB.StringUtils.htmlEscape = function (string) {
 					let ele = document.createElement("div");
 					ele.innerText = string;
@@ -4276,6 +4313,27 @@ module.exports = (_ => {
 					}
 					return false;
 				};
+				C_BDFDB.NumberUtils.getVersionDifference = function (newV, oldV) {
+					if (!newV || !oldV) return false;
+					newV = newV.toString().replace(/["'`]/g, "").split(/,|\./g).map(n => parseInt(n)).filter(n => (n || n == 0) && !isNaN(n));
+					oldV = oldV.toString().replace(/["'`]/g, "").split(/,|\./g).map(n => parseInt(n)).filter(n => (n || n == 0) && !isNaN(n));
+					let length = Math.max(newV.length, oldV.length);
+					if (!length) return false;
+					if (newV.length > oldV.length) {
+						let tempArray = new Array(newV.length - oldV.length);
+						for (let i = 0; i < tempArray.length; i++) tempArray[i] = 0;
+						oldV = tempArray.concat(oldV);
+					}
+					else if (newV.length < oldV.length) {
+						let tempArray = new Array(oldV.length - newV.length);
+						for (let i = 0; i < tempArray.length; i++) tempArray[i] = 0;
+						newV = tempArray.concat(newV);
+					}
+					let oldValue = 0, newValue = 0;
+					for (let i in oldV.reverse()) oldValue += (oldV[i] * (10 ** i));
+					for (let i in newV.reverse()) newValue += (newV[i] * (10 ** i));
+					return (newValue - oldValue) / (10 ** (length-1));
+				};
 
 				C_BDFDB.DiscordUtils = {};
 				C_BDFDB.DiscordUtils.openLink = function (url, config = {}) {
@@ -4311,6 +4369,9 @@ module.exports = (_ => {
 						return C_BDFDB.DiscordUtils.getFolder.folder = folder;
 					}
 				};
+				C_BDFDB.DiscordUtils.getLanguage = function () {
+					return Internal.LibraryModules.LanguageStore && (Internal.LibraryModules.LanguageStore.chosenLocale || Internal.LibraryModules.LanguageStore._chosenLocale) || document.querySelector("html[lang]").getAttribute("lang");
+				};
 				C_BDFDB.DiscordUtils.getBuild = function () {
 					if (C_BDFDB.DiscordUtils.getBuild.build) return C_BDFDB.DiscordUtils.getBuild.build;
 					else {
@@ -4338,7 +4399,7 @@ module.exports = (_ => {
 					}
 				};
 				C_BDFDB.DiscordUtils.getTheme = function () {
-					return C_BDFDB.LibraryModules.ThemeSettingsStore.theme != "dark" ? C_BDFDB.disCN.themelight : C_BDFDB.disCN.themedark;
+					return C_BDFDB.LibraryStores.ThemeStore.theme != "dark" ? C_BDFDB.disCN.themelight : C_BDFDB.disCN.themedark;
 				};
 				C_BDFDB.DiscordUtils.getZoomFactor = function () {
 					let aRects = C_BDFDB.DOMUtils.getRects(document.querySelector(C_BDFDB.dotCN.appmount));
@@ -4468,7 +4529,7 @@ module.exports = (_ => {
 				C_BDFDB.DiscordClasses = Object.assign({}, DiscordClasses);
 				Internal.getDiscordClass = function (item, selector) {
 					let className, fallbackClassName;
-					className = fallbackClassName = Internal.DiscordClassModules.BDFDB.BDFDBundefined + "-" + Internal.generateClassId();
+					className = fallbackClassName = Internal.DiscordClassModules.C_BDFDB.C_BDFDBundefined + "-" + Internal.generateClassId();
 					if (DiscordClasses[item] === undefined) {
 						C_BDFDB.LogUtils.warn([item, "not found in DiscordClasses"]);
 						return className;
@@ -4553,12 +4614,13 @@ module.exports = (_ => {
 					}
 				});
 			
-				const LanguageStrings = Internal.LibraryModules.LanguageStore && Internal.LibraryModules.LanguageStore._proxyContext ? Object.assign({}, Internal.LibraryModules.LanguageStore._proxyContext.defaultMessages) : {};
+				const LanguageStrings = Internal.LibraryModules.LanguageStore && Internal.LibraryModules.LanguageStore._proxyContext ? Object.assign({}, Internal.LibraryModules.LanguageStore._proxyContext.defaultMessages) : Internal.LibraryModules.LanguageStore;
+				const LanguageStringsObj = Internal.LibraryModules.LanguageStore.Messages || Internal.LibraryModules.LanguageStore;
 				const LibraryStrings = Object.assign({}, InternalData.LibraryStrings);
 				C_BDFDB.LanguageUtils = {};
 				C_BDFDB.LanguageUtils.languages = Object.assign({}, InternalData.Languages);
 				C_BDFDB.LanguageUtils.getLanguage = function () {
-					let lang = Internal.LibraryModules.LanguageStore.chosenLocale || Internal.LibraryModules.LanguageStore._chosenLocale || C_BDFDB.DiscordUtils.getSettings("locale") || "en";
+					let lang = C_BDFDB.DiscordUtils.getLanguage() || "en";
 					if (lang == "en-GB" || lang == "en-US") lang = "en";
 					let langIds = lang.split("-");
 					let langId = langIds[0];
@@ -4573,7 +4635,7 @@ module.exports = (_ => {
 				};
 				C_BDFDB.LanguageUtils.LanguageStrings = new Proxy(LanguageStrings, {
 					get: function (list, item) {
-						let stringObj = Internal.LibraryModules.LanguageStore.Messages[item];
+						let stringObj = LanguageStringsObj[item];
 						if (!stringObj) C_BDFDB.LogUtils.warn([item, "not found in C_BDFDB.LanguageUtils.LanguageStrings"]);
 						else {
 							if (stringObj && typeof stringObj == "object" && typeof stringObj.format == "function") return C_BDFDB.LanguageUtils.LanguageStringsFormat(item);
@@ -4584,7 +4646,7 @@ module.exports = (_ => {
 				});
 				C_BDFDB.LanguageUtils.LanguageStringsCheck = new Proxy(LanguageStrings, {
 					get: function (list, item) {
-						return !!Internal.LibraryModules.LanguageStore.Messages[item];
+						return !!LanguageStringsObj[item];
 					}
 				});
 				let parseLanguageStringObj = obj => {
@@ -4600,7 +4662,7 @@ module.exports = (_ => {
 				};
 				C_BDFDB.LanguageUtils.LanguageStringsFormat = function (item, ...values) {
 					if (item) {
-						let stringObj = Internal.LibraryModules.LanguageStore.Messages[item];
+						let stringObj = LanguageStringsObj[item];
 						if (stringObj && typeof stringObj == "object" && typeof stringObj.format == "function") {
 							let i = 0, returnvalue, formatVars = {};
 							while (!returnvalue && i < 10) {
@@ -4612,6 +4674,10 @@ module.exports = (_ => {
 									formatVars[err.toString().split("for: ")[1]] = value != null ? (value === 0 ? "0" : value) : "undefined";
 									if (stringObj.intMessage) {
 										try {for (let hook of stringObj.intMessage.format(formatVars).match(/\([^\(\)]+\)/gi)) formatVars[hook.replace(/[\(\)]/g, "")] = n => n;}
+										catch (err2) {}
+									}
+									if (stringObj.intlMessage) {
+										try {for (let hook of stringObj.intlMessage.format(formatVars).match(/\([^\(\)]+\)/gi)) formatVars[hook.replace(/[\(\)]/g, "")] = n => n;}
 										catch (err2) {}
 									}
 								}
@@ -4656,7 +4722,7 @@ module.exports = (_ => {
 					return "";
 				};
 				C_BDFDB.TimeUtils.interval(interval => {
-					if (Internal.LibraryModules.LanguageStore.chosenLocale || Internal.LibraryModules.LanguageStore._chosenLocale || C_BDFDB.DiscordUtils.getSettings("locale")) {
+					if (C_BDFDB.DiscordUtils.getLanguage()) {
 						C_BDFDB.TimeUtils.clear(interval);
 						let language = C_BDFDB.LanguageUtils.getLanguage();
 						if (language) C_BDFDB.LanguageUtils.languages.$discord = Object.assign({}, language, {name: `Discord (${language.name})`});
@@ -4815,9 +4881,9 @@ module.exports = (_ => {
 					render() {
 						if (this.state.hasError) return Internal.LibraryModules.React.createElement("span", {
 							style: {
-								background: C_BDFDB.DiscordConstants && C_BDFDB.DiscordConstants.Colors && C_BDFDB.DiscordConstants.Colors.PRIMARY_DARK,
+								background: Internal.DiscordConstants.Colors.PRIMARY_DARK,
 								borderRadius: 5,
-								color: C_BDFDB.DiscordConstants && C_BDFDB.DiscordConstants.Colors && C_BDFDB.DiscordConstants.Colors.STATUS_RED,
+								color: Internal.DiscordConstants.Colors.STATUS_RED,
 								fontSize: 12,
 								fontWeight: 600,
 								padding: 6,
@@ -4871,7 +4937,7 @@ module.exports = (_ => {
 							return C_BDFDB.ReactUtils.createElement("div", {
 								className: C_BDFDB.DOMUtils.formatClassName(this.props.className, C_BDFDB.disCN.badgeiconbadge, this.props.shape && Internal.LibraryComponents.Badges.BadgeShapes[this.props.shape] || Internal.LibraryComponents.Badges.BadgeShapes.ROUND),
 								style: Object.assign({
-									backgroundColor: this.props.disableColor ? null : (this.props.color || C_BDFDB.DiscordConstants.Colors.STATUS_RED)
+									backgroundColor: this.props.disableColor ? null : (this.props.color || Internal.DiscordConstants.Colors.STATUS_RED)
 								}, this.props.style),
 								children: C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.SvgIcon, {
 									className: C_BDFDB.disCN.badgeicon,
@@ -4889,7 +4955,7 @@ module.exports = (_ => {
 							return C_BDFDB.ReactUtils.createElement("div", {
 								className: C_BDFDB.DOMUtils.formatClassName(this.props.className, C_BDFDB.disCN.badgenumberbadge, this.props.shape && Internal.LibraryComponents.Badges.BadgeShapes[this.props.shape] || Internal.LibraryComponents.Badges.BadgeShapes.ROUND),
 								style: Object.assign({
-									backgroundColor: !this.props.disableColor && (this.props.color || C_BDFDB.DiscordConstants.Colors.STATUS_RED),
+									backgroundColor: !this.props.disableColor && (this.props.color || Internal.DiscordConstants.Colors.STATUS_RED),
 									width: Internal.LibraryComponents.Badges.getBadgeWidthForValue(this.props.count),
 									paddingRight: Internal.LibraryComponents.Badges.getBadgePaddingForValue(this.props.count)
 								}, this.props.style),
@@ -5159,7 +5225,7 @@ module.exports = (_ => {
 							return style;
 						}
 						getColor() {
-							return this.props.value ? (Internal.LibraryComponents.Checkbox.Types && this.props.type === Internal.LibraryComponents.Checkbox.Types.INVERTED ? C_BDFDB.DiscordConstants.Colors.WHITE : this.props.color) : "transparent";
+							return this.props.value ? (Internal.LibraryComponents.Checkbox.Types && this.props.type === Internal.LibraryComponents.Checkbox.Types.INVERTED ? Internal.DiscordConstants.Colors.WHITE : this.props.color) : "transparent";
 						}
 						handleChange(e) {
 							this.props.value = typeof this.props.getValue == "function" ? this.props.getValue(this.props.value, e, this) : !this.props.value;
@@ -5637,13 +5703,13 @@ module.exports = (_ => {
 										name: Internal.LibraryComponents.SvgIcon.Names.DROPPER,
 										width: props.isCustom ? 14 : 10,
 										height: props.isCustom ? 14 : 10,
-										color: useWhite ? C_BDFDB.DiscordConstants.Colors.WHITE : C_BDFDB.DiscordConstants.Colors.BLACK
+										color: useWhite ? Internal.DiscordConstants.Colors.WHITE : Internal.DiscordConstants.Colors.BLACK
 									}) : null,
 									props.isSelected && !props.isSingle ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.SvgIcon, {
 										name: Internal.LibraryComponents.SvgIcon.Names.CHECKMARK,
 										width: props.isCustom ? 32 : 16,
 										height: props.isCustom ? 24 : 16,
-										color: useWhite ? C_BDFDB.DiscordConstants.Colors.WHITE : C_BDFDB.DiscordConstants.Colors.BLACK
+										color: useWhite ? Internal.DiscordConstants.Colors.WHITE : Internal.DiscordConstants.Colors.BLACK
 									}) : null
 								]
 							});
@@ -5829,6 +5895,8 @@ module.exports = (_ => {
 														"$day will be replaced with the Weekday Name",
 														"$dayS will be replaced with the Weekday Name (Short Form)",
 														"$agoAmount will be replaced with ('Today', 'Yesterday', 'x days/weeks/months ago')",
+														"$agoWeekday will be replaced with ('Today', 'Yesterday', $day)",
+														"$agoWeekdayS will be replaced with ('Today', 'Yesterday', $dayS)",
 														"$agoDays will be replaced with ('Today', 'Yesterday', 'x days ago')",
 														"$agoDate will be replaced with ('Today', 'Yesterday', $date)"
 													], {marginRight: 6}),
@@ -5998,6 +6066,8 @@ module.exports = (_ => {
 							.replace(/\$dayS/g, timeObj.toLocaleDateString(language, {weekday: "short"}))
 							.replace(/\$day/g, timeObj.toLocaleDateString(language, {weekday: "long"}))
 							.replace(/\$agoAmount/g, daysAgo < 0 ? "" : daysAgo > 1 ? Internal.DiscordObjects.Timestamp(timeObj.getTime()).fromNow() : C_BDFDB.LanguageUtils.LanguageStrings[`SEARCH_SHORTCUT_${daysAgo == 1 ? "YESTERDAY" : "TODAY"}`])
+							.replace(/\$agoWeekdayS/g, daysAgo < 0 ? "" : daysAgo > 1 ? timeObj.toLocaleDateString(language, {weekday: "short"}) : C_BDFDB.LanguageUtils.LanguageStrings[`SEARCH_SHORTCUT_${daysAgo == 1 ? "YESTERDAY" : "TODAY"}`])
+							.replace(/\$agoWeekday/g, daysAgo < 0 ? "" : daysAgo > 1 ? timeObj.toLocaleDateString(language, {weekday: "long"}) : C_BDFDB.LanguageUtils.LanguageStrings[`SEARCH_SHORTCUT_${daysAgo == 1 ? "YESTERDAY" : "TODAY"}`])
 							.replace(/\$agoDays/g, daysAgo < 0 ? "" : daysAgo > 1 ? C_BDFDB.LanguageUtils.LanguageStringsFormat(`GAME_LIBRARY_LAST_PLAYED_DAYS`, daysAgo) : C_BDFDB.LanguageUtils.LanguageStrings[`SEARCH_SHORTCUT_${daysAgo == 1 ? "YESTERDAY" : "TODAY"}`])
 							.replace(/\$agoDate/g, daysAgo < 0 ? "" : daysAgo > 1 ? date : C_BDFDB.LanguageUtils.LanguageStrings[`SEARCH_SHORTCUT_${daysAgo == 1 ? "YESTERDAY" : "TODAY"}`])
 							.replace(/\(\)|\[\]/g, "").replace(/,\s*$|^\s*,/g, "").replace(/ +/g, " ").trim();
@@ -6207,7 +6277,7 @@ module.exports = (_ => {
 							if (typeof this.props.onMouseLeave == "function") this.props.onMouseLeave(e, this);
 						}
 						handleMouseDown(e) {
-							if (!this.props.unavailable && this.props.guild && this.props.selectedChannelId) Internal.LibraryModules.DirectMessageUtils.preload(this.props.guild.id, this.props.selectedChannelId);
+							if (!this.props.unavailable && this.props.guild && this.props.selectedChannelId) Internal.LibraryModules.PrivateChannelUtils.preload(this.props.guild.id, this.props.selectedChannelId);
 							if (e.button == 0 && typeof this.props.onMouseDown == "function") this.props.onMouseDown(e, this);
 						}
 						handleMouseUp(e) {
@@ -6231,27 +6301,27 @@ module.exports = (_ => {
 							if (!this.props.guild) return null;
 							
 							this.props.guildId = this.props.guild.id;
-							this.props.selectedChannelId = Internal.LibraryModules.LastChannelStore.getChannelId(this.props.guild.id);
+							this.props.selectedChannelId = Internal.LibraryStores.SelectedChannelStore.getChannelId(this.props.guild.id);
 							
-							let currentVoiceChannel = Internal.LibraryModules.ChannelStore.getChannel(Internal.LibraryModules.CurrentVoiceUtils.getChannelId());
-							let hasVideo = currentVoiceChannel && Internal.LibraryModules.VoiceUtils.hasVideo(currentVoiceChannel);
+							let currentVoiceChannel = Internal.LibraryStores.ChannelStore.getChannel(Internal.LibraryModules.RTCConnectionUtils.getChannelId());
+							let hasVideo = currentVoiceChannel && Internal.LibraryStores.SortedVoiceStateStore.hasVideo(currentVoiceChannel);
 							
-							this.props.selected = this.props.state ? Internal.LibraryModules.LastGuildStore.getGuildId() == this.props.guild.id : false;
-							this.props.unread = this.props.state ? Internal.LibraryModules.UnreadGuildUtils.hasUnread(this.props.guild.id) : false;
-							this.props.badge = this.props.state ? Internal.LibraryModules.UnreadGuildUtils.getMentionCount(this.props.guild.id) : 0;
+							this.props.selected = this.props.state ? Internal.LibraryStores.SelectedGuildStore.getGuildId() == this.props.guild.id : false;
+							this.props.unread = this.props.state ? Internal.LibraryStores.GuildReadStateStore.hasUnread(this.props.guild.id) : false;
+							this.props.badge = this.props.state ? Internal.LibraryStores.GuildReadStateStore.getMentionCount(this.props.guild.id) : 0;
 							
 							this.props.mediaState = Object.assign({}, this.props.mediaState, {
 								audio: this.props.state ? currentVoiceChannel && currentVoiceChannel.guild_id == this.props.guild.id && !hasVideo : false,
 								video: this.props.state ? currentVoiceChannel && currentVoiceChannel.guild_id == this.props.guild.id && hasVideo : false,
-								screenshare: this.props.state ? !!Internal.LibraryModules.StreamUtils.getAllApplicationStreams().filter(stream => stream.guildId == this.props.guild.id)[0] : false,
-								liveStage: this.props.state ? Object.keys(Internal.LibraryModules.StageChannelStore.getStageInstancesByGuild(this.props.guild.id)).length > 0 : false,
-								hasLiveVoiceChannel: this.props.state && false ? !Internal.LibraryModules.MutedUtils.isMuted(this.props.guild.id) && C_BDFDB.ObjectUtils.toArray(Internal.LibraryModules.VoiceUtils.getVoiceStates(this.props.guild.id)).length > 0 : false,
-								participating: this.props.state ? Internal.LibraryModules.CurrentVoiceUtils.getGuildId() == this.props.guild.id : false,
+								screenshare: this.props.state ? !!Internal.LibraryStores.ApplicationStreamingStore.getAllApplicationStreams().filter(stream => stream.guildId == this.props.guild.id)[0] : false,
+								liveStage: this.props.state ? Object.keys(Internal.LibraryStores.StageInstanceStore.getStageInstancesByGuild(this.props.guild.id)).length > 0 : false,
+								hasLiveVoiceChannel: this.props.state && false ? !Internal.LibraryStores.UserGuildSettingsStore.isMuted(this.props.guild.id) && C_BDFDB.ObjectUtils.toArray(Internal.LibraryStores.SortedVoiceStateStore.getVoiceStates(this.props.guild.id)).length > 0 : false,
+								participating: this.props.state ? Internal.LibraryModules.RTCConnectionUtils.getGuildId() == this.props.guild.id : false,
 								participatingInStage: this.props.state ? currentVoiceChannel && currentVoiceChannel.guild_id == this.props.guild.id && currentVoiceChannel.isGuildStageVoice() : false
 							});
 							
 							this.props.animatable = this.props.state ? this.props.guild.icon && Internal.LibraryModules.IconUtils.isAnimatedIconHash(this.props.guild.icon) : false;
-							this.props.unavailable = this.props.state ? Internal.LibraryModules.GuildUnavailableStore.unavailableGuilds.includes(this.props.guild.id) : false;
+							this.props.unavailable = this.props.state ? Internal.LibraryStores.GuildAvailabilityStore.unavailableGuilds.includes(this.props.guild.id) : false;
 						
 							let isDraggedGuild = this.props.draggingGuildId === this.props.guild.id;
 							let guild = isDraggedGuild ? C_BDFDB.ReactUtils.createElement("div", {
@@ -6265,12 +6335,12 @@ module.exports = (_ => {
 									lowerBadgeWidth: Internal.LibraryComponents.Badges.getBadgeWidthForValue(this.props.badge),
 									children: C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.NavItem, {
 										to: {
-											pathname: C_BDFDB.DiscordConstants.Routes.CHANNEL(this.props.guild.id, this.props.selectedChannelId),
+											pathname: Internal.DiscordConstants.Routes.CHANNEL(this.props.guild.id, this.props.selectedChannelId),
 											state: {
 												analyticsSource: {
-													page: C_BDFDB.DiscordConstants.AnalyticsPages.GUILD_CHANNEL,
-													section: C_BDFDB.DiscordConstants.AnalyticsSections.CHANNEL_LIST,
-													object: C_BDFDB.DiscordConstants.AnalyticsObjects.CHANNEL
+													page: Internal.DiscordConstants.AnalyticsPages.GUILD_CHANNEL,
+													section: Internal.DiscordConstants.AnalyticsSections.CHANNEL_LIST,
+													object: Internal.DiscordConstants.AnalyticsObjects.CHANNEL
 												}
 											}
 										},
@@ -6327,7 +6397,7 @@ module.exports = (_ => {
 							});
 							return this.props.switchOnClick ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.Clickable, {
 								className: C_BDFDB.disCN.guildsummaryclickableicon,
-								onClick: _ => Internal.LibraryModules.HistoryUtils.transitionTo(C_BDFDB.DiscordConstants.Routes.CHANNEL(guild.id, Internal.LibraryModules.LastChannelStore.getChannelId(guild.id))),
+								onClick: _ => Internal.LibraryModules.HistoryUtils.transitionTo(Internal.DiscordConstants.Routes.CHANNEL(guild.id, Internal.LibraryStores.SelectedChannelStore.getChannelId(guild.id))),
 								key: guild.id,
 								tabIndex: -1,
 								children: icon
@@ -6382,13 +6452,13 @@ module.exports = (_ => {
 					
 					CustomComponents.GuildVoiceList = reactInitialized && class C_BDFDB_GuildVoiceList extends Internal.LibraryModules.React.Component {
 						render() {
-							let channels = Internal.LibraryModules.GuildChannelStore.getChannels(this.props.guild.id);
-							let voiceChannels = (channels[Internal.LibraryModules.GuildChannelKeys.GUILD_VOCAL_CHANNELS_KEY] || []).filter(c => c.channel.type == C_BDFDB.DiscordConstants.ChannelTypes.GUILD_VOICE).map(c => c.channel.id);
-							let stageChannels = (channels[Internal.LibraryModules.GuildChannelKeys.GUILD_VOCAL_CHANNELS_KEY] || []).filter(c => c.channel.type == C_BDFDB.DiscordConstants.ChannelTypes.GUILD_STAGE_VOICE && Internal.LibraryModules.StageChannelStore.getStageInstanceByChannel(c.channel.id)).map(c => c.channel.id);
-							let streamOwnerIds = Internal.LibraryModules.StreamUtils.getAllApplicationStreams().filter(app => app.guildId === this.props.guild.id).map(app => app.ownerId) || [];
-							let streamOwners = streamOwnerIds.map(ownerId => Internal.LibraryModules.UserStore.getUser(ownerId)).filter(n => n);
-							let connectedVoiceUsers = C_BDFDB.ObjectUtils.toArray(Internal.LibraryModules.VoiceUtils.getVoiceStates(this.props.guild.id)).map(state => voiceChannels.includes(state.channelId) && state.channelId != this.props.guild.afkChannelId && !streamOwnerIds.includes(state.userId) && Internal.LibraryModules.UserStore.getUser(state.userId)).filter(n => n);
-							let connectedStageUsers = C_BDFDB.ObjectUtils.toArray(Internal.LibraryModules.VoiceUtils.getVoiceStates(this.props.guild.id)).map(state => stageChannels.includes(state.channelId) && state.channelId != this.props.guild.afkChannelId && !streamOwnerIds.includes(state.userId) && Internal.LibraryModules.UserStore.getUser(state.userId)).filter(n => n);
+							let channels = Internal.LibraryStores.GuildChannelStore.getChannels(this.props.guild.id);
+							let voiceChannels = (channels[Internal.LibraryModules.GuildChannelKeys.GUILD_VOCAL_CHANNELS_KEY] || []).filter(c => c.channel.type == Internal.DiscordConstants.ChannelTypes.GUILD_VOICE).map(c => c.channel.id);
+							let stageChannels = (channels[Internal.LibraryModules.GuildChannelKeys.GUILD_VOCAL_CHANNELS_KEY] || []).filter(c => c.channel.type == Internal.DiscordConstants.ChannelTypes.GUILD_STAGE_VOICE && Internal.LibraryStores.StageInstanceStore.getStageInstanceByChannel(c.channel.id)).map(c => c.channel.id);
+							let streamOwnerIds = Internal.LibraryStores.ApplicationStreamingStore.getAllApplicationStreams().filter(app => app.guildId === this.props.guild.id).map(app => app.ownerId) || [];
+							let streamOwners = streamOwnerIds.map(ownerId => Internal.LibraryStores.UserStore.getUser(ownerId)).filter(n => n);
+							let connectedVoiceUsers = C_BDFDB.ObjectUtils.toArray(Internal.LibraryStores.SortedVoiceStateStore.getVoiceStates(this.props.guild.id)).map(state => voiceChannels.includes(state.channelId) && state.channelId != this.props.guild.afkChannelId && !streamOwnerIds.includes(state.userId) && Internal.LibraryStores.UserStore.getUser(state.userId)).filter(n => n);
+							let connectedStageUsers = C_BDFDB.ObjectUtils.toArray(Internal.LibraryStores.SortedVoiceStateStore.getVoiceStates(this.props.guild.id)).map(state => stageChannels.includes(state.channelId) && state.channelId != this.props.guild.afkChannelId && !streamOwnerIds.includes(state.userId) && Internal.LibraryStores.UserStore.getUser(state.userId)).filter(n => n);
 							let children = [
 								!connectedStageUsers.length ? null : C_BDFDB.ReactUtils.createElement("div", {
 									className: C_BDFDB.disCN.tooltiprow,
@@ -6458,7 +6528,7 @@ module.exports = (_ => {
 								align: Internal.LibraryComponents.Flex.Align.CENTER,
 								children: [
 									C_BDFDB.ReactUtils.createElement(Internal.NativeSubComponents.KeybindRecorder, C_BDFDB.ObjectUtils.exclude(Object.assign({}, this.props, {
-										defaultValue: [this.props.defaultValue || this.props.value].flat(10).filter(n => n).map(keyCode => [C_BDFDB.DiscordConstants.KeyboardDeviceTypes.KEYBOARD_KEY, Internal.LibraryModules.KeyCodeUtils.keyToCode((Object.entries(Internal.LibraryModules.KeyEvents.codes).find(n => n[1] == keyCode && Internal.LibraryModules.KeyCodeUtils.keyToCode(n[0], null)) || [])[0], null) || keyCode]),
+										defaultValue: [this.props.defaultValue || this.props.value].flat(10).filter(n => n).map(keyCode => [Internal.DiscordConstants.KeyboardDeviceTypes.KEYBOARD_KEY, Internal.LibraryModules.KeyCodeUtils.keyToCode((Object.entries(Internal.LibraryModules.KeyEvents.codes).find(n => n[1] == keyCode && Internal.LibraryModules.KeyCodeUtils.keyToCode(n[0], null)) || [])[0], null) || keyCode]),
 										onChange: this.handleChange.bind(this)
 									}), "reset", "onReset")),
 									this.props.reset || this.props.onReset ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.TooltipContainer, {
@@ -6508,7 +6578,7 @@ module.exports = (_ => {
 						handleClick(e) {if (typeof this.props.onClick == "function") this.props.onClick(e, this);}
 						handleContextMenu(e) {if (typeof this.props.onContextMenu == "function") this.props.onContextMenu(e, this);}
 						render() {
-							let color = C_BDFDB.ColorUtils.convert(this.props.role.colorString, "RGB") || C_BDFDB.DiscordConstants.Colors.PRIMARY_DARK_300;
+							let color = C_BDFDB.ColorUtils.convert(this.props.role.colorString, "RGB") || Internal.DiscordConstants.Colors.PRIMARY_DARK_300;
 							return C_BDFDB.ReactUtils.createElement("li", {
 								className: C_BDFDB.DOMUtils.formatClassName(C_BDFDB.disCN.userpopoutrole, this.props.className),
 								style: {borderColor: C_BDFDB.ColorUtils.setAlpha(color, 0.6)},
@@ -7009,7 +7079,7 @@ module.exports = (_ => {
 							return C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.Flex, {
 								className: this.props.className,
 								wrap: Internal.LibraryComponents.Flex.Wrap.WRAP,
-								children: [this.props.includeDMs && {name: C_BDFDB.LanguageUtils.LanguageStrings.DIRECT_MESSAGES, acronym: "DMs", id: C_BDFDB.DiscordConstants.ME, getIconURL: _ => {}}].concat(Internal.LibraryModules.FolderStore.getFlattenedGuilds()).filter(n => n).map(guild => C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.TooltipContainer, {
+								children: [this.props.includeDMs && {name: C_BDFDB.LanguageUtils.LanguageStrings.DIRECT_MESSAGES, acronym: "DMs", id: Internal.DiscordConstants.ME, getIconURL: _ => {}}].concat(Internal.LibraryModules.SortedGuildUtils.getFlattenedGuilds()).filter(n => n).map(guild => C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.TooltipContainer, {
 									text: guild.name,
 									children: C_BDFDB.ReactUtils.createElement("div", {
 										className: C_BDFDB.DOMUtils.formatClassName(this.props.guildClassName, C_BDFDB.disCN.settingsguild, this.props.disabled.includes(guild.id) && C_BDFDB.disCN.settingsguilddisabled),
@@ -7597,8 +7667,8 @@ module.exports = (_ => {
 					};
 					Internal.setDefaultProps(CustomComponents.Switch, {
 						size: CustomComponents.Switch.Sizes.DEFAULT,
-						uncheckedColor: C_BDFDB.DiscordConstants.Colors.PRIMARY_DARK_400,
-						checkedColor: C_BDFDB.DiscordConstants.Colors.BRAND
+						uncheckedColor: Internal.DiscordConstants.Colors.PRIMARY_DARK_400,
+						checkedColor: Internal.DiscordConstants.Colors.BRAND
 					});
 					
 					CustomComponents.TabBar = reactInitialized && class C_BDFDB_TabBar extends Internal.LibraryModules.React.Component {
@@ -7920,7 +7990,7 @@ module.exports = (_ => {
 							return C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.PopoutContainer, C_BDFDB.ObjectUtils.exclude(Object.assign({}, this.props, {
 								wrap: false,
 								renderPopout: instance => C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.UserPopout, {
-									user: Internal.LibraryModules.UserStore.getUser(this.props.userId),
+									user: Internal.LibraryStores.UserStore.getUser(this.props.userId),
 									userId: this.props.userId,
 									channelId: this.props.channelId,
 									guildId: this.props.guildId
@@ -7934,7 +8004,7 @@ module.exports = (_ => {
 						C_BDFDB.ReactUtils.useEffect(_ => {
 							if (ref.current) props.play ? ref.current.play() : ref.current.pause();
 						}, [props.play]);
-						return props.naturalWidth <= C_BDFDB.DiscordConstants.MAX_VIDEO_WIDTH && props.naturalHeight <= C_BDFDB.DiscordConstants.MAX_VIDEO_HEIGHT || props.naturalWidth <= C_BDFDB.DiscordConstants.MAX_VIDEO_HEIGHT && props.naturalHeight <= C_BDFDB.DiscordConstants.MAX_VIDEO_WIDTH ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.VideoForwardRef, {
+						return props.naturalWidth <= Internal.DiscordConstants.MAX_VIDEO_WIDTH && props.naturalHeight <= Internal.DiscordConstants.MAX_VIDEO_HEIGHT || props.naturalWidth <= Internal.DiscordConstants.MAX_VIDEO_HEIGHT && props.naturalHeight <= Internal.DiscordConstants.MAX_VIDEO_WIDTH ? C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.VideoForwardRef, {
 							ref: ref,
 							className: props.className,
 							poster: props.poster,
@@ -8067,6 +8137,7 @@ module.exports = (_ => {
 							PrivateChannel: ["componentDidMount", "componentDidUpdate"],
 							AnalyticsContext: ["componentDidMount", "componentDidUpdate"],
 							UserPopoutAvatar: "UserPopoutAvatar",
+							UserThemePopoutHeader: "default",
 							DiscordTag: "default"
 						}
 					};
@@ -8106,7 +8177,7 @@ module.exports = (_ => {
 						if (typeof e.instance.props.query != "string") e.instance.props.query = "";
 					};
 					
-					let AppViewExport = InternalData.ModuleUtilsConfig.Finder.AppView && C_BDFDB.ModuleUtils.findByString(InternalData.ModuleUtilsConfig.Finder.AppView.strings, false);
+					let AppViewExport = InternalData.ModuleUtilsConfig.Finder.AppView && C_BDFDB.ModuleUtils.findByString(InternalData.ModuleUtilsConfig.Finder.AppView.strings, {defaultExport: false});
 					if (AppViewExport) Internal.processShakeable = function (e) {
 						let [children, index] = C_BDFDB.ReactUtils.findParent(e.returnvalue, {filter: n => {
 							if (!n || typeof n.type != "function") return;
@@ -8150,12 +8221,71 @@ module.exports = (_ => {
 						}}, {once: true});
 					};
 
+					const C_BDFDB_Patrons = Object.assign({}, InternalData.C_BDFDB_Patrons), C_BDFDB_Patron_Tiers = Object.assign({}, InternalData.C_BDFDB_Patron_Tiers);
 					Internal._processAvatarRender = function (user, avatar, wrapper, className) {
-						return;
+						if (C_BDFDB.ReactUtils.isValidElement(avatar) && C_BDFDB.ObjectUtils.is(user) && (avatar.props.className || "").indexOf(C_BDFDB.disCN.C_BDFDBbadgeavatar) == -1) {
+							let role = "", note = "", color, link, addBadge = Internal.settings.general.showSupportBadges;
+							if (C_BDFDB_Patrons[user.id] && C_BDFDB_Patrons[user.id].active) {
+								link = "https://www.patreon.com/MircoWittrien";
+								role = C_BDFDB_Patrons[user.id].text || (C_BDFDB_Patron_Tiers[C_BDFDB_Patrons[user.id].tier] || {}).text;
+								note = C_BDFDB_Patrons[user.id].text && (C_BDFDB_Patron_Tiers[C_BDFDB_Patrons[user.id].tier] || {}).text;
+								color = C_BDFDB_Patrons[user.id].color;
+								className = C_BDFDB.DOMUtils.formatClassName(avatar.props.className, className, addBadge && C_BDFDB.disCN.C_BDFDBhasbadge, C_BDFDB.disCN.C_BDFDBbadgeavatar, C_BDFDB.disCN.C_BDFDBsupporter, C_BDFDB.disCN[`C_BDFDBsupporter${C_BDFDB_Patrons[user.id].tier}`]);
+							}
+							else if (user.id == InternalData.myId) {
+								addBadge = true;
+								role = `Theme ${C_BDFDB.LanguageUtils.LibraryStrings.developer}`;
+								className = C_BDFDB.DOMUtils.formatClassName(avatar.props.className, className, C_BDFDB.disCN.C_BDFDBhasbadge, C_BDFDB.disCN.C_BDFDBbadgeavatar, C_BDFDB.disCN.C_BDFDBdev);
+							}
+							if (role) {
+								if (avatar.type == "img") avatar = C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.AvatarComponents.default, Object.assign({}, avatar.props, {
+									size: Internal.LibraryComponents.AvatarComponents.Sizes.SIZE_40
+								}));
+								delete avatar.props.className;
+								let newProps = {
+									className: className,
+									children: [avatar]
+								};
+								avatar = C_BDFDB.ReactUtils.createElement("div", newProps);
+								if (addBadge) avatar.props.children.push(C_BDFDB.ReactUtils.createElement(Internal.LibraryComponents.TooltipContainer, {
+									text: role,
+									note: note,
+									tooltipConfig: {backgroundColor: color || ""},
+									onClick: link ? (_ => C_BDFDB.DiscordUtils.openLink(link)) : (_ => {}),
+									children: C_BDFDB.ReactUtils.createElement("div", {
+										className: C_BDFDB.disCN.C_BDFDBbadge,
+										"user-id": user.id
+									})
+								}));
+								return avatar;
+							}
+						}
 					};
 					Internal._processAvatarMount = function (user, avatar, wrapper) {
 						if (!user) return;
-						return;
+						if (Node.prototype.isPrototypeOf(avatar) && (avatar.className || "").indexOf(C_BDFDB.disCN.C_BDFDBbadgeavatar) == -1) {
+							let role = "", note = "", color, link, addBadge = Internal.settings.general.showSupportBadges;
+							if (C_BDFDB_Patrons[user.id] && C_BDFDB_Patrons[user.id].active) {
+								link = "https://www.patreon.com/MircoWittrien";
+								role = C_BDFDB_Patrons[user.id].text || (C_BDFDB_Patron_Tiers[C_BDFDB_Patrons[user.id].tier] || {}).text;
+								note = C_BDFDB_Patrons[user.id].text && (C_BDFDB_Patron_Tiers[C_BDFDB_Patrons[user.id].tier] || {}).text;
+								color = C_BDFDB_Patrons[user.id].color;
+								avatar.className = C_BDFDB.DOMUtils.formatClassName(avatar.className, addBadge && C_BDFDB.disCN.C_BDFDBhasbadge, C_BDFDB.disCN.C_BDFDBbadgeavatar, C_BDFDB.disCN.C_BDFDBsupporter, C_BDFDB.disCN[`C_BDFDBsupporter${C_BDFDB_Patrons[user.id].tier}`]);
+							}
+							else if (user.id == InternalData.myId) {
+								addBadge = true;
+								role = `Theme ${C_BDFDB.LanguageUtils.LibraryStrings.developer}`;
+								avatar.className = C_BDFDB.DOMUtils.formatClassName(avatar.className, addBadge && C_BDFDB.disCN.C_BDFDBhasbadge, C_BDFDB.disCN.C_BDFDBbadgeavatar, C_BDFDB.disCN.C_BDFDBdev);
+							}
+							if (addBadge && role && !avatar.querySelector(C_BDFDB.dotCN.C_BDFDBbadge)) {
+								let badge = document.createElement("div");
+								badge.className = C_BDFDB.disCN.C_BDFDBbadge;
+								badge.setAttribute("user-id", user.id);
+								if (link) badge.addEventListener("click", _ => C_BDFDB.DiscordUtils.openLink(link));
+								badge.addEventListener("mouseenter", _ => C_BDFDB.TooltipUtils.create(badge, role, {position: "top", note: note, backgroundColor: color || ""}));
+								avatar.appendChild(badge);
+							}
+						}
 					};
 					Internal.processAccount = function (e) {
 						Internal._processAvatarMount(e.instance.props.currentUser, e.node.querySelector(C_BDFDB.dotCN.avatarwrapper), e.node);
@@ -8180,10 +8310,10 @@ module.exports = (_ => {
 						Internal._processAvatarMount(e.instance.props.user, e.node.querySelector(C_BDFDB.dotCN.avatarwrapper), e.node);
 					};
 					Internal.processAnalyticsContext = function (e) {
-						if (e.instance.props.section != C_BDFDB.DiscordConstants.AnalyticsSections.PROFILE_MODAL && e.instance.props.section != C_BDFDB.DiscordConstants.AnalyticsSections.PROFILE_POPOUT) return;
+						if (e.instance.props.section != Internal.DiscordConstants.AnalyticsSections.PROFILE_MODAL && e.instance.props.section != Internal.DiscordConstants.AnalyticsSections.PROFILE_POPOUT) return;
 						const user = C_BDFDB.ReactUtils.findValue(e.instance, "user");
 						if (!user) return;
-						const avatar = e.instance.props.section != C_BDFDB.DiscordConstants.AnalyticsSections.PROFILE_POPOUT && e.node.querySelector(C_BDFDB.dotCN.avatarwrapper);
+						const avatar = e.instance.props.section != Internal.DiscordConstants.AnalyticsSections.PROFILE_POPOUT && e.node.querySelector(C_BDFDB.dotCN.avatarwrapper);
 						const wrapper = e.node.querySelector(C_BDFDB.dotCNC.userpopout + C_BDFDB.dotCN.userprofile) || e.node;
 						if (avatar) Internal._processAvatarMount(user, avatar, wrapper);
 					};
@@ -8191,6 +8321,19 @@ module.exports = (_ => {
 						if (!e.instance.props.user) return;
 						let [children, index] = C_BDFDB.ReactUtils.findParent(e.returnvalue, {props: [["className", C_BDFDB.disCN.userpopoutavatarwrapper]]});
 						if (index > -1) children[index] = Internal._processAvatarRender(e.instance.props.user, children[index], null, e.instance) || children[index];
+					};
+					Internal.processUserThemePopoutHeader = function (e) {
+						if (!e.instance.props.user) return;
+						let avatar = C_BDFDB.ReactUtils.findChild(e.returnvalue, {filter: n => n && typeof n.type == "function" && n.type.toString().indexOf(".avatarSrc") > -1});
+						if (avatar) {
+							let type = avatar.type;
+							avatar.type = C_BDFDB.TimeUtils.suppress((...args) => {
+								let returnValue = type(...args);
+								let [children, index] = C_BDFDB.ReactUtils.findParent(returnValue, {props: [["className", C_BDFDB.disCN.userpopoutthemedavatarwrapper]]});
+								if (index > -1) children[index] = Internal._processAvatarRender(e.instance.props.user, children[index], null, e.instance) || children[index];
+								return returnValue;
+							}, "Error in Type Render of UserThemePopoutAvatar!");
+						}
 					};
 					Internal.processDiscordTag = function (e) {
 						if (e.instance && e.instance.props && e.returnvalue && e.instance.props.user) e.returnvalue.props.user = e.instance.props.user;
@@ -8201,10 +8344,10 @@ module.exports = (_ => {
 					
 					Internal.addChunkObserver = function (pluginData, config) {
 						let module;
-						if (config.stringFind) module = C_BDFDB.ModuleUtils.findByString(config.stringFind, config.exported, true);
-						else if (config.propertyFind) module = C_BDFDB.ModuleUtils.findByProperties(config.propertyFind, config.exported, true);
-						else if (config.prototypeFind) module = C_BDFDB.ModuleUtils.findByPrototypes(config.prototypeFind, config.exported, true);
-						else module = C_BDFDB.ModuleUtils.findByName(config.name, config.exported, true);
+						if (config.stringFind) module = C_BDFDB.ModuleUtils.findByString(config.stringFind, {defaultExport: config.exported, noWarnings: true});
+						else if (config.propertyFind) module = C_BDFDB.ModuleUtils.findByProperties(config.propertyFind, {defaultExport: config.exported, noWarnings: true});
+						else if (config.prototypeFind) module = C_BDFDB.ModuleUtils.findByPrototypes(config.prototypeFind, {defaultExport: config.exported, noWarnings: true});
+						else module = C_BDFDB.ModuleUtils.findByName(config.name, {defaultExport: config.exported, noWarnings: true});
 						if (module) {
 							let exports = !config.exported && module.exports || module;
 							exports = config.path && C_BDFDB.ObjectUtils.get(exports, config.path) || exports;
@@ -8307,8 +8450,8 @@ module.exports = (_ => {
 							const getProps = (props, keys) => {
 								let newProps = Object.assign({}, C_BDFDB.ObjectUtils.is(props) ? props : typeof props == "string" ? {id: props} : {});
 								for (const key of [keys].flat(10).filter(n => n)) {
-									const store = `${Internal.LibraryModules.StringUtils.upperCaseFirstChar(key)}Store`;
-									const getter = `get${Internal.LibraryModules.StringUtils.upperCaseFirstChar(key)}`;
+									const store = `${C_BDFDB.StringUtils.upperCaseFirstChar(key)}Store`;
+									const getter = `get${C_BDFDB.StringUtils.upperCaseFirstChar(key)}`;
 									const value = props && props[key] || Internal.LibraryModules[store] && typeof Internal.LibraryModules[store][getter] == "function" && Internal.LibraryModules[store][getter](props && props.id || props);
 									if (value) {
 										newProps = Object.assign(newProps, {[key]: value});
@@ -8362,7 +8505,7 @@ module.exports = (_ => {
 									let found = false, funcString = exports && exports.default && typeof exports.default == "function" && exports.default.toString();
 									if (funcString && funcString.indexOf(".page") > -1 && funcString.indexOf(".section") > -1 && funcString.indexOf(".objectType") > -1) {
 										const returnValue = exports.default({});
-										if (returnValue && returnValue.props && returnValue.props.object == C_BDFDB.DiscordConstants.AnalyticsObjects.CONTEXT_MENU) {
+										if (returnValue && returnValue.props && returnValue.props.object == Internal.DiscordConstants.AnalyticsObjects.CONTEXT_MENU) {
 											for (const type in PluginStores.contextChunkObserver) if (PluginStores.contextChunkObserver[type].filter(returnValue.props.children)) {
 												exports.__C_BDFDB_ContextMenuWrapper_Patch_Name = exports.__C_BDFDB_ContextMenu_Patch_Name;
 												found = true;
@@ -8482,7 +8625,7 @@ module.exports = (_ => {
 						C_BDFDB.PatchUtils.forceAllUpdates(C_BDFDB);
 					};
 					
-					if (Internal.LibraryComponents.GuildComponents.BlobMask) {
+					if (Internal.LibraryComponents.GuildComponents.BlobMask && Internal.LibraryComponents.GuildComponents.BlobMask.prototype) {
 						let newBadges = ["lowerLeftBadge", "upperLeftBadge"];
 						C_BDFDB.PatchUtils.patch(C_BDFDB, Internal.LibraryComponents.GuildComponents.BlobMask.prototype, "render", {
 							before: e => {
@@ -8721,7 +8864,7 @@ module.exports = (_ => {
 								if (!lang) {
 									let formatTranslation = (l, s, i) => {
 										l = l == "en" ? "default" : l;
-										return config.cached && config.cached[l] && config.cached[l][stringKeys[i]] || (translations[language][i][0] == translations[language][i][0].toUpperCase() ? Internal.LibraryModules.StringUtils.upperCaseFirstChar(s) : s);
+										return config.cached && config.cached[l] && config.cached[l][stringKeys[i]] || (translations[language][i][0] == translations[language][i][0].toUpperCase() ? C_BDFDB.StringUtils.upperCaseFirstChar(s) : s);
 									};
 									let format = config.asObject ? ((l, isNotFirst) => {
 										return `${isNotFirst ? "," : ""}\n\t\t"${l == "en" ? "default" : l}": {${translations[l].map((s, i) => `\n\t\t\t"${stringKeys[i]}": "${formatTranslation(l, s, i)}"`).join(",")}\n\t\t}`;
@@ -8774,8 +8917,6 @@ module.exports = (_ => {
 							if (stringKeys.length) next(languages.shift());
 						};
 						C_BDFDB.DevUtils.req = Internal.getWebModuleReq();
-						
-						window.C_BDFDB = C_BDFDB;
 					}
 					
 					if (libraryCSS) C_BDFDB.DOMUtils.appendLocalStyle("C_BDFDB", libraryCSS.replace(/[\n\t\r]/g, "").replace(/\[REPLACE_CLASS_([A-z0-9_]+?)\]/g, (a, b) => C_BDFDB.dotCN[b]));
@@ -8806,9 +8947,9 @@ module.exports = (_ => {
 						let parentModule;
 						if (InternalData.ForceLoadedComponents[name].name) {
 							if (InternalData.ForceLoadedComponents[name].protos) parentModule = C_BDFDB.ModuleUtils.find(m => m && m.displayName == InternalData.ForceLoadedComponents[name].name && m.prototype && InternalData.ForceLoadedComponents[name].protos.every(proto => m.prototype[proto]) && m, {defaultExport: false});
-							else parentModule = C_BDFDB.ModuleUtils.findByName(InternalData.ForceLoadedComponents[name].name, false, true);
+							else parentModule = C_BDFDB.ModuleUtils.findByName(InternalData.ForceLoadedComponents[name].name, {defaultExport: false, noWarnings: true});
 						}
-						else if (InternalData.ForceLoadedComponents[name].props) parentModule = C_BDFDB.ModuleUtils.findByProperties(InternalData.ForceLoadedComponents[name].props, false, true);
+						else if (InternalData.ForceLoadedComponents[name].props) parentModule = C_BDFDB.ModuleUtils.findByProperties(InternalData.ForceLoadedComponents[name].props, {defaultExport: false, noWarnings: true});
 						if (parentModule && parentModule.exports && alreadyLoadedComponents.indexOf(parentModule.id) > -1) {
 							alreadyLoadedComponents.push(parentModule.id);
 							promises.push(Internal.lazyLoadModuleImports(parentModule.exports));
@@ -8833,7 +8974,7 @@ module.exports = (_ => {
 		getSettingsPanel (collapseStates = {}) {
 			let settingsPanel;
 			let getString = (type, key, property) => {
-				return C_BDFDB.LanguageUtils.LibraryStringsCheck[`settings_${key}_${property}`] ? C_BDFDB.LanguageUtils.LibraryStringsFormat(`settings_${key}_${property}`, C_BDFDB.BDUtils.getSettingsProperty("name", C_BDFDB.BDUtils.settingsIds[key]) || Internal.LibraryModules.StringUtils.upperCaseFirstChar(key.replace(/([A-Z])/g, " $1"))) : Internal.defaults[type][key][property];
+				return C_BDFDB.LanguageUtils.LibraryStringsCheck[`settings_${key}_${property}`] ? C_BDFDB.LanguageUtils.LibraryStringsFormat(`settings_${key}_${property}`, C_BDFDB.BDUtils.getSettingsProperty("name", C_BDFDB.BDUtils.settingsIds[key]) || C_BDFDB.StringUtils.upperCaseFirstChar(key.replace(/([A-Z])/g, " $1"))) : Internal.defaults[type][key][property];
 			};
 			return settingsPanel = C_BDFDB.PluginUtils.createSettingsPanel(C_BDFDB, {
 				collapseStates: collapseStates,
@@ -8848,7 +8989,7 @@ module.exports = (_ => {
 						note: getString("choices", key, "note"),
 						basis: "50%",
 						value: Internal.settings.choices[key],
-						options: Object.keys(LibraryConstants[Internal.defaults.choices[key].items] || {}).map(p => ({
+						options: Object.keys(Internal.DiscordConstants[Internal.defaults.choices[key].items] || {}).map(p => ({
 							value: p,
 							label: C_BDFDB.LanguageUtils.LibraryStrings[p] || p
 						})),
