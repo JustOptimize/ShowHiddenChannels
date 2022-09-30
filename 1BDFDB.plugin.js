@@ -4561,7 +4561,7 @@
 				C_BDFDB.DiscordClasses = Object.assign({}, DiscordClasses);
 				Internal.getDiscordClass = function (item, selector) {
 					let className, fallbackClassName;
-					className = fallbackClassName = Internal.DiscordClassModules.C_BDFDB.C_BDFDBundefined + "-" + Internal.generateClassId();
+					className = fallbackClassName = Internal.DiscordClassModules.BDFDB.BDFDBundefined + "-" + Internal.generateClassId();
 					if (DiscordClasses[item] === undefined) {
 						C_BDFDB.LogUtils.warn([item, "not found in DiscordClasses"]);
 						return className;
