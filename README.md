@@ -20,5 +20,10 @@ Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree
 
 ### TODO
 
-- Start using the original library
-- Find a way to patch the library (To add features)
+With Library Version (Main):
+- Fix the broken plugin
+- Add an option to remove automatic download of stuff like data or css and instead rely on the local copy (This will help with development)
+- Find a way to automate the patching of the library
+
+Without Library Version:
+- Find a way to patch the library or stop using it completely.
