@@ -1,4 +1,4 @@
-This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITHOUT LIBRARY branch
+This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/main) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITHOUT LIBRARY branch
 
 # Return ShowHiddenChannels
 <p align="left">
