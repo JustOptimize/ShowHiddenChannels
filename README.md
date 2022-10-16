@@ -1,9 +1,7 @@
-This plugin offers 2 versions one [with](https://github.com/JustOptimize/return-ShowHiddenChannels/tree/With-Library) and one [without](https://github.com/JustOptimize/return-ShowHiddenChannels) a custom library, at the moment the one without it requires a quick reload of the plugin every restart (I'm working on it), you are currently on the WITHOUT LIBRARY branch
-
 # Return ShowHiddenChannels
 <p align="left">
     <b>The return of the "banned" plugin ShowHiddenChannels.</b><br>
-    A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
+    A plugin which displays all hidden channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible)
 </p>
 
 ### The Story
@@ -12,26 +10,20 @@ On September 5th, 2022, Betterdiscord [announced](https://discord.com/channels/8
 
 Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/ShowHiddenChannels) was discontinued and removed on the same day.
 
-### Install (Without Library version)
-- Download returnShowHiddenChannels.plugin.js from this repository
+On September 26th, 2022, Discord has pushed out an absolutely massive change that completely restructured all of their internals and changed the functionality of countless modules. This has broken BetterDiscord itself and plugins completely.
+
+On October 16th, 2022, I took it upon myself to fix the plugin and make it work again. I have no idea how long this will last, but I will try to keep it updated as long as I can.
+### How to Install
+- Download ShowHiddenChannels.plugin.js from this repository
 - Move it into the plugins folder
-- Enable it
-- Done
+- If you don't have the ZeresPluginLibrary it will prompt you to install it
+- Enable the plugin and the library
+- Enjoy
 
-If you had the With Library version delete the library, the plugin (ShowHiddenChannels.plugin.js), 1BDFDB.data.json, 1BDFDB.raw.css and 1BDFDB.config.json.
+### TODO (Development)
 
-### Install (With Library)
-- Follow the same steps
-- Click download on the download prompt if you don't have the library
-- Done
-
-If you had the Without Library version remove that plugin
-
-### Features
-
-- Uses the original library
-
-### TODO
-
-- Find a way to patch the library (To add features)
-- Add a DevTool toggleable setting (Instead of relying on the developer discord id)
+- Add back lock icon
+- Add back right click menu thingy
+- Add settings
+- Fix message notifications
+- ...
