@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.0.1
+ * @version 0.0.2
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,17 +17,17 @@ module.exports = (() => {
         "name": "JustOptimize (Oggetto)",
       }],
       "description": "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "github": "https://github.com/JustOptimize/return-ShowHiddenChannels",
       "github_raw": "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
     changelog: [
       {
-        title: "Release v0.0.1",
+        title: "Release v0.0.2",
         items: [
-          "Started rewriting the plugin, now it works but is missing some features."
+          "The plugin now indicates whether a text channel is hidden when you click on it and prevents the loading of the messages (No more \"Couldn't fetch messages\").",
         ],
-      },
+      }
     ],
     main: "ShowHiddenChannels.plugin.js",
   };
@@ -88,18 +88,32 @@ module.exports = (() => {
       }
     : (([Plugin, Library]) => {
 
-    const { Patcher, WebpackModules, PluginUpdater, Logger } = Library;
+    const {
+      Patcher,
+      WebpackModules,
+      PluginUpdater,
+      Logger,
+      DiscordModules: {
+        MessageActions
+      }
+    } = Library;
 
     const ChannelStore = WebpackModules.getByProps("getChannel");
     const Channel = WebpackModules.getByPrototypes("isManaged");
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
-
-    //TODO, Coming soon
     const Route = WebpackModules.getModule((m) => m?.default?.toString().includes("impression"));
     
-    return class test extends Plugin {
+    //TODO, Coming soon
+    //const ChannelUtil = WebpackModules.getByProps("getChannelId");
+    //const Voice = WebpackModules.getByProps("getVoiceStateStats");
+    // names got removed, and can't get ChannelItem
+    //const ChannelItem1 = WebpackModules.getByDisplayName("ChannelItem");
+    //const ChannelItem2 = WebpackModules.getByProps("ChannelItem");
+    // console.log(ChannelItem1, ChannelItem2);
+
+    return class ShowHiddenChannels extends Plugin {
       constructor() {
         super();
         this.can = ChannelPermissionStore.can.__originalFunction ?? ChannelPermissionStore.can;
@@ -166,6 +180,41 @@ module.exports = (() => {
 
           return res;
         });
+
+        //! Not working, will be fixed in the future (maybe, idk if i should)
+        // Patcher.before(ChannelUtil, "getChannelIconComponent", (_, args) => {
+        //     if (args[0]?.isHidden?.() && args[2]?.locked)
+        //       args[2].locked = false;
+        //     return args;
+        //   }
+        // );
+
+        //* Stop fetching messages if the channel is hidden
+        Route.default.displayName = "RouteWithImpression";
+        if (!MessageActions._fetchMessages) {
+          MessageActions._fetchMessages = MessageActions.fetchMessages;
+          MessageActions.fetchMessages = (args) => {
+            if (ChannelStore.getChannel(args.channelId)?.isHidden?.()){
+              BdApi.showToast("Channel is hidden, not fetching messages", {type: "error"});
+              return;
+            }
+            
+            return MessageActions._fetchMessages(args);
+          };
+        }
+
+        //* This was an attempt to fix the lock icon, but it didn't work
+        //* This works but spams this error and after a while the client crashes
+        //! ...cord] [Patcher] Could not fire after callback of getChannel for ShowHiddenChannels RangeError: Maximum call stack size exceeded
+        // Patcher.after(ChannelStore, "getChannel", (thisObject, methodArguments, returnValue) => {
+        //   if(!returnValue?.isHidden?.()) return returnValue;
+
+        //   if (returnValue?.name) {
+        //     if (!returnValue.name.startsWith(" 🔒 ")) {
+        //       returnValue.name = " 🔒 " + returnValue.name;
+        //     }
+        //   }
+        // });
       }
 
       onStop() {
