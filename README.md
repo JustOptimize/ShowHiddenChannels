@@ -18,6 +18,7 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 - Move it into the plugins folder
 - If you don't have the ZeresPluginLibrary it will prompt you to install it
 - Enable the plugin and the library
+- Restart Discord
 - Enjoy
 
 ### TODO (Development)
