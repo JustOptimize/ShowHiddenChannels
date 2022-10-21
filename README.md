@@ -14,7 +14,7 @@ On September 26th, 2022, Discord has pushed out an absolutely massive change tha
 
 On October 16th, 2022, I took it upon myself to fix the plugin and make it work again. I have no idea how long this will last, but I will try to keep it updated as long as I can.
 ### How to Install
-- Download ShowHiddenChannels.plugin.js from this repository
+- Download ShowHiddenChannels.plugin.js by opening [this](https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js) then right-clicking on that new page and clicking "Save As...".
 - Move it into the plugins folder
 - If you don't have the ZeresPluginLibrary it will prompt you to install it
 - Enable the plugin and the library
