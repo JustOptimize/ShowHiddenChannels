@@ -27,5 +27,6 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 - ...
 
 ### Changelog
+- Add more settings (v0.0.5)
 - Add settings (v0.0.4)
 - Add back lock icon (v0.0.3)
