@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.0.3
+ * @version 0.0.4
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,11 +17,18 @@ module.exports = (() => {
         "name": "JustOptimize (Oggetto)",
       }],
       "description": "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "github": "https://github.com/JustOptimize/return-ShowHiddenChannels",
       "github_raw": "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
+
     changelog: [
+      {
+        "title": "v0.0.4",
+        "items": [
+          "Added some settings to the plugin.",
+        ]
+      },
       {
         title: "v0.0.3",
         items: [
@@ -29,6 +36,24 @@ module.exports = (() => {
         ],
       }
     ],
+
+    defaultConfig: [
+      {
+          "type": "switch",
+          "id": "disableIcons",
+          "name": "Disable lock icons",
+          "note": "This setting disables the hidden channel icons (they will be seen as normal channels).",
+          "value": false
+      },
+      {
+        "type": "switch",
+        "id": "debugMode",
+        "name": "Enable Debug Mode",
+        "note": "Enables some functions that are used for the development of the plugin.",
+        "value": false
+    }
+    ],
+
     main: "ShowHiddenChannels.plugin.js",
   };
 
@@ -93,6 +118,7 @@ module.exports = (() => {
       WebpackModules,
       PluginUpdater,
       Logger,
+      Modals,
       // Utilities,
       DiscordModules: {
         MessageActions,
@@ -107,7 +133,6 @@ module.exports = (() => {
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
-    
     // const ChannelItem = WebpackModules.getByString("canHaveDot", "unreadRelevant", "UNREAD_HIGHLIGHT")
     // const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     // const { iconItem, iconBase, actionIcon } = WebpackModules.getByProps("iconItem"); //iconItem-1EjiK0 iconBase-2G48Fc actionIcon-2sw4Sl
@@ -164,30 +189,46 @@ module.exports = (() => {
       }
 
       Patch() {
-        Patcher.after(UnreadStore, "hasAnyUnread", (_, args, res) => {
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
+        if(this.settings.debugMode) {
+          console.log("UnreadStore", UnreadStore);
+          console.log("ChannelStore", ChannelStore);
+        }
 
-        Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
+        //* List of UnreadStore functions:
+        // - getMentionCount
+        // - getUnreadCount
+        // - hasNotableUnread
+        // - hasRelevantUnread
+        // - hasUnread
 
-        Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
-          return res && !args[0].isHidden();
+        Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
+          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
         });
 
         Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
           return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
         });
 
+        //! Seems like this is not working anymore
+        // Patcher.after(UnreadStore, "hasAnyUnread", (_, args, res) => {
+        //   console.log("hasAnyUnread", args, res);
+        //   return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        // });
+
         Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {
           return res && !ChannelStore.getChannel(args[0])?.isHidden();
         });
-
-        Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
-          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+        
+        Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
+          return res && !args[0].isHidden();
         });
 
+        Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
+          return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        });
+
+
+        //* Make hidden channel visible
         Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
           if (args[0] == DiscordConstants.Plq.VIEW_CHANNEL) {
             return true;
@@ -214,20 +255,21 @@ module.exports = (() => {
           };
         }
         
-        var channelChanging = false; // Thanks to vileelf for suggesting a fix for this
-        Patcher.after(ChannelStore, "getChannel", (thisObject, methodArguments, returnValue) => {
-          if (channelChanging == true) { return returnValue; }
-
-          channelChanging = true;
-
-          if (returnValue?.isHidden?.() == true 
-              && returnValue?.name 
-              && !returnValue.name.startsWith(" 🔒 ")) {
-                returnValue.name = " 🔒 " + returnValue.name;
-          }
-
-          channelChanging = false;
-        }); 
+        if (!this.settings.disableIcons){
+          var channelChanging = false; // Thanks to vileelf for suggesting a fix for this
+          var icon = "🔒"; //Todo: Make this a setting
+          Patcher.after(ChannelStore, "getChannel", (thisObject, methodArguments, returnValue) => {
+            if (channelChanging) { return returnValue; }
+  
+            channelChanging = true;
+  
+            if (returnValue?.isHidden?.() && returnValue?.name && !returnValue.name.startsWith(" " + icon + " ")) {
+                  returnValue.name = " " + icon + " " + returnValue.name;
+            }
+  
+            channelChanging = false;
+          }); 
+        }
 
         //! Not working
         // console.log("ChannelItem", ChannelItem);
@@ -333,6 +375,35 @@ module.exports = (() => {
 
       onStop() {
         Patcher.unpatchAll();
+      }
+
+      //* Settings
+
+      getSettingsPanel() {
+        const panel = this.buildSettingsPanel();
+        panel.addListener(this.updateSettings.bind(this));
+        return panel.getElement();
+      }
+
+      updateSettings(id, value) {
+          if (id === "disableIcons"){
+            this.reloadNotification();
+          }
+
+          if (id === "debugMode"){
+            this.reloadNotification();
+          }
+      }
+
+      //* Icon
+      reloadNotification() {
+        Modals.showConfirmationModal("Reload Discord?", "To update this setting Discord needs to be reloaded.", {
+            confirmText: "Reload",
+            cancelText: "Later",
+            onConfirm: () => {
+                window.location.reload();
+            }
+        });
       }
 
     };
