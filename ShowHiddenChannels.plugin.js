@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.0.4
+ * @version 0.0.5
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -12,20 +12,26 @@ module.exports = (() => {
 
   const config = {
     info: {
-      "name": "ShowHiddenChannels",
-      "authors": [{
-        "name": "JustOptimize (Oggetto)",
+      name: "ShowHiddenChannels",
+      authors: [{
+        name: "JustOptimize (Oggetto)",
       }],
-      "description": "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      "version": "0.0.4",
-      "github": "https://github.com/JustOptimize/return-ShowHiddenChannels",
-      "github_raw": "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
+      description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
+      version: "0.0.5",
+      github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
+      github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
-        "title": "v0.0.4",
-        "items": [
+        title: "v0.0.5",
+        items: [
+          "Added more settings for the lock icon.",
+        ]
+      },
+      {
+        title: "v0.0.4",
+        items: [
           "Added some settings to the plugin.",
         ]
       },
@@ -39,19 +45,33 @@ module.exports = (() => {
 
     defaultConfig: [
       {
-          "type": "switch",
-          "id": "disableIcons",
-          "name": "Disable lock icons",
-          "note": "This setting disables the hidden channel icons (they will be seen as normal channels).",
-          "value": false
+        type: "switch",
+        id: "disableIcons",
+        name: "Disable lock icons",
+        note: "This setting disables the hidden channel icons (they will be seen as normal channels).",
+        value: false
       },
       {
-        "type": "switch",
-        "id": "debugMode",
-        "name": "Enable Debug Mode",
-        "note": "Enables some functions that are used for the development of the plugin.",
-        "value": false
-    }
+        type: "textbox",
+        id: "emoji",
+        name: "Locked Channel Emoji/Text",
+        note: "The emoji/text to use for the lock icon (MAX 6).",
+        value: "🔒"
+      },
+      {
+        type: "switch",
+        id: "OnRight",
+        name: "Emoji/Text on the right",
+        note: "This setting changes the position of the lock icon to the left or right side of the channel name.",
+        value: false
+      },
+      {
+        type: "switch",
+        id: "debugMode",
+        name: "Enable Debug Mode",
+        note: "Enables some functions that are used for the development of the plugin.",
+        value: false
+      },
     ],
 
     main: "ShowHiddenChannels.plugin.js",
@@ -73,9 +93,7 @@ module.exports = (() => {
         async downloadZLib() {
           const fs = require("fs");
           const path = require("path");
-          const ZLib = await fetch(
-            "https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js"
-          );
+          const ZLib = await fetch("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js");
           if (!ZLib.ok) return this.errorDownloadZLib();
           const ZLibContent = await ZLib.text();
           try {
@@ -255,16 +273,20 @@ module.exports = (() => {
           };
         }
         
-        if (!this.settings.disableIcons){
+        if (!this.settings.disableIcons){ // && !this.settings.useOgIcons
           var channelChanging = false; // Thanks to vileelf for suggesting a fix for this
-          var icon = "🔒"; //Todo: Make this a setting
+          var icon = this.settings.emoji || "🔒";
           Patcher.after(ChannelStore, "getChannel", (thisObject, methodArguments, returnValue) => {
             if (channelChanging) { return returnValue; }
   
             channelChanging = true;
   
-            if (returnValue?.isHidden?.() && returnValue?.name && !returnValue.name.startsWith(" " + icon + " ")) {
-                  returnValue.name = " " + icon + " " + returnValue.name;
+            if (returnValue?.isHidden?.() && returnValue?.name && !returnValue.name.includes(" " + icon + " ")) {
+              if(this.settings.OnRight) {
+                returnValue.name = returnValue.name + " " + icon + " ";
+              } else {
+                returnValue.name = " " + icon + " " + returnValue.name;
+              }
             }
   
             channelChanging = false;
@@ -272,6 +294,7 @@ module.exports = (() => {
         }
 
         //! Not working
+        // if (this.settings.useOgIcons && !this.settings.disableIcons) {
         // console.log("ChannelItem", ChannelItem);
         // Patcher.after(ChannelItem, "default", (_, args, res) => {
         //   console.log(args[0].channel);
@@ -386,18 +409,22 @@ module.exports = (() => {
       }
 
       updateSettings(id, value) {
-          if (id === "disableIcons"){
-            this.reloadNotification();
-          }
+        if(id === "emoji") {
 
-          if (id === "debugMode"){
-            this.reloadNotification();
-          }
+          if(value.length > 6) { value = value.substring(0, 6); }
+          else if(value.length < 1) { value = "🔒"; }
+
+          this.settings.emoji = value;
+          this.saveSettings(this.settings);
+          return;
+        }
+
+        this.reloadNotification();
       }
 
       //* Icon
-      reloadNotification() {
-        Modals.showConfirmationModal("Reload Discord?", "To update this setting Discord needs to be reloaded.", {
+      reloadNotification(coolText = "Reload Discord to apply changes and avoid bugs") {
+        Modals.showConfirmationModal("Reload Discord?", coolText, {
             confirmText: "Reload",
             cancelText: "Later",
             onConfirm: () => {
