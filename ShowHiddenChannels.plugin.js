@@ -327,29 +327,28 @@ module.exports = (() => {
 
             allChannels.forEach((channel) => {
               let c = channel.children[0].lastElementChild.children[1];
-              
-              // Some channels are in a div with no classes wtf
-              if(!c){ c = channel.children[0].children[0].lastElementChild.children[1];}
+              if(!c){ c = channel.children[0].children[0].lastElementChild.children[1];} // Some channels are in a div with no classes wtf
+              if(!c) {return;}
 
-              if(c){
-                let channelID = c.parentElement.firstChild.getAttribute("data-list-item-id");
-                channelID = channelID.replace(/\D/g,'');
+              let channelID = c.parentElement.firstChild.getAttribute("data-list-item-id");
+              if(!channelID){return;}
+              channelID = channelID.replace(/\D/g,'');
 
-                if(ChannelStore.getChannel(channelID)?.isHidden?.()){
+              if(ChannelStore.getChannel(channelID)?.isHidden?.()){
 
-                  if(!c.innerHTML.includes(iconHTML)){
-                    c.innerHTML = c.innerHTML + iconHTML;
-                  }
-                  // c.style.border = "3px solid red"; // Debugging
-                }else{
-
-                  if(c.innerHTML.includes(iconHTML)){
-                    c.innerHTML = c.innerHTML.replace(iconHTML, "");
-                  }
-                  // c.style.border = "none"; // Debugging
+                if(!c.innerHTML.includes(iconHTML)){
+                  c.innerHTML = c.innerHTML + iconHTML;
                 }
-              }
+                // c.style.border = "3px solid red"; // Debugging
 
+              }else{
+
+                if(c.innerHTML.includes(iconHTML)){
+                  c.innerHTML = c.innerHTML.replace(iconHTML, "");
+                }
+                // c.style.border = "none"; // Debugging
+                
+              }
             });
           });
         }
