@@ -27,6 +27,7 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 - ...
 
 ### Changelog
+- Added back the old lock icon and modified settings to be more user friendly (v0.0.6)
 - Add more settings (v0.0.5)
 - Add settings (v0.0.4)
 - Add back lock icon (v0.0.3)
