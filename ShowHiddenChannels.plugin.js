@@ -231,7 +231,6 @@ module.exports = (() => {
           });
 
           Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
-            // console.log("getUnreadCount", args, res);
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
           });
 
@@ -290,6 +289,7 @@ module.exports = (() => {
           };
         }
         
+        //* " 🔒 Channel_Name"
         if (!this.settings.disableIcons && !this.settings.useIconsV2){
           var channelChanging = false; // Thanks to vileelf for suggesting a fix for this
           var icon = this.settings.emoji || "🔒";
@@ -311,7 +311,22 @@ module.exports = (() => {
             channelChanging = false;
           }); 
         }
+        
+        if(this.settings.disableIcons || this.settings.useIconsV2){
+          Patcher.after(ChannelStore, "getChannel", (thisObject, methodArguments, returnValue) => {
+            if (channelChanging) { return returnValue; }
+  
+            channelChanging = true;
+  
+            if (returnValue?.name && returnValue.name.includes(" " + icon + " ")) {
+              returnValue.name = returnValue.name.replace(" " + icon + " ", "");
+            }
 
+            channelChanging = false;
+          }); 
+        }
+
+        //* Lock V2 (The og one)
         if (this.settings.useIconsV2 && !this.settings.disableIcons) {
           const channelInfoSelector = WebpackModules.getByProps("iconVisibility", "channelInfo");
           const channelNameSelector = WebpackModules.getByProps("channelName", "iconContainer");
