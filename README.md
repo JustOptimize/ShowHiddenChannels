@@ -6,7 +6,7 @@
 
 ### The Story
 
-On September 5th, 2022, Betterdiscord [announced](https://discord.com/channels/86004744966914048/178208945410801665/1016268576283426866) that plugins like ShowHiddenChannels would no longer be officially supported.
+On September 5th, 2022, BetterDiscord [announced](https://discord.com/channels/86004744966914048/178208945410801665/1016268576283426866) that plugins like ShowHiddenChannels would no longer be officially supported.
 
 Additionally, the [plugin](https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/ShowHiddenChannels) was discontinued and removed on the same day.
 
@@ -20,6 +20,8 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 - Enable the plugin and the library
 - Restart Discord
 - Enjoy
+
+In addition you can also use the [this](https://github.com/rauenzi/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer) plugin by [@rauenzi](https://github.com/rauenzi/) to see the channel permissions/access.
 
 ### TODO (Development)
 - Add back right click menu thingy
