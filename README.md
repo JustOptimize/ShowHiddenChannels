@@ -29,6 +29,7 @@ In addition you can also use the [this](https://github.com/rauenzi/BetterDiscord
 - ...
 
 ### Changelog
+- Fixed notification issue (v0.0.7)
 - Added back the old lock icon and modified settings to be more user friendly (v0.0.6)
 - Add more settings (v0.0.5)
 - Add settings (v0.0.4)
