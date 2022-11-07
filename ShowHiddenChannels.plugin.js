@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.0.6
+ * @version 0.0.7
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.0.6",
+      version: "0.0.7",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.0.7",
+        items: [
+          "Fixed notification issue.",
+        ]
+      },
       {
         title: "v0.0.6",
         items: [
@@ -61,7 +67,7 @@ module.exports = (() => {
         type: "switch",
         id: "useIconsV2",
         name: "Use V2 Icons",
-        note: "Use the old ShowHiddenChannels icons. (Not customizable and bad performance while scrolling)",
+        note: "Use the new and improved icons (Not customizable). Do not turn off if you're on Windows",
         value: true
       },
       {
@@ -168,8 +174,7 @@ module.exports = (() => {
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
     const ChannelItem = WebpackModules.getByString("canHaveDot", "unreadRelevant", "UNREAD_HIGHLIGHT")
-    const SomeStore = WebpackModules.getByProps("hasUnread");
-
+    
     // //TODO, Coming soon
     // const Route = WebpackModules.getModule((m) => m?.default?.toString().includes("impression"));
     // const ChannelUtil = WebpackModules.getByProps("selectChannel", "selectPrivateChannel");
@@ -209,7 +214,6 @@ module.exports = (() => {
         if(this.settings.debugMode) {
           console.log("UnreadStore", UnreadStore);
           // console.log("ChannelStore", ChannelStore);
-          console.log("SomeStore", SomeStore);
           // console.log("Channel", Channel);
           // console.log("WebpackModules", WebpackModules.getAllModules());
           // console.log(mod);
@@ -219,13 +223,20 @@ module.exports = (() => {
         }
 
         //* List of UnreadStore functions:
+        // - getGuildChannelUnreadState
         // - getMentionCount
         // - getUnreadCount
         // - hasNotableUnread
         // - hasRelevantUnread
+        // - hasTrackedUnread
         // - hasUnread
+        // - hasUnreadPins
 
         if(!this.settings.MarkUnread) {
+          Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) =>{
+            return args[0]?.isHidden() ? {mentionCount: 0, hasNotableUnread: false} : res ;
+          });
+
           Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
           });
@@ -234,31 +245,24 @@ module.exports = (() => {
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
           });
 
-          //! Seems like this is not working anymore
-          Patcher.after(UnreadStore, "hasAnyUnread", (_, args, res) => {
-            console.log("hasAnyUnread", args, res);
+          Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
-          Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
-          
           Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
             return res && !args[0].isHidden();
+          });
+
+          Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
+            return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
           Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
-          Patcher.after(SomeStore, "hasUnread", (_, args, res) => {
+          Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
-
-          Patcher.after(SomeStore, "hasRelevantUnread", (_, args, res) => {
-            if(this.settings.debugMode){console.log("Does this work?")}
-            return res && !args[0].isHidden();
           });
         }
 
