@@ -180,21 +180,17 @@ module.exports = (() => {
     const CategoryUtil = WebpackModules.getByString("CATEGORY_COLLAPSE");
 
     const ChannelUtils = {
-      filter: ["GUILD_TEXT", "channel", "guild", "key", "(ke"],
+      filter: ["channel", "guild"],
       get Module() {
-        return WebpackModules.getModule((m) =>
-          this.filter.every((s) =>
-            Object.values(m).some((m) => m?.toString?.()?.includes(s))
-          )
-        );
+        return WebpackModules.getModule((m) => this.filter.every((s) =>
+          m?.v0?.toString().includes(s)
+        ));
       },
       get ChannelTopic() {
-        // if(!this.Module) return null;
-        return Object?.values(this.Module).find((m) =>
-          this.filter.every((s) => m?.toString?.().includes(s))
-        );
+        return this.Module.v0;
       },
     };
+
     const ChannelTypes = [
       "GUILD_TEXT",
       "GUILD_VOICE",
@@ -209,11 +205,10 @@ module.exports = (() => {
       WOULD_SHOW_IF_UNCOLLAPSED: 3,
       SHOW: 4,
     };
+    
     const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1)}`;
     const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-    // because its MIME type ('text/plain') is not a supported stylesheet MIME type
-    // const CSS = `@import url("https://pastebin.com/raw/ggPs4QUh");`;
     const CSS = `
    .shc-locked-notice {
       display: flex;
@@ -554,7 +549,7 @@ module.exports = (() => {
                 "You cannot see the contents of this channel. ",
                 props.channel.topic && "However, you may see its topic."
               ),
-              props.channel.topic && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+              props.channel.topic && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
               props.channel.lastMessageId &&
                 React.createElement(
                   TextElement,
