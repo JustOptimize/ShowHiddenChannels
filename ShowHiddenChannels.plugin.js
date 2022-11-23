@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.0
+ * @version 0.1.1
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.0",
+      version: "0.1.1",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.1",
+        items: [
+          "Added support for forum channels",
+        ]
+      },
       {
         title: "v0.1.0",
         items: [
@@ -197,6 +203,7 @@ module.exports = (() => {
       "GUILD_ANNOUNCEMENT",
       "GUILD_STORE",
       "GUILD_STAGE_VOICE",
+      "GUILD_FORUM",
     ];
 
     const renderLevels = {
@@ -242,6 +249,7 @@ module.exports = (() => {
         GUILD_ANNOUNCEMENT: true,
         GUILD_STORE: true,
         GUILD_STAGE_VOICE: true,
+        GUILD_FORUM: true,
       },
 
       blacklistedGuilds: {},
