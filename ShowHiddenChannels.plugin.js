@@ -26,8 +26,8 @@ module.exports = (() => {
       {
         title: "v0.1.0",
         items: [
-          "Added a new option to hide the hidden channels from the channel list,",
-          "Brought back channel locked page,",
+          "Added a new option to hide the hidden channels from the channel list",
+          "Brought back channel locked page",
           "Bug fixes."
         ]
       },
