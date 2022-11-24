@@ -24,6 +24,7 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 In addition you can also use the [this](https://github.com/rauenzi/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer) plugin by [@rauenzi](https://github.com/rauenzi/) to see the channel permissions/access.
 
 ### Changelog
+- Added slowmode and nsfw to the channel page. (v0.1.2)
 - Added a new option to hide the hidden channels from the channel list, brought back channel locked page, bug fixes and more. (v0.1.0)
 - Removed old and buggy lock icons and updated some code (v0.0.8)
 - Fixed notification issue (v0.0.7)

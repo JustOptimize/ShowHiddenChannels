@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.1
+ * @version 0.1.2
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.1",
+      version: "0.1.2",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.2",
+        items: [
+          "Added slowmode and nsfw to the channel page.",
+        ]
+      },
       {
         title: "v0.1.1",
         items: [
@@ -213,7 +219,7 @@ module.exports = (() => {
       SHOW: 4,
     };
     
-    const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1)}`;
+    const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
     const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
     const CSS = `
@@ -516,6 +522,11 @@ module.exports = (() => {
 
       lockscreen() {
         return React.memo((props) => {
+          
+          if(this.settings.debugMode){
+            console.log(props);
+          }
+
           return React.createElement(
             "div",
             {
@@ -557,7 +568,10 @@ module.exports = (() => {
                 "You cannot see the contents of this channel. ",
                 props.channel.topic && "However, you may see its topic."
               ),
+              //* Topic
               props.channel.topic && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+
+              //* Last message
               props.channel.lastMessageId &&
                 React.createElement(
                   TextElement,
@@ -567,11 +581,52 @@ module.exports = (() => {
                   },
                   "Last message sent: ",
                   this.getDateFromSnowflake(props.channel.lastMessageId)
-                )
+                ),
+
+              //* Slowmode
+              props.channel.rateLimitPerUser > 0 &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Slowmode: ",
+                  this.convertToHMS(props.channel.rateLimitPerUser)
+                ),
+
+              //* NSFW
+              props.channel.nsfw &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Age-Restricted Channel (NSFW) 🔞"
+                ),
             )
           );
         });
       }
+      convertToHMS(seconds) {
+        seconds = Number(seconds);
+        var h = Math.floor(seconds / 3600);
+        var m = Math.floor((seconds % 3600) / 60);
+        var s = Math.floor((seconds % 3600) % 60);
+
+        var hDisplay = h > 0 ? h + (h == 1 ? " hour" : " hours") : "";
+        var mDisplay = m > 0 ? m + (m == 1 ? " minute" : " minutes") : "";
+        var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+        return hDisplay + mDisplay + sDisplay;
+      }
+      
       getDateFromSnowflake(number) {
         try {
           const id = parseInt(number);
@@ -684,7 +739,7 @@ module.exports = (() => {
           }).append(
             ...ChannelTypes.map((type) =>
               new Switch(
-                `${capitalizeFirst(type.split("_")[1].toLowerCase())} Channels`,
+                `${capitalizeFirst(type.split("_")[1])}${(type.split("_").length == 3) ? " " + capitalizeFirst(type.split("_")[2]) : ""} Channels`,
                 this.settings["channels"][type],
                 (e) => { this.settings["channels"][type] = e }
               )
