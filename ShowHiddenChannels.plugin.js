@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.2
+ * @version 0.1.3
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.2",
+      version: "0.1.3",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.3",
+        items: [
+          "Added information about forums on the \"This is a hidden channel\" page.",
+        ]
+      },
       {
         title: "v0.1.2",
         items: [
@@ -566,10 +572,10 @@ module.exports = (() => {
                   },
                 },
                 "You cannot see the contents of this channel. ",
-                props.channel.topic && "However, you may see its topic."
+                props.channel.topic && props.channel.type != 15 && "However, you may see its topic."
               ),
               //* Topic
-              props.channel.topic && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+              props.channel.topic && props.channel.type != 15 && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
 
               //* Last message
               props.channel.lastMessageId &&
@@ -611,10 +617,70 @@ module.exports = (() => {
                   },
                   "Age-Restricted Channel (NSFW) 🔞"
                 ),
+
+              //* Forums
+              props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      marginTop: 20,
+                      backgroundColor: "var(--background-secondary)",
+                      padding: 10,
+                      borderRadius: 5,
+                      color: "var(--text-normal)",
+
+                    },
+                  },
+
+                  React.createElement(
+                    TextElement,
+                    {
+                      color: TextElement.Colors.HEADER_SECONDARY,
+                      size: TextElement.Sizes.SIZE_16,
+                      style: {
+                        fontWeight: "bold",
+                        marginBottom: 10,
+                      },
+                    },
+                    "Forum",
+                  ),
+
+                  //* Tags
+                  props.channel.availableTags && props.channel.availableTags.length > 0 &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Tags: ",
+                      props.channel.availableTags.map((tag) => tag.name).join(", ")
+                    ),
+
+                  //* Guidelines
+                  props.channel.topic &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Guidelines: ",
+                      props.channel.topic
+                    ),
+                ),
             )
           );
         });
       }
+      
       convertToHMS(seconds) {
         seconds = Number(seconds);
         var h = Math.floor(seconds / 3600);
