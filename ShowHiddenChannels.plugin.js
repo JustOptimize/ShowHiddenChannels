@@ -566,10 +566,10 @@ module.exports = (() => {
                   },
                 },
                 "You cannot see the contents of this channel. ",
-                props.channel.topic && "However, you may see its topic."
+                props.channel.topic && props.channel.type != 15 && "However, you may see its topic."
               ),
               //* Topic
-              props.channel.topic && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+              props.channel.topic && props.channel.type != 15 && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
 
               //* Last message
               props.channel.lastMessageId &&
@@ -611,10 +611,70 @@ module.exports = (() => {
                   },
                   "Age-Restricted Channel (NSFW) 🔞"
                 ),
+
+              //* Forums
+              props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      marginTop: 20,
+                      backgroundColor: "var(--background-secondary)",
+                      padding: 10,
+                      borderRadius: 5,
+                      color: "var(--text-normal)",
+
+                    },
+                  },
+
+                  React.createElement(
+                    TextElement,
+                    {
+                      color: TextElement.Colors.HEADER_SECONDARY,
+                      size: TextElement.Sizes.SIZE_16,
+                      style: {
+                        fontWeight: "bold",
+                        marginBottom: 10,
+                      },
+                    },
+                    "Forum",
+                  ),
+
+                  //* Tags
+                  props.channel.availableTags && props.channel.availableTags.length > 0 &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Tags: ",
+                      props.channel.availableTags.map((tag) => tag.name).join(", ")
+                    ),
+
+                  //* Guidelines
+                  props.channel.topic &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Guidelines: ",
+                      props.channel.topic
+                    ),
+                ),
             )
           );
         });
       }
+      
       convertToHMS(seconds) {
         seconds = Number(seconds);
         var h = Math.floor(seconds / 3600);
