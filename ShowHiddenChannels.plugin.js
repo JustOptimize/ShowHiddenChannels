@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.3
+ * @version 0.1.4
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,22 +17,29 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.3",
+      version: "0.1.4",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
+        title: "v0.1.4",
+        items: [
+          "Added eye icon",
+          "Bug fixes",
+        ]
+      },
+      {
         title: "v0.1.3",
         items: [
-          "Added information about forums on the \"This is a hidden channel\" page.",
+          "Added information about forums on the \"This is a hidden channel\" page",
         ]
       },
       {
         title: "v0.1.2",
         items: [
-          "Added slowmode and nsfw to the channel page.",
+          "Added slowmode and nsfw to the channel page",
         ]
       },
       {
@@ -46,37 +53,37 @@ module.exports = (() => {
         items: [
           "Added a new option to hide the hidden channels from the channel list",
           "Brought back channel locked page",
-          "Bug fixes."
+          "Bug fixes"
         ]
       },
       {
         title: "v0.0.8",
         items: [
-          "Removed old and buggy lock icons and updated some code.",
+          "Removed old and buggy lock icons and updated some code",
         ]
       },
       {
         title: "v0.0.7",
         items: [
-          "Fixed notification issue.",
+          "Fixed notification issue",
         ]
       },
       {
         title: "v0.0.6",
         items: [
-          "Added back the old lock icon and modified settings to be more user friendly.",
+          "Added back the old lock icon and modified settings to be more user friendly",
         ]
       },
       {
         title: "v0.0.5",
         items: [
-          "Added more settings for the lock icon.",
+          "Added more settings for the lock icon",
         ]
       },
       {
         title: "v0.0.4",
         items: [
-          "Added some settings to the plugin.",
+          "Added some settings to the plugin",
         ]
       },
       {
@@ -153,7 +160,7 @@ module.exports = (() => {
       PluginUpdater,
       ReactTools,
       Modals,
-      Settings: { SettingField, SettingPanel, SettingGroup, Switch },
+      Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup, Dropdown },
       DiscordModules: {
         SwitchRow,
         ChannelStore,
@@ -168,6 +175,7 @@ module.exports = (() => {
     const { ContextMenu } = BdApi;
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const { chat } = WebpackModules.getByProps("chat", "chatContent");
+
     const Route = WebpackModules.getModule((m) =>
       ["impressionName", "impressionProperties", "disableTrack"].every(
         (s) => m?.Z?.toString().includes(s)
@@ -183,19 +191,18 @@ module.exports = (() => {
         m?.KS?.toString().includes(s)
       )
     );
+
     const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
-    const { container } = WebpackModules.getByProps( "container", "hubContainer");
+    const { container } = WebpackModules.getByProps("container", "hubContainer");
     const Channel = WebpackModules.getByPrototypes("isManaged");
+    const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
     const IconUtils = WebpackModules.getByProps("getUserAvatarURL");
     const { DEFAULT_AVATARS } = WebpackModules.getByProps("DEFAULT_AVATARS");
     const { iconItem, actionIcon } = WebpackModules.getByProps("iconItem");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
     const GuildStore = WebpackModules.getByProps("getGuild", "getGuilds");
-    const CategoryStore = WebpackModules.getByProps("isCollapsed", "getCollapsed");
-    const ListItem = WebpackModules.getByString("mergeLocation");
-    const CategoryUtil = WebpackModules.getByString("CATEGORY_COLLAPSE");
 
     const ChannelUtils = {
       filter: ["channel", "guild"],
@@ -218,42 +225,38 @@ module.exports = (() => {
       "GUILD_FORUM",
     ];
 
-    const renderLevels = {
-      CAN_NOT_SHOW: 1,
-      DO_NOT_SHOW: 2,
-      WOULD_SHOW_IF_UNCOLLAPSED: 3,
-      SHOW: 4,
-    };
-    
     const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
     const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
     const CSS = `
-   .shc-locked-notice {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      margin: auto;
-      text-align: center;
-   }	 
-   .shc-locked-notice > div[class^="divider"] {
-      display: none
-   }	 
-   .shc-locked-notice > div[class^="topic"] {
-      background-color: var(--background-secondary);
-      padding: 5px;
-      max-width: 50vh;
-      text-overflow: ellipsis;
-      border-radius: 5px;
-      margin: 10px auto;
-   }
-   `;
+      .shc-locked-notice {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          margin: auto;
+          text-align: center;
+      }	 
+      .shc-locked-notice > div[class^="divider"] {
+          display: none
+      }	 
+      .shc-locked-notice > div[class^="topic"] {
+          background-color: var(--background-secondary);
+          padding: 5px;
+          max-width: 50vh;
+          text-overflow: ellipsis;
+          border-radius: 5px;
+          margin: 10px auto;
+      }
+    `;
 
     const defaultSettings = {
       disableIcons: false,
       MarkUnread: false,
       debugMode: false,
+
+      hiddenChannelIcon: "lock",
+      sort: "native",
 
       channels: {
         GUILD_TEXT: true,
@@ -449,7 +452,6 @@ module.exports = (() => {
           return res(args);
         });
         
-
         if (!this.settings.disableIcons) {
           Patcher.after(ChannelItem, "Z", (_, args, res) => {
             const instance = args[0];
@@ -457,39 +459,118 @@ module.exports = (() => {
               const item = res.props?.children?.props;
               if (item?.className)
                 item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
-              const children =
-                res.props?.children?.props?.children[1]?.props?.children[1];
+
+              const children = Utilities.findInReactTree(res, (m) =>
+                m?.props?.onClick?.toString().includes("stopPropagation")
+              );
+              
               if (children.props?.children)
-                children.props.children = [
-                  React.createElement(
-                    Tooltip,
-                    {
-                      text: "Hidden Channel",
-                    },
-                    (props) =>
+                switch (this.settings["hiddenChannelIcon"]) {
+                  case "lock":
+                    children.props.children = [
                       React.createElement(
-                        "div",
+                        Tooltip,
                         {
-                          ...props,
-                          className: `${iconItem}`,
-                          style: {
-                            display: "block",
-                          },
+                          text: "Hidden Channel",
                         },
-                        React.createElement(
-                          "svg",
-                          {
-                            class: actionIcon,
-                            viewBox: "0 0 24 24",
-                          },
-                          React.createElement("path", {
-                            fill: "currentColor",
-                            d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z",
-                          }),
-                        )
-                      )
-                  ),
-                ];
+                        (props) =>
+                          React.createElement(
+                            "div",
+                            {
+                              ...props,
+                              className: `${iconItem}`,
+                              style: {
+                                display: "block",
+                              },
+                            },
+                            React.createElement(
+                              "svg",
+                              {
+                                class: actionIcon,
+                                viewBox: "0 0 24 24",
+                              },
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z",
+                              })
+                            )
+                          )
+                      ),
+                    ];
+                    break;
+                  case "eye":
+                    children.props.children = [
+                      React.createElement(
+                        Tooltip,
+                        {
+                          text: "Hidden Channel",
+                        },
+                        (props) =>
+                          React.createElement(
+                            "div",
+                            {
+                              ...props,
+                              className: `${iconItem}`,
+                              style: {
+                                display: "block",
+                              },
+                            },
+                            React.createElement(
+                              "svg",
+                              {
+                                class: actionIcon,
+                                viewBox: "0 0 24 24",
+                              },
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z",
+                              }),
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z",
+                              }),
+                              React.createElement("polygon", {
+                                fill: "currentColor",
+                                points:
+                                  "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 ",
+                              })
+                            )
+                          )
+                      ),
+                    ];
+                    break;
+                  default:
+                    children.props.children = [
+                      React.createElement(
+                        Tooltip,
+                        {
+                          text: "Hidden Channel",
+                        },
+                        (props) =>
+                          React.createElement(
+                            "div",
+                            {
+                              ...props,
+                              className: `${iconItem}`,
+                              style: {
+                                display: "block",
+                              },
+                            },
+                            React.createElement(
+                              "svg",
+                              {
+                                class: actionIcon,
+                                viewBox: "0 0 24 24",
+                              },
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M12 2c5.523 0 10 4.478 10 10s-4.477 10-10 10S2 17.522 2 12 6.477 2 12 2Zm.002 13.004a.999.999 0 1 0 0 1.997.999.999 0 0 0 0-1.997ZM12 7a1 1 0 0 0-.993.884L11 8l.002 5.001.007.117a1 1 0 0 0 1.986 0l.007-.117L13 8l-.007-.117A1 1 0 0 0 12 7Z",
+                              })
+                            )
+                          )
+                      ),
+                    ];
+                }
 
               if (
                 instance.channel.type == DiscordConstants.d4z.GUILD_VOICE &&
@@ -643,7 +724,7 @@ module.exports = (() => {
                         marginBottom: 10,
                       },
                     },
-                    "Forum",
+                    "Forum"
                   ),
 
                   //* Tags
@@ -674,8 +755,8 @@ module.exports = (() => {
                       },
                       "Guidelines: ",
                       props.channel.topic
-                    ),
-                ),
+                    )
+                )
             )
           );
         });
@@ -729,43 +810,66 @@ module.exports = (() => {
           })
         );
       }
-      rerenderChannels() {
-        let onceDone;
-        this.cache = {};
-        const element = document.querySelector(`.${container}`);
-        if (!element) return;
-        const ChannelsIns = ReactTools.getOwnerInstance(element);
-        const ChannelsPrototype =
-          ChannelsIns._reactInternals.type.prototype;
-        if (ChannelsIns && ChannelsPrototype) {
-          Patcher.after(ChannelsPrototype, "render", (_, args, res) => {
-            if (onceDone) return;
-            res.props.children =
-              typeof res.props.children == "function"
-                ? (_) => {
-                    return null;
-                  }
-                : [];
-            this.forceUpdate(ChannelsIns);
-            onceDone = true;
-          });
-          this.forceUpdate(ChannelsIns);
-        }
+
+      getHiddenChannels(guildId) {
+        if (!guildId) return {
+          channels: [],
+          amount: 0
+        };
+
+        const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
+        const hiddenChannels = Object.values(guildChannels).filter(m => m.isHidden() && m.type != DiscordConstants.d4z.GUILD_CATEGORY)
+        
+        return { channels: hiddenChannels, amount: hiddenChannels.length };
       }
-      forceUpdate(...instances) {
-        for (let ins of instances.flat(10).filter((n) => n))
-          if (
-            ins.updater &&
-            typeof ins.updater.isMounted == "function" &&
-            ins.updater.isMounted(ins)
-          )
-            ins.forceUpdate();
+
+      rerenderChannels() {
+        const ChannelPermsssionCache = ChannelPermissionStore.__getLocalVars();
+        
+        for (const key in ChannelPermsssionCache) {
+          if (typeof ChannelPermsssionCache[key] != "object" && Array.isArray(ChannelPermsssionCache[key]) && ChannelPermsssionCache[key] === null){
+            return;
+          }
+
+          for (const id in ChannelPermsssionCache[key]) {
+            delete ChannelPermsssionCache[key][id];
+          }
+        }
+
+        ChannelPermissionStore.initialize();
+
+        const ChanneListCache = ChannelListStore.__getLocalVars();
+        for (const guildId in ChanneListCache.state.guilds) {
+          delete ChanneListCache.state.guilds[guildId];
+        }
+
+        ChannelListStore.initialize();
+
+        this.forceUpdate(document.querySelector(`.${container}`));
+      }
+
+      forceUpdate(element) {
+        if (!element) return;
+        const toForceUpdate = ReactTools.getOwnerInstance(
+          element
+        );
+        const original = toForceUpdate.render;
+        if (original.name == "forceRerender") return;
+        toForceUpdate.render = function forceRerender() {
+          original.call(this);
+          toForceUpdate.render = original;
+          return null;
+        };
+        toForceUpdate.forceUpdate(() =>
+          toForceUpdate.forceUpdate(() => {})
+        );
       }
 
       onStop() {
         Patcher.unpatchAll();
         DOMTools.removeStyle(config.info.name);
         ContextMenu.unpatch("guild-context", this.processContextMenu);
+        this.rerenderChannels();
       }
 
       getSettingsPanel() {
@@ -778,7 +882,7 @@ module.exports = (() => {
               this.settings["disableIcons"],
               (i) => {
                 this.settings["disableIcons"] = i;
-                this.rerenderChannels();
+                // this.rerenderChannels();
               }
             ),
             new Switch(
@@ -787,7 +891,7 @@ module.exports = (() => {
               this.settings["MarkUnread"],
               (i) => {
                 this.settings["MarkUnread"] = i;
-                this.rerenderChannels();
+                // this.rerenderChannels();
               }
             ),
             new Switch(
@@ -797,20 +901,43 @@ module.exports = (() => {
               (i) => {
                 this.settings["debugMode"] = i;
               }
-            )
+            ),
+            new Switch(
+              "Use eye icon",
+              "Use eye icon instead of lock icon for hidden channels",
+              this.settings["hiddenChannelIcon"] == "eye",
+              (i) => {
+                this.settings["hiddenChannelIcon"] = i ? "eye" : "lock";
+              }
+            ),
+            new Switch(
+              "(TODO) Sort hidden channels in an extra category at bottom.",
+              "Sorting order for hidden channels.",
+              this.settings["sort"] == "extra",
+              (e) => {
+                this.settings["sort"] = e ? "extra" : "native";
+              }
+            ),
           ),
           new SettingGroup("Choose what channels you want to display", {
             collapsible: true,
             shown: false,
           }).append(
-            ...ChannelTypes.map((type) =>
-              new Switch(
-                `${capitalizeFirst(type.split("_")[1])}${(type.split("_").length == 3) ? " " + capitalizeFirst(type.split("_")[2]) : ""} Channels`,
+
+            ...Object.values(ChannelTypes).map((type) => {
+              return new Switch(
+                `Show ${capitalizeFirst(type.split("_")[1])}${(type.split("_").length == 3) ? " " + capitalizeFirst(type.split("_")[2]) : ""} Channels`,
+                null,
                 this.settings["channels"][type],
-                (e) => { this.settings["channels"][type] = e }
-              )
-            )
+                (i) => {
+                  this.settings["channels"][type] = i;
+                  this.rerenderChannels();
+                }
+              );
+            })
+
           ),
+
           new SettingGroup(
             "Guilds Blacklist",
             {
@@ -839,6 +966,7 @@ module.exports = (() => {
           )
         );
       }
+
       reloadNotification(coolText = "Reload Discord to apply changes and avoid bugs") {
         Modals.showConfirmationModal("Reload Discord?", coolText, {
             confirmText: "Reload",
