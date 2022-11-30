@@ -24,6 +24,12 @@ module.exports = (() => {
 
     changelog: [
       {
+        title: "v0.1.5",
+        items: [
+          "Added permissions to the channel page"
+        ]
+      },
+      {
         title: "v0.1.4",
         items: [
           "Added eye icon",
@@ -668,6 +674,27 @@ module.exports = (() => {
                   },
                   "Last message sent: ",
                   this.getDateFromSnowflake(props.channel.lastMessageId)
+                ),
+
+              //* Permissions
+              props.channel.permissionOverwrites &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    }, 
+                  },
+                  "Roles that can see this channel: ",
+                  Object.values(props.channel.permissionOverwrites).map((role) => {
+                    if (role.type == 0) {
+                      if (role.allow & BigInt(1024)) {
+                        return props.guild.roles[role.id].name;
+                      }
+                    }
+                  }).filter(Boolean).join(", ")
                 ),
 
               //* Slowmode
