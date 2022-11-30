@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.4
+ * @version 0.1.5
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.4",
+      version: "0.1.5",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.5",
+        items: [
+          "Added permissions to the channel page"
+        ]
+      },
       {
         title: "v0.1.4",
         items: [
@@ -556,6 +562,8 @@ module.exports = (() => {
       }
 
       lockscreen() {
+        var rolesCount = 0;
+
         return React.memo((props) => {
           
           if(this.settings.debugMode){
@@ -616,6 +624,31 @@ module.exports = (() => {
                   },
                   "Last message sent: ",
                   this.getDateFromSnowflake(props.channel.lastMessageId)
+                ),
+
+              //* Permissions
+              props.channel.permissionOverwrites &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    }, 
+                  },
+                  "Roles that can see this channel: ",
+                  Object.values(props.channel.permissionOverwrites).map((role) => {
+                    if (role.type != 0) {
+                      return;
+                    }
+                    
+                    if (role.allow & BigInt(1024)) {
+                      rolesCount++;
+                      return props.guild.roles[role.id].name;
+                    }
+                  }).filter(Boolean).join(", "),
+                  rolesCount == 0 && "None"
                 ),
 
               //* Slowmode
