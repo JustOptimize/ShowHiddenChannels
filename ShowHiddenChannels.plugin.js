@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.3
+ * @version 0.1.4
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,22 +17,29 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.3",
+      version: "0.1.4",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
+        title: "v0.1.4",
+        items: [
+          "Added eye icon",
+          "Bug fixes",
+        ]
+      },
+      {
         title: "v0.1.3",
         items: [
-          "Added information about forums on the \"This is a hidden channel\" page.",
+          "Added information about forums on the \"This is a hidden channel\" page",
         ]
       },
       {
         title: "v0.1.2",
         items: [
-          "Added slowmode and nsfw to the channel page.",
+          "Added slowmode and nsfw to the channel page",
         ]
       },
       {
@@ -46,37 +53,37 @@ module.exports = (() => {
         items: [
           "Added a new option to hide the hidden channels from the channel list",
           "Brought back channel locked page",
-          "Bug fixes."
+          "Bug fixes"
         ]
       },
       {
         title: "v0.0.8",
         items: [
-          "Removed old and buggy lock icons and updated some code.",
+          "Removed old and buggy lock icons and updated some code",
         ]
       },
       {
         title: "v0.0.7",
         items: [
-          "Fixed notification issue.",
+          "Fixed notification issue",
         ]
       },
       {
         title: "v0.0.6",
         items: [
-          "Added back the old lock icon and modified settings to be more user friendly.",
+          "Added back the old lock icon and modified settings to be more user friendly",
         ]
       },
       {
         title: "v0.0.5",
         items: [
-          "Added more settings for the lock icon.",
+          "Added more settings for the lock icon",
         ]
       },
       {
         title: "v0.0.4",
         items: [
-          "Added some settings to the plugin.",
+          "Added some settings to the plugin",
         ]
       },
       {
