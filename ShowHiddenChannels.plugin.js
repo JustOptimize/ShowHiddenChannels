@@ -175,6 +175,7 @@ module.exports = (() => {
         React,
         ReactDOM,
         Tooltip,
+        LocaleManager
       }
     } = Library;
 
@@ -762,7 +763,7 @@ module.exports = (() => {
           const excerpt = binary.substring(0, 42);
           const decimal = parseInt(excerpt, 2);
           const unix = decimal + 1420070400000;
-          return new Date(unix).toLocaleString();
+          return new Date(unix).toLocaleString(LocaleManager._chosenLocale);
         } catch (err) {
           Logger.err(err);
           return "(Failed to get date)";
