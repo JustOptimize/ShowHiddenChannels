@@ -24,15 +24,4 @@ On October 16th, 2022, I took it upon myself to fix the plugin and make it work 
 In addition you can also use [this](https://github.com/rauenzi/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer) plugin by [@rauenzi](https://github.com/rauenzi/) to see the channel permissions/access.
 
 ### Changelog
-- Added permissions to the channel page (v0.1.5)
-- Added eye icon option + bug fixes (v0.1.4)
-- Added information about forums on the "This is a hidden channel" page. (v0.1.3)
-- Added slowmode and nsfw to the channel page. (v0.1.2)
-- Added support for forum channels (v0.1.1)
-- Added a new option to hide the hidden channels from the channel list, brought back channel locked page, bug fixes and more. (v0.1.0)
-- Removed old and buggy lock icons and updated some code (v0.0.8)
-- Fixed notification issue (v0.0.7)
-- Added back the old lock icon and modified settings to be more user friendly (v0.0.6)
-- Add more settings (v0.0.5)
-- Add settings (v0.0.4)
-- Add back lock icon (v0.0.3)
+You can see the changelog [here](https://github.com/JustOptimize/return-ShowHiddenChannels/commits/main)
