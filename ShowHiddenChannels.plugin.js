@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.5
+ * @version 0.1.6
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.5",
+      version: "0.1.6",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.6",
+        items: [
+          "Fixed after Discord update"
+        ]
+      },
       {
         title: "v0.1.5",
         items: [
@@ -202,7 +208,7 @@ module.exports = (() => {
     const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const { container } = WebpackModules.getByProps("container", "hubContainer");
-    const Channel = WebpackModules.getByPrototypes("isManaged");
+    const {Sf : Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
     const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
     const IconUtils = WebpackModules.getByProps("getUserAvatarURL");
     const { DEFAULT_AVATARS } = WebpackModules.getByProps("DEFAULT_AVATARS");
