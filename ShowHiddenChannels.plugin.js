@@ -788,9 +788,18 @@ module.exports = (() => {
                     ...(() => {
                       const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
                       if (!allUsers?.length) return ["None"];                   
-                      return allUsers.map(m => UserMentions.react({userId: m.id
-                  , channelId: props.channel.id }, NOOP, {noStyleAndInteraction: true})
-                  );
+                      return allUsers.map(m => 
+                        UserMentions.react(
+                          {
+                          userId: m.id,
+                          channelId: props.channel.id
+                        },
+                        NOOP,
+                        {
+                          noStyleAndInteraction: true
+                        }
+                        )
+                      );
                     })()
                   ),
                 ),
