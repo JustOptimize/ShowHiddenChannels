@@ -41,68 +41,6 @@ module.exports = (() => {
           "Added eye icon",
           "Bug fixes",
         ]
-      },
-      {
-        title: "v0.1.3",
-        items: [
-          "Added information about forums on the \"This is a hidden channel\" page",
-        ]
-      },
-      {
-        title: "v0.1.2",
-        items: [
-          "Added slowmode and nsfw to the channel page",
-        ]
-      },
-      {
-        title: "v0.1.1",
-        items: [
-          "Added support for forum channels",
-        ]
-      },
-      {
-        title: "v0.1.0",
-        items: [
-          "Added a new option to hide the hidden channels from the channel list",
-          "Brought back channel locked page",
-          "Bug fixes"
-        ]
-      },
-      {
-        title: "v0.0.8",
-        items: [
-          "Removed old and buggy lock icons and updated some code",
-        ]
-      },
-      {
-        title: "v0.0.7",
-        items: [
-          "Fixed notification issue",
-        ]
-      },
-      {
-        title: "v0.0.6",
-        items: [
-          "Added back the old lock icon and modified settings to be more user friendly",
-        ]
-      },
-      {
-        title: "v0.0.5",
-        items: [
-          "Added more settings for the lock icon",
-        ]
-      },
-      {
-        title: "v0.0.4",
-        items: [
-          "Added some settings to the plugin",
-        ]
-      },
-      {
-        title: "v0.0.3",
-        items: [
-          "Added lock icon to hidden channels",
-        ],
       }
     ],
 
@@ -181,10 +119,13 @@ module.exports = (() => {
         React,
         ReactDOM,
         Tooltip,
+        GuildChannelsStore,
+        GuildMemberStore
       }
     } = Library;
 
     const { ContextMenu } = BdApi;
+    const NOOP = () => null;
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const { chat } = WebpackModules.getByProps("chat", "chatContent");
 
@@ -203,11 +144,14 @@ module.exports = (() => {
         m?.KS?.toString().includes(s)
       )
     );
-
+    const { rolePill, rolePillBorder } = WebpackModules.getByProps(
+      "rolePill",
+      "rolePillBorder"
+    );
     const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const { container } = WebpackModules.getByProps("container", "hubContainer");
-    const {Sf : Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
+    const { Sf: Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
     const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
     const IconUtils = WebpackModules.getByProps("getUserAvatarURL");
     const { DEFAULT_AVATARS } = WebpackModules.getByProps("DEFAULT_AVATARS");
@@ -215,13 +159,25 @@ module.exports = (() => {
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
     const GuildStore = WebpackModules.getByProps("getGuild", "getGuilds");
+    const { U: RolePill } = WebpackModules.getModule(
+      (m) => m?.U?.render?.toString().includes("roleStyle")
+    );
+    const {Z: UserMentions} = WebpackModules.getModule(m => m?.Z?.react?.toString().includes("inlinePreview"));
+    const CategoryUtil = WebpackModules.getModule((m) =>
+      m?.c4?.toString().includes("CATEGORY_COLLAPSE")
+    );
+
+    const CategoryStore = WebpackModules.getByProps(
+      "isCollapsed",
+      "getCollapsedCategories"
+    );
 
     const ChannelUtils = {
       filter: ["channel", "guild"],
       get Module() {
-        return WebpackModules.getModule((m) => this.filter.every((s) =>
-          m?.v0?.toString().includes(s)
-        ));
+        return WebpackModules.getModule((m) =>
+          this.filter.every((s) => m?.v0?.toString().includes(s))
+        );
       },
       get ChannelTopic() {
         return this.Module.v0;
@@ -263,12 +219,13 @@ module.exports = (() => {
     `;
 
     const defaultSettings = {
-      disableIcons: false,
-      MarkUnread: false,
-      debugMode: false,
-
       hiddenChannelIcon: "lock",
       sort: "native",
+
+      shouldShowEmptyCategory: true,
+      alwaysCollapse: false,
+
+      debugMode: false,
 
       channels: {
         GUILD_TEXT: true,
@@ -354,8 +311,23 @@ module.exports = (() => {
     return class ShowHiddenChannels extends Plugin {
       constructor() {
         super();
+
+        this.hiddenChannelCache = {};
+
+        this.collapsed = Utilities.loadData(
+          config.info.name,
+          "collapsed",
+          {}
+        );
+
         this.processContextMenu = this.processContextMenu.bind(this);
-        this.settings = Utilities.loadData(config.info.name, "settings", defaultSettings);
+
+        this.settings = Utilities.loadData(
+          config.info.name,
+          "settings",
+          defaultSettings
+        );
+
         this.can = ChannelPermissionStore.can.__originalFunction ?? ChannelPermissionStore.can;
       }
 
@@ -379,52 +351,52 @@ module.exports = (() => {
       }
 
       Patch() {
-        if(this.settings.debugMode) {
-          console.log("UnreadStore", UnreadStore);
-          console.log("ChannelItem", ChannelItem);
+        if (this.settings.debugMode) {
+          Logger.info("UnreadStore", UnreadStore);
+          Logger.info("ChannelItem", ChannelItem);
         }
 
         Patcher.instead(Channel.prototype, "isHidden", (_, args, res) => {
           return (![1, 3].includes(_.type) && !this.can(DiscordConstants.Plq.VIEW_CHANNEL, _));
         });
 
-        if(!this.settings.MarkUnread) {
-          Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) =>{
-            return args[0]?.isHidden() ? {mentionCount: 0, hasNotableUnread: false} : res ;
-          });
 
-          Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
-            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-          });
+        Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) => {
+          return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
+        });
 
-          Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
-            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-          });
+        Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
+          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+        });
 
-          Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+        Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
+          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+        });
 
-          Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
-            return res && !args[0].isHidden();
-          });
+        Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
+          return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        });
 
-          Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+        Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
+          return res && !args[0].isHidden();
+        });
 
-          Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+        Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
+          return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        });
 
-          Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
-        }
+        Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
+          return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        });
+
+        Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
+          return res && !ChannelStore.getChannel(args[0])?.isHidden();
+        });
+        
 
         //* Make hidden channel visible
         Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
-          if(!args[1]?.isHidden?.()) return res;
+          if (!args[1]?.isHidden?.()) return res;
 
           if (args[0] == DiscordConstants.Plq.VIEW_CHANNEL)
             return (!this.settings["blacklistedGuilds"][args[1].guild_id] && this.settings["channels"][DiscordConstants.d4z[args[1].type]]);
@@ -437,11 +409,9 @@ module.exports = (() => {
         Patcher.after(Route, "Z", (_, args, res) => {
           const channelId = res.props?.computedMatch?.params?.channelId;
           const guildId = res.props?.computedMatch?.params?.guildId;
-          let channel;
+          const channel = ChannelStore?.getChannel(channelId);
           if (
-            channelId &&
             guildId &&
-            (channel = ChannelStore.getChannel(channelId)) &&
             channel?.isHidden?.() &&
             channel?.id != Voice.getChannelId()
           ) {
@@ -456,7 +426,7 @@ module.exports = (() => {
         
         //* Stop fetching messages if the channel is hidden
         Patcher.instead(MessageActions, "fetchMessages", (_, [args], res) => {
-          if (ChannelStore.getChannel(args.channelId)?.isHidden?.()){
+          if (ChannelStore.getChannel(args.channelId)?.isHidden?.()) {
             // BdApi.showToast("Channel is hidden, not fetching messages", {type: "error"});
             return;
           }
@@ -476,7 +446,7 @@ module.exports = (() => {
                 m?.props?.onClick?.toString().includes("stopPropagation")
               );
               
-              if (children.props?.children){
+              if (children.props?.children) {
                 children.props.children = [
                   React.createElement(
                     Tooltip,
@@ -526,7 +496,20 @@ module.exports = (() => {
                               points:
                                 "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 ",
                             })
-                          )
+                          ),
+                        //* Here you can add your own icons
+                        // this.settings["hiddenChannelIcon"] == "" &&
+                        //   React.createElement(
+                        //     "svg",
+                        //     {
+                        //       class: actionIcon,
+                        //       viewBox: "0 0 24 24",
+                        //     },
+                        //     React.createElement("path", {
+                        //       fill: "currentColor",
+                        //       d: "",
+                        //     })
+                        //   ),
                       )
                     )
                 ];
@@ -564,16 +547,156 @@ module.exports = (() => {
             args[2].locked = false;
         });
 
+        //* Manually collapse hidden channel category
+        Patcher.after(CategoryStore, "getCollapsedCategories", (_, args, res) => {
+            return { ...res, ...this.collapsed };
+          }
+        );
+
+        Patcher.after(CategoryStore, "isCollapsed", (_, args, res) => {
+          if (!args[0]?.endsWith("hidden")) {
+            return res;
+          }
+
+          if (!this.settings["alwaysCollapse"]) {
+            return this.collapsed[args[0]];
+          }
+          
+          return (this.settings["alwaysCollapse"] && this.collapsed[args[0]] !== false);
+        });
+
+        Patcher.after(CategoryUtil, "c4", (_, args, res) => {
+          if (!args[0]?.endsWith("hidden") || this.collapsed[args[0]]) return;
+
+          this.collapsed[args[0]] = true;
+          this.rerenderChannels();
+          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
+        });
+
+        Patcher.after(CategoryUtil, "N5", (_, args, res) => {
+          if (this.collapsed[`${args[0]}_hidden`]) return;
+
+          this.collapsed[`${args[0]}_hidden`] = true;
+          this.rerenderChannels();
+          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
+        });
+
+        Patcher.after(CategoryUtil, "mJ", (_, args, res) => {
+          if (!args[0]?.endsWith("hidden")) return;
+          this.collapsed[args[0]] = false;
+          this.rerenderChannels();
+          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
+        });
+
+        Patcher.after(CategoryUtil, "lc", (_, args, res) => {
+          this.collapsed[`${args[0]}_hidden`] = false;
+          this.rerenderChannels();
+          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
+        });
+
+        //* Custom category or sorting order
+        Patcher.after(ChannelListStore, "getGuild", (_, args, res) => {
+          if (this.settings.debugMode)
+            Logger.info(res)
+            if (this.settings["blacklistedGuilds"][args[0]]) return;
+            Patcher.after(res.guildChannels, "getCategory", (_, args, res) => {
+             
+            })
+          switch (this.settings["sort"]) {
+
+            case "bottom": {
+              this.sortChannels(res.guildChannels.favoritesCategory);
+              this.sortChannels(res.guildChannels.recentsCategory);
+              this.sortChannels(res.guildChannels.noParentCategory);
+
+              for (const id in res.guildChannels.categories) {
+                this.sortChannels(res.guildChannels.categories[id]);
+              }
+
+              break;
+            }
+
+            case "extra": {
+              const Category = Object.values(res.guildChannels.categories)[0]?.constructor;
+              if (!Category) return;
+
+              const hiddenId = `${args[0]}_hidden`;
+
+              const hiddenChannels = this.getHiddenChannelRecord(
+                [
+                  res.guildChannels.favoritesCategory,
+                  res.guildChannels.recentsCategory,
+                  res.guildChannels.noParentCategory,
+                  ...Object.values(res.guildChannels.categories).filter(
+                    (m) => m.id !== hiddenId
+                  ),
+                ],
+                args[0]
+              );
+
+              const GuildCategories = GuildChannelsStore.getChannels(
+                args[0]
+              )[DiscordConstants.d4z.GUILD_CATEGORY];
+      
+              const hiddenCategoryChannel = new Channel({
+                guild_id: args[0],
+                id: hiddenId,
+                name: "Hidden Channels",
+                type: DiscordConstants.d4z.GUILD_CATEGORY,                  
+              });
+
+              Object.defineProperty(hiddenCategoryChannel, 'position', {
+                value: (
+                  GuildCategories[GuildCategories.length - 1] || {
+                    comparator: 0,
+                  }
+                ).comparator - 1,
+                writable: true
+              });
+
+              const HiddenCategory = new Category(
+                res.guildChannels,
+                hiddenCategoryChannel,
+                hiddenChannels.channels,
+                res.guildChannels.initializationData
+              );
+            
+              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] && this.collapsed[hiddenId] !== false;
+              HiddenCategory.shownChannelIds = this.collapsed[hiddenId] || res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
+                .sort((x, y) => {
+
+                  const xPos = x.position + (x.isGuildVocal() ? 1e4 : 1e5);
+                  const yPos = y.position + (y.isGuildVocal() ? 1e4 : 1e5);
+
+                  return xPos < yPos ? -1 : xPos > yPos ? 1 : 0;
+                }).map((m) => m.id);
+
+              if (Object.values(HiddenCategory.channels).length) {
+                res.guildChannels.categories[hiddenId] = HiddenCategory;
+              }
+
+              break;
+            }
+
+          }
+
+          if (this.settings["shouldShowEmptyCategory"]) {
+            this.patchEmptyCategoryFunction([...Object.values(res.guildChannels.categories).filter(
+                (m) => !m.id.includes("hidden")
+              ),
+            ]);
+          }
+        });
+
+        //* add entry in guild context menu
         ContextMenu.patch("guild-context", this.processContextMenu);
       }
 
       lockscreen() {
-        var rolesCount = 0;
-
         return React.memo((props) => {
           
-          if(this.settings.debugMode){
-            console.log(props);
+          if (this.settings.debugMode) {
+            Logger.info(props);
           }
 
           return React.createElement(
@@ -634,63 +757,9 @@ module.exports = (() => {
 
               //* Permissions
               props.channel.permissionOverwrites &&
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    }, 
-                  },
-                  "Roles that can see this channel: ",
-                  Object.values(props.channel.permissionOverwrites).map((role) => {
-                    if (role.type != 0) {
-                      return;
-                    }
-                    
-                    if (role.allow & BigInt(1024)) {
-                      rolesCount++;
-                      return props.guild.roles[role.id].name;
-                    }
-                  }).filter(Boolean).join(", "),
-                  rolesCount == 0 && "None"
-                ),
-
-              //* Slowmode
-              props.channel.rateLimitPerUser > 0 &&
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    },
-                  },
-                  "Slowmode: ",
-                  this.convertToHMS(props.channel.rateLimitPerUser)
-                ),
-
-              //* NSFW
-              props.channel.nsfw &&
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    },
-                  },
-                  "Age-Restricted Channel (NSFW) 🔞"
-                ),
-
-              //* Forums
-              props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
-                React.createElement(
-                  "div",
-                  {
+              React.createElement(
+                "div",
+                {
                     style: {
                       marginTop: 20,
                       backgroundColor: "var(--background-secondary)",
@@ -699,56 +768,160 @@ module.exports = (() => {
                       color: "var(--text-normal)",
 
                     },
-                  },
+                }, 
 
+                //* Users
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                  },
+                  "Users that can see this channel: ",
+                  React.createElement(
+                    "span",
+                    {
+                      style: {
+                        color: "var(--interactive-normal)",
+                      },
+                    },
+                    ...(() => {
+                      const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
+                      if (!allUsers?.length) return ["None"];                   
+                      return allUsers.map(m => UserMentions.react({userId: m.id
+                  , channelId: props.channel.id }, NOOP, {noStyleAndInteraction: true})
+                  );
+                    })()
+                  ),
+                ),
+
+                //* Roles
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Roles that can see this channel: ",
+                  React.createElement(
+                    "span",
+                    {
+                      style: {
+                        color: "var(--interactive-normal)",
+                      },
+                    },
+                    ...(() => {
+                      // console.log(props)
+                      const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => (role !== undefined && role?.type == 0) && (role.allow && BigInt(role.allow)));
+                      if (!allRoles?.length) return ["None"];                      
+                      return allRoles.map(m => RolePill.render({
+                        canRemove: false,
+                        className: `${rolePill} ${rolePillBorder}`,
+                        disableBorderColor: true,
+                        guildId: props.guild.id,
+                        onRemove: NOOP,
+                        role: props.guild.roles[m.id]
+                      }, NOOP));
+                    })()
+                  )
+                )
+              )
+            ),
+
+            //* Slowmode
+            props.channel.rateLimitPerUser > 0 &&
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                  style: {
+                    marginTop: 10,
+                  },
+                },
+                "Slowmode: ",
+                this.convertToHMS(props.channel.rateLimitPerUser)
+              ),
+
+            //* NSFW
+            props.channel.nsfw &&
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                  style: {
+                    marginTop: 10,
+                  },
+                },
+                "Age-Restricted Channel (NSFW) 🔞"
+              ),
+
+            //* Forums
+            props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    marginTop: 20,
+                    backgroundColor: "var(--background-secondary)",
+                    padding: 10,
+                    borderRadius: 5,
+                    color: "var(--text-normal)",
+
+                  },
+                },
+
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.HEADER_SECONDARY,
+                    size: TextElement.Sizes.SIZE_16,
+                    style: {
+                      fontWeight: "bold",
+                      marginBottom: 10,
+                    },
+                  },
+                  "Forum"
+                ),
+
+                //* Tags
+                props.channel.availableTags && props.channel.availableTags.length > 0 &&
                   React.createElement(
                     TextElement,
                     {
-                      color: TextElement.Colors.HEADER_SECONDARY,
-                      size: TextElement.Sizes.SIZE_16,
+                      color: TextElement.Colors.INTERACTIVE_NORMAL,
+                      size: TextElement.Sizes.SIZE_14,
                       style: {
-                        fontWeight: "bold",
-                        marginBottom: 10,
+                        marginTop: 10,
                       },
                     },
-                    "Forum"
+                    "Tags: ",
+                    props.channel.availableTags.map((tag) => tag.name).join(", ")
                   ),
 
-                  //* Tags
-                  props.channel.availableTags && props.channel.availableTags.length > 0 &&
-                    React.createElement(
-                      TextElement,
-                      {
-                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                        size: TextElement.Sizes.SIZE_14,
-                        style: {
-                          marginTop: 10,
-                        },
+                //* Guidelines
+                props.channel.topic &&
+                  React.createElement(
+                    TextElement,
+                    {
+                      color: TextElement.Colors.INTERACTIVE_NORMAL,
+                      size: TextElement.Sizes.SIZE_14,
+                      style: {
+                        marginTop: 10,
                       },
-                      "Tags: ",
-                      props.channel.availableTags.map((tag) => tag.name).join(", ")
-                    ),
-
-                  //* Guidelines
-                  props.channel.topic &&
-                    React.createElement(
-                      TextElement,
-                      {
-                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                        size: TextElement.Sizes.SIZE_14,
-                        style: {
-                          marginTop: 10,
-                        },
-                      },
-                      "Guidelines: ",
-                      props.channel.topic
-                    )
-                )
-            )
-          );
+                    },
+                    "Guidelines: ",
+                    props.channel.topic
+                  )
+              )
+          )
         });
       }
-      
+
       convertToHMS(seconds) {
         seconds = Number(seconds);
         var h = Math.floor(seconds / 3600);
@@ -791,21 +964,68 @@ module.exports = (() => {
             checked: this.settings["blacklistedGuilds"][guild.id],
             action: () => {
               this.settings["blacklistedGuilds"][guild.id] = !this.settings["blacklistedGuilds"][guild.id];
-              this.reloadNotification();
               this.saveSettings();
             },
           })
         );
       }
 
+      patchEmptyCategoryFunction(categories) {
+        for (const category of categories) {
+          if (!category.shouldShowEmptyCategory.__originalFunction) {
+            Patcher.instead(category, "shouldShowEmptyCategory", (_, args, res) => true);
+          }
+        }
+      }
+
+      sortChannels(category) {
+        if (!category) return;
+        const channelArray = Object.values(category.channels);
+        category.shownChannelIds = channelArray
+          .sort((x, y) => {
+            const xPos =
+              x.record.position +
+              (x.record.isGuildVocal() ? 1e4 : 0) +
+              (x.record.isHidden() ? 1e5 : 0);
+            const yPos =
+              y.record.position +
+              (y.record.isGuildVocal() ? 1e4 : 0) +
+              (y.record.isHidden() ? 1e5 : 0);
+            return xPos < yPos ? -1 : xPos > yPos ? 1 : 0;
+          })
+          .map((n) => n.id);
+      }
+
+      getHiddenChannelRecord(categories, guildId) {
+        const hiddenChannels = this.getHiddenChannels(guildId);
+
+        if (!this.hiddenChannelCache[guildId]) {
+          this.hiddenChannelCache[guildId] = [];
+        }
+
+        for (const category of categories) {
+          const channels = Object.entries(category.channels);
+          for (const channel of channels) {
+            if (hiddenChannels.channels.some((m) => m.id == channel[0])) {
+              if (!this.hiddenChannelCache[guildId].some(
+                (m) => m[0] == channel[0]
+                )
+              )
+
+              this.hiddenChannelCache[guildId].push(channel);
+              delete category.channels[channel[0]];
+            }
+          }
+        }
+
+        return { records: Object.fromEntries(this.hiddenChannelCache[guildId]), ...hiddenChannels, };
+      }
+
       getHiddenChannels(guildId) {
-        if (!guildId) return {
-          channels: [],
-          amount: 0
-        };
+        if (!guildId) return { channels: [], amount: 0 };
 
         const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
-        const hiddenChannels = Object.values(guildChannels).filter(m => m.isHidden() && m.type != DiscordConstants.d4z.GUILD_CATEGORY)
+        const hiddenChannels = Object.values(guildChannels).filter((m) => m.isHidden() && m.type != DiscordConstants.d4z.GUILD_CATEGORY)
         
         return { channels: hiddenChannels, amount: hiddenChannels.length };
       }
@@ -814,7 +1034,7 @@ module.exports = (() => {
         const ChannelPermsssionCache = ChannelPermissionStore.__getLocalVars();
         
         for (const key in ChannelPermsssionCache) {
-          if (typeof ChannelPermsssionCache[key] != "object" && Array.isArray(ChannelPermsssionCache[key]) && ChannelPermsssionCache[key] === null){
+          if (typeof ChannelPermsssionCache[key] != "object" && Array.isArray(ChannelPermsssionCache[key]) && ChannelPermsssionCache[key] === null) {
             return;
           }
 
@@ -837,19 +1057,14 @@ module.exports = (() => {
 
       forceUpdate(element) {
         if (!element) return;
-        const toForceUpdate = ReactTools.getOwnerInstance(
-          element
-        );
-        const original = toForceUpdate.render;
-        if (original.name == "forceRerender") return;
-        toForceUpdate.render = function forceRerender() {
-          original.call(this);
-          toForceUpdate.render = original;
-          return null;
-        };
-        toForceUpdate.forceUpdate(() =>
-          toForceUpdate.forceUpdate(() => {})
-        );
+        
+        const toForceUpdate = ReactTools.getOwnerInstance(element);
+        const forceRerender = Patcher.instead(toForceUpdate, "render", () => {
+            forceRerender();
+            return null;
+        });
+
+        toForceUpdate.forceUpdate(() => toForceUpdate.forceUpdate(() => { }));
       }
 
       onStop() {
@@ -863,22 +1078,64 @@ module.exports = (() => {
         return SettingPanel.build(
           this.saveSettings.bind(this),
           new SettingGroup("General Settings").append(
-            new Switch(
-              "Disable lock icons",
-              "Disables the hidden channel icons (they will be seen as normal channels).",
-              this.settings["disableIcons"],
+            new RadioGroup(
+              "Hidden Channel Icon",
+              "What icon to show as indicator for hidden channels.",
+              this.settings["hiddenChannelIcon"],
+              [
+                {
+                  name: "Lock Icon",
+                  value: "lock",
+                },
+                {
+                  name: "Eye Icon",
+                  value: "eye",
+                },
+                {
+                  name: "None",
+                  value: false,
+                },
+              ],
               (i) => {
-                this.settings["disableIcons"] = i;
-                // this.rerenderChannels();
+                this.settings["hiddenChannelIcon"] = i;
+              }
+            ),
+            new RadioGroup(
+              "Sorting Order",
+              "Sorting order for hidden channels.",
+              this.settings["sort"],
+              [
+                {
+                  name: "Native Category in correct Order",
+                  value: "native",
+                },
+                {
+                  name: "Native Category at the bottom",
+                  value: "bottom",
+                },
+                {
+                  name: "Extra Category at the bottom",
+                  value: "extra",
+                },
+              ],
+              (i) => {
+                this.settings["sort"] = i;
               }
             ),
             new Switch(
-              "Stop marking hidden channels as read",
-              "Stops the plugin from marking hidden channels as read.",
-              this.settings["MarkUnread"],
+              "Collapse Hidden Category",
+              "Collapse hidden category by default (requires sorting order as extra category).",
+              this.settings["alwaysCollapse"],
               (i) => {
-                this.settings["MarkUnread"] = i;
-                // this.rerenderChannels();
+                this.settings["alwaysCollapse"] = i;
+              }
+            ),
+            new Switch(
+              "Show Empty Category",
+              "Show Empty Category either because there were no channels in it or all channels are under hidden channels category.",
+              this.settings["shouldShowEmptyCategory"],
+              (i) => {
+                this.settings["shouldShowEmptyCategory"] = i;
               }
             ),
             new Switch(
@@ -888,23 +1145,7 @@ module.exports = (() => {
               (i) => {
                 this.settings["debugMode"] = i;
               }
-            ),
-            new Switch(
-              "Use eye icon",
-              "Use eye icon instead of lock icon for hidden channels",
-              this.settings["hiddenChannelIcon"] == "eye",
-              (i) => {
-                this.settings["hiddenChannelIcon"] = i ? "eye" : "lock";
-              }
-            ),
-            new Switch(
-              "(TODO) Sort hidden channels in an extra category at bottom.",
-              "Sorting order for hidden channels.",
-              this.settings["sort"] == "extra",
-              (e) => {
-                this.settings["sort"] = e ? "extra" : "native";
-              }
-            ),
+            )
           ),
           new SettingGroup("Choose what channels you want to display", {
             collapsible: true,
