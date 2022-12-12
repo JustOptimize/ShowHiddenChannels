@@ -27,6 +27,7 @@ module.exports = (() => {
         title: "v0.1.8",
         items: [
           "Revert \"Removed MarkUnread option\" since it was kinda useful as issue #90 pointed out",
+          "Beautified permissions section",
         ]
       },
       {
