@@ -765,94 +765,9 @@ module.exports = (() => {
                   this.getDateFromSnowflake(props.channel.lastMessageId)
                 ),
 
-              //* Permissions
-              this.settings["showPerms"] &&
-              props.channel.permissionOverwrites &&
-              React.createElement(
-                "div",
-                {
-                    style: {
-                      marginTop: 20,
-                      backgroundColor: "var(--background-secondary)",
-                      padding: 10,
-                      borderRadius: 5,
-                      color: "var(--text-normal)",
 
-                    },
-                }, 
-
-                //* Users
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
-                  },
-                  "Users that can see this channel: ",
-                  React.createElement(
-                    "span",
-                    {
-                      style: {
-                        color: "var(--interactive-normal)",
-                      },
-                    },
-                    ...(() => {
-                      const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
-                      if (!allUsers?.length) return ["None"];                   
-                      return allUsers.map(m => 
-                        UserMentions.react(
-                          {
-                          userId: m.id,
-                          channelId: props.channel.id
-                        },
-                        NOOP,
-                        {
-                          noStyleAndInteraction: true
-                        }
-                        )
-                      );
-                    })()
-                  ),
-                ),
-
-                //* Roles
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    },
-                  },
-                  "Roles that can see this channel: ",
-                  React.createElement(
-                    "span",
-                    {
-                      style: {
-                        color: "var(--interactive-normal)",
-                      },
-                    },
-                    ...(() => {
-                      // console.log(props)
-                      const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => (role !== undefined && role?.type == 0) && (role.allow && BigInt(role.allow)));
-                      if (!allRoles?.length) return ["None"];                      
-                      return allRoles.map(m => RolePill.render({
-                        canRemove: false,
-                        className: `${rolePill} ${rolePillBorder}`,
-                        disableBorderColor: true,
-                        guildId: props.guild.id,
-                        onRemove: NOOP,
-                        role: props.guild.roles[m.id]
-                      }, NOOP));
-                    })()
-                  )
-                )
-              )
-            ),
-
-            //* Slowmode
-            props.channel.rateLimitPerUser > 0 &&
+              //* Slowmode
+              props.channel.rateLimitPerUser > 0 &&
               React.createElement(
                 TextElement,
                 {
@@ -879,6 +794,92 @@ module.exports = (() => {
                 },
                 "Age-Restricted Channel (NSFW) 🔞"
               ),
+
+            //* Permissions
+            this.settings["showPerms"] &&
+            props.channel.permissionOverwrites &&
+            React.createElement(
+              "div",
+              {
+                  style: {
+                    marginTop: 20,
+                    backgroundColor: "var(--background-secondary-alt)",
+                    padding: 10,
+                    borderRadius: 5,
+                    color: "var(--text-normal)",
+
+                  },
+              }, 
+
+              //* Users
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                },
+                "Users that can see this channel: ",
+              ),
+
+              React.createElement(
+                "span",
+                {
+                  style: {
+                    color: "var(--interactive-normal)",
+                  },
+                },
+                ...(() => {
+                  const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
+                  if (!allUsers?.length) return ["None"];                   
+                  return allUsers.map(m => 
+                    UserMentions.react(
+                      {
+                      userId: m.id,
+                      channelId: props.channel.id
+                    },
+                    NOOP,
+                    {
+                      noStyleAndInteraction: true
+                    }
+                    )
+                  );
+                })()
+              ),
+
+              //* Roles
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                  style: {
+                    marginTop: 10,
+                  },
+                },
+                "Roles that can see this channel: ",
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    color: "var(--interactive-normal)",
+                    marginTop: 10,
+                  },
+                },
+                ...(() => {
+                  const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => (role !== undefined && role?.type == 0) && (role.allow && BigInt(role.allow)));
+                  if (!allRoles?.length) return ["None"];                      
+                  return allRoles.map(m => RolePill.render({
+                    canRemove: false,
+                    className: `${rolePill}`, //${rolePillBorder}
+                    disableBorderColor: true,
+                    guildId: props.guild.id,
+                    onRemove: NOOP,
+                    role: props.guild.roles[m.id]
+                  }, NOOP));
+                })()
+              ),
+            ),
 
             //* Forums
             props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
@@ -938,6 +939,7 @@ module.exports = (() => {
                     props.channel.topic
                   )
               )
+            )
           )
         });
       }
