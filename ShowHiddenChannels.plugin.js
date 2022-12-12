@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.6
+ * @version 0.1.7
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,25 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.6",
+      version: "0.1.7",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.7",
+        items: [
+          "Now showing the only latest 3 changelogs after an update",
+          "Added an option to show empty categories",
+          "Added an option to view all hidden channels in an extra category",
+          "Removed MarkUnread option since it was kinda useless",
+          "Added \"Users that can see this channel\"",
+          "Now \"Roles that can see this channel\" show the role icon correctly",
+          "Added a setting to remove the ability to see what roles/users can see the channel",
+          "Now using RadioGroups for some settings, you might need to update ZeresPluginLibrary in order to see them"
+        ]
+      },
       {
         title: "v0.1.6",
         items: [
@@ -35,13 +48,6 @@ module.exports = (() => {
           "Added permissions to the channel page"
         ]
       },
-      {
-        title: "v0.1.4",
-        items: [
-          "Added eye icon",
-          "Bug fixes",
-        ]
-      }
     ],
 
     main: "ShowHiddenChannels.plugin.js",
