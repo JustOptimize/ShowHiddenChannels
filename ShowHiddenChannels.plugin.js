@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.7
+ * @version 0.1.8
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.7",
+      version: "0.1.8",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.1.8",
+        items: [
+          "Revert \"Removed MarkUnread option\" since it was kinda useful as issue #90 pointed out",
+        ]
+      },
       {
         title: "v0.1.7",
         items: [
@@ -41,13 +47,7 @@ module.exports = (() => {
         items: [
           "Fixed after Discord update"
         ]
-      },
-      {
-        title: "v0.1.5",
-        items: [
-          "Added permissions to the channel page"
-        ]
-      },
+      }
     ],
 
     main: "ShowHiddenChannels.plugin.js",
@@ -229,6 +229,7 @@ module.exports = (() => {
       hiddenChannelIcon: "lock",
       sort: "native",
       showPerms: true,
+      MarkUnread: false,
 
       shouldShowEmptyCategory: true,
       alwaysCollapse: false,
@@ -369,38 +370,39 @@ module.exports = (() => {
         });
 
 
-        Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) => {
-          return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
-        });
+        if(!this.settings.MarkUnread) {
+          Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) => {
+            return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
+          });
 
-        Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
-          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-        });
+          Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
+            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+          });
 
-        Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
-          return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-        });
+          Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
+            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+          });
 
-        Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
+          Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
+            return res && !ChannelStore.getChannel(args[0])?.isHidden();
+          });
 
-        Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
-          return res && !args[0].isHidden();
-        });
+          Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
+            return res && !args[0].isHidden();
+          });
 
-        Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
+          Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
+            return res && !ChannelStore.getChannel(args[0])?.isHidden();
+          });
 
-        Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
+          Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
+            return res && !ChannelStore.getChannel(args[0])?.isHidden();
+          });
 
-        Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
-          return res && !ChannelStore.getChannel(args[0])?.isHidden();
-        });
-        
+          Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
+            return res && !ChannelStore.getChannel(args[0])?.isHidden();
+          });
+        }
 
         //* Make hidden channel visible
         Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
@@ -1146,6 +1148,15 @@ module.exports = (() => {
               this.settings["showPerms"],
               (i) => {
                 this.settings["showPerms"] = i;
+              }
+            ),
+            new Switch(
+              "Stop marking hidden channels as read",
+              "Stops the plugin from marking hidden channels as read.",
+
+              this.settings["MarkUnread"],
+              (i) => {
+                this.settings["MarkUnread"] = i;
               }
             ),
             new Switch(
