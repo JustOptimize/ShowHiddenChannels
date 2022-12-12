@@ -221,6 +221,7 @@ module.exports = (() => {
     const defaultSettings = {
       hiddenChannelIcon: "lock",
       sort: "native",
+      showPerms: true,
 
       shouldShowEmptyCategory: true,
       alwaysCollapse: false,
@@ -756,6 +757,7 @@ module.exports = (() => {
                 ),
 
               //* Permissions
+              this.settings["showPerms"] &&
               props.channel.permissionOverwrites &&
               React.createElement(
                 "div",
@@ -1129,6 +1131,14 @@ module.exports = (() => {
               ],
               (i) => {
                 this.settings["sort"] = i;
+              }
+            ),
+            new Switch(
+              "Show Permissions",
+              "Show what roles/users can access the hidden channel.",
+              this.settings["showPerms"],
+              (i) => {
+                this.settings["showPerms"] = i;
               }
             ),
             new Switch(
