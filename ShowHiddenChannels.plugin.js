@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.8
+ * @version 0.1.9
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,17 +17,23 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.8",
+      version: "0.1.9",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
+        title: "v0.1.9",
+        items: [
+          "Temporarily removed the context menu from servers to prevent people from crashing when they right-click on them",
+        ]
+      },
+      {
         title: "v0.1.8",
         items: [
           "Revert \"Removed MarkUnread option\" since it was kinda useful as issue #90 pointed out",
-          "Beautified permissions section",
+          "Beautified permissions section"
         ]
       },
       {
@@ -41,12 +47,6 @@ module.exports = (() => {
           "Now \"Roles that can see this channel\" show the role icon correctly",
           "Added a setting to remove the ability to see what roles/users can see the channel",
           "Now using RadioGroups for some settings, you might need to update ZeresPluginLibrary in order to see them"
-        ]
-      },
-      {
-        title: "v0.1.6",
-        items: [
-          "Fixed after Discord update"
         ]
       }
     ],
@@ -335,7 +335,7 @@ module.exports = (() => {
           {}
         );
 
-        this.processContextMenu = this.processContextMenu.bind(this);
+        // this.processContextMenu = this.processContextMenu.bind(this);
 
         this.settings = Utilities.loadData(
           config.info.name,
@@ -705,7 +705,7 @@ module.exports = (() => {
         });
 
         //* add entry in guild context menu
-        ContextMenu.patch("guild-context", this.processContextMenu);
+        // ContextMenu.patch("guild-context", this.processContextMenu);
       }
 
       lockscreen() {
@@ -826,12 +826,14 @@ module.exports = (() => {
                 },
                 "Users that can see this channel: ",
               ),
-
+              
               React.createElement(
-                "span",
+                "div",
                 {
                   style: {
                     color: "var(--interactive-normal)",
+                    marginTop: 5,
+                    marginBottom: 5,
                   },
                 },
                 ...(() => {
@@ -860,6 +862,7 @@ module.exports = (() => {
                   size: TextElement.Sizes.SIZE_14,
                   style: {
                     marginTop: 10,
+                    marginBottom: 5,
                   },
                 },
                 "Roles that can see this channel: ",
@@ -869,7 +872,6 @@ module.exports = (() => {
                 {
                   style: {
                     color: "var(--interactive-normal)",
-                    marginTop: 10,
                   },
                 },
                 ...(() => {
@@ -1098,7 +1100,7 @@ module.exports = (() => {
       onStop() {
         Patcher.unpatchAll();
         DOMTools.removeStyle(config.info.name);
-        ContextMenu.unpatch("guild-context", this.processContextMenu);
+        // ContextMenu.unpatch("guild-context", this.processContextMenu);
         this.rerenderChannels();
       }
 
