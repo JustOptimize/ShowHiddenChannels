@@ -224,6 +224,11 @@ module.exports = (() => {
           border-radius: 5px;
           margin: 10px auto;
       }
+
+      .shc-rolePill {
+        margin-right: 0px !important;
+        background-color: var(--background-primary);
+      }
     `;
 
     const defaultSettings = {
@@ -872,7 +877,7 @@ module.exports = (() => {
                   if (!allRoles?.length) return ["None"];                      
                   return allRoles.map(m => RolePill.render({
                     canRemove: false,
-                    className: `${rolePill}`, //${rolePillBorder}
+                    className: `${rolePill} shc-rolePill`, //${rolePillBorder}
                     disableBorderColor: true,
                     guildId: props.guild.id,
                     onRemove: NOOP,
