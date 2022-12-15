@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.1.9
+ * @version 0.2.0
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,16 +17,24 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.1.9",
+      version: "0.2.0",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
+        title: "v0.2.0",
+        items: [
+          "Now the \"Roles that can see this channel\" section is more accurate (now it counts for guild permissions too)",
+          "Fixed a bug where it would show roles that can't see the channel in the \"Roles that can see this channel\" section if they had other allowed permissions",
+          "Added back the context menu to servers to disable/enable the hidden channels for that server",
+        ]
+      },
+      {
         title: "v0.1.9",
         items: [
-          "Temporarily removed the context menu from servers to prevent people from crashing when they right-click on them",
+          "Temporarily removed the context menu from servers to prevent people from crashing when they right-click on them"
         ]
       },
       {
@@ -34,19 +42,6 @@ module.exports = (() => {
         items: [
           "Revert \"Removed MarkUnread option\" since it was kinda useful as issue #90 pointed out",
           "Beautified permissions section"
-        ]
-      },
-      {
-        title: "v0.1.7",
-        items: [
-          "Now showing the only latest 3 changelogs after an update",
-          "Added an option to show empty categories",
-          "Added an option to view all hidden channels in an extra category",
-          "Removed MarkUnread option since it was kinda useless",
-          "Added \"Users that can see this channel\"",
-          "Now \"Roles that can see this channel\" show the role icon correctly",
-          "Added a setting to remove the ability to see what roles/users can see the channel",
-          "Now using RadioGroups for some settings, you might need to update ZeresPluginLibrary in order to see them"
         ]
       }
     ],
@@ -205,7 +200,7 @@ module.exports = (() => {
     const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
     const CSS = `
-      .shc-locked-notice {
+      .shc-hidden-notice {
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -213,10 +208,10 @@ module.exports = (() => {
           margin: auto;
           text-align: center;
       }	 
-      .shc-locked-notice > div[class^="divider"] {
+      .shc-hidden-notice > div[class^="divider"] {
           display: none
       }	 
-      .shc-locked-notice > div[class^="topic"] {
+      .shc-hidden-notice > div[class^="topic"] {
           background-color: var(--background-secondary);
           padding: 5px;
           max-width: 50vh;
@@ -335,7 +330,7 @@ module.exports = (() => {
           {}
         );
 
-        // this.processContextMenu = this.processContextMenu.bind(this);
+        this.processContextMenu = this.processContextMenu.bind(this);
 
         this.settings = Utilities.loadData(
           config.info.name,
@@ -705,7 +700,7 @@ module.exports = (() => {
         });
 
         //* add entry in guild context menu
-        // ContextMenu.patch("guild-context", this.processContextMenu);
+        ContextMenu.patch("guild-context", this.processContextMenu);
       }
 
       lockscreen() {
@@ -718,12 +713,12 @@ module.exports = (() => {
           return React.createElement(
             "div",
             {
-              className: ["shc-locked-chat-content", chat].filter(Boolean).join(" "),
+              className: ["shc-hidden-chat-content", chat].filter(Boolean).join(" "),
             },
             React.createElement(
               "div",
               {
-                className: "shc-locked-notice",
+                className: "shc-hidden-notice",
               },
               React.createElement("img", {
                 style: {
@@ -875,7 +870,19 @@ module.exports = (() => {
                   },
                 },
                 ...(() => {
-                  const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => (role !== undefined && role?.type == 0) && (role.allow && BigInt(role.allow)));
+                  const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
+                    (role !== undefined && role?.type == 0) && 
+
+                    //* 1024n = VIEW_CHANNEL permission
+                    ( 
+                      //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
+                      ((role.allow & BigInt(1024)) == BigInt(1024)) ||
+
+                      //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
+                      ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
+                    )
+                  );
+
                   if (!allRoles?.length) return ["None"];                      
                   return allRoles.map(m => RolePill.render({
                     canRemove: false,
@@ -990,7 +997,7 @@ module.exports = (() => {
         menuCatagory.props.children.push(
           ContextMenu.buildItem({
             type: "toggle",
-            label: "Hide Locked Channels",
+            label: "Hide Hidden Channels",
             checked: this.settings["blacklistedGuilds"][guild.id],
             action: () => {
               this.settings["blacklistedGuilds"][guild.id] = !this.settings["blacklistedGuilds"][guild.id];
@@ -1100,7 +1107,7 @@ module.exports = (() => {
       onStop() {
         Patcher.unpatchAll();
         DOMTools.removeStyle(config.info.name);
-        // ContextMenu.unpatch("guild-context", this.processContextMenu);
+        ContextMenu.unpatch("guild-context", this.processContextMenu);
         this.rerenderChannels();
       }
 
