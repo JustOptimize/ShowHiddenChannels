@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.0
+ * @version 0.2.1
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,31 +17,32 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.0",
+      version: "0.2.1",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
       {
+        title: "v0.2.1",
+        items: [
+          "Added a setting to show ALL the roles that can see the channel (INCLUDING ADMINISTRATORS) in the \"Roles that can see this channel\" section",
+          "Renamed some settings to make them more clear",
+          "Now you can click on the users in the \"Users that can see this channel\" section to open their profile"
+        ]
+      },
+      {
         title: "v0.2.0",
         items: [
           "Now the \"Roles that can see this channel\" section is more accurate (now it counts for guild permissions too)",
           "Fixed a bug where it would show roles that can't see the channel in the \"Roles that can see this channel\" section if they had other allowed permissions",
-          "Added back the context menu to servers to disable/enable the hidden channels for that server",
+          "Added back the context menu to servers to disable/enable the hidden channels for that server"
         ]
       },
       {
         title: "v0.1.9",
         items: [
           "Temporarily removed the context menu from servers to prevent people from crashing when they right-click on them"
-        ]
-      },
-      {
-        title: "v0.1.8",
-        items: [
-          "Revert \"Removed MarkUnread option\" since it was kinda useful as issue #90 pointed out",
-          "Beautified permissions section"
         ]
       }
     ],
@@ -230,6 +231,7 @@ module.exports = (() => {
       hiddenChannelIcon: "lock",
       sort: "native",
       showPerms: true,
+      showAdmin: "exclude",
       MarkUnread: false,
 
       shouldShowEmptyCategory: true,
@@ -364,6 +366,7 @@ module.exports = (() => {
         if (this.settings.debugMode) {
           Logger.info("UnreadStore", UnreadStore);
           Logger.info("ChannelItem", ChannelItem);
+          Logger.info("UserMention", UserMentions);
         }
 
         Patcher.instead(Channel.prototype, "isHidden", (_, args, res) => {
@@ -839,11 +842,11 @@ module.exports = (() => {
                       {
                       userId: m.id,
                       channelId: props.channel.id
-                    },
-                    NOOP,
-                    {
-                      noStyleAndInteraction: true
-                    }
+                      },
+                      NOOP,
+                      {
+                        noStyleAndInteraction: false,
+                      }
                     )
                   );
                 })()
@@ -874,7 +877,11 @@ module.exports = (() => {
                     (role !== undefined && role?.type == 0) && 
 
                     //* 1024n = VIEW_CHANNEL permission
+                    //* 8n = ADMINISTRATOR permission
                     ( 
+                      //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
+                      (this.settings["showAdmin"] && ((props.guild.roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
+
                       //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
                       ((role.allow & BigInt(1024)) == BigInt(1024)) ||
 
@@ -883,6 +890,18 @@ module.exports = (() => {
                     )
                   );
 
+                  if (this.settings["showAdmin"]){
+                    Object.values(props.guild.roles).forEach(role => {
+                      if(
+                          ((role.permissions & BigInt(8)) == BigInt(8) && !allRoles.find(r => r.id == role.id)) &&
+                          (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
+                        )
+                        {
+                          allRoles.push(role);
+                        }
+                    });
+                  }
+9
                   if (!allRoles?.length) return ["None"];                      
                   return allRoles.map(m => RolePill.render({
                     canRemove: false,
@@ -1139,19 +1158,19 @@ module.exports = (() => {
             ),
             new RadioGroup(
               "Sorting Order",
-              "Sorting order for hidden channels.",
+              "Where to display Hidden Channels.",
               this.settings["sort"],
               [
                 {
-                  name: "Native Category in correct Order",
+                  name: "Hidden Channels in the native Discord order (default)",
                   value: "native",
                 },
                 {
-                  name: "Native Category at the bottom",
+                  name: "Hidden Channels at the bottom of the Category",
                   value: "bottom",
                 },
                 {
-                  name: "Extra Category at the bottom",
+                  name: "Hidden Channels in a separate Category at the bottom",
                   value: "extra",
                 },
               ],
@@ -1165,6 +1184,28 @@ module.exports = (() => {
               this.settings["showPerms"],
               (i) => {
                 this.settings["showPerms"] = i;
+              }
+            ),
+            new RadioGroup(
+              "Show Admin Roles",
+              "Show roles that have ADMINISTRATOR permission in the hidden channel page (requires 'Shows Permission' enabled).",
+              this.settings["showAdmin"],
+              [
+                {
+                  name: "Don't Show Administrator Roles",
+                  value: false,
+                },
+                {
+                  name: "Include Bot Roles",
+                  value: "include",
+                },
+                {
+                  name: "Exclude Bot Roles",
+                  value: "exclude"
+                }
+              ],
+              (i) => {
+                this.settings["showAdmin"] = i;
               }
             ),
             new Switch(
