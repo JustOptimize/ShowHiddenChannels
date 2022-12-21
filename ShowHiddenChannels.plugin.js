@@ -27,7 +27,8 @@ module.exports = (() => {
         title: "v0.2.1",
         items: [
           "Added a setting to show ALL the roles that can see the channel (INCLUDING ADMINISTRATORS) in the \"Roles that can see this channel\" section",
-          "Renamed some settings to make them more clear"
+          "Renamed some settings to make them more clear",
+          "Now you can click on the users in the \"Users that can see this channel\" section to open their profile"
         ]
       },
       {
@@ -365,6 +366,7 @@ module.exports = (() => {
         if (this.settings.debugMode) {
           Logger.info("UnreadStore", UnreadStore);
           Logger.info("ChannelItem", ChannelItem);
+          Logger.info("UserMention", UserMentions);
         }
 
         Patcher.instead(Channel.prototype, "isHidden", (_, args, res) => {
@@ -840,11 +842,11 @@ module.exports = (() => {
                       {
                       userId: m.id,
                       channelId: props.channel.id
-                    },
-                    NOOP,
-                    {
-                      noStyleAndInteraction: true
-                    }
+                      },
+                      NOOP,
+                      {
+                        noStyleAndInteraction: false,
+                      }
                     )
                   );
                 })()
