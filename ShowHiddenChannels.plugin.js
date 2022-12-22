@@ -763,7 +763,7 @@ module.exports = (() => {
                   TextElement,
                   {
                     color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
+                    size: TextElement.Sizes.SIZE_16,
                   },
                   "Last message sent: ",
                   this.getDateFromSnowflake(props.channel.lastMessageId)
@@ -993,11 +993,12 @@ module.exports = (() => {
       getDateFromSnowflake(number) {
         try {
           const id = parseInt(number);
+          const id_str = String(number);
           const binary = id.toString(2).padStart(64, "0");
           const excerpt = binary.substring(0, 42);
           const decimal = parseInt(excerpt, 2);
           const unix = decimal + 1420070400000;
-          return new Date(unix).toLocaleString(LocaleManager._chosenLocale);
+          return new Date(unix).toLocaleString(LocaleManager._chosenLocale) + " And The Last Message ID is: " + id_str;
         } catch (err) {
           Logger.err(err);
           return "(Failed to get date)";
