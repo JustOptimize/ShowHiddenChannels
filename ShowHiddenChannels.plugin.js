@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.1
+ * @version 0.2.2
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.1",
+      version: "0.2.2",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.2",
+        items: [
+          "Bug fixes"
+        ]
+      },
       {
         title: "v0.2.1",
         items: [
@@ -37,12 +43,6 @@ module.exports = (() => {
           "Now the \"Roles that can see this channel\" section is more accurate (now it counts for guild permissions too)",
           "Fixed a bug where it would show roles that can't see the channel in the \"Roles that can see this channel\" section if they had other allowed permissions",
           "Added back the context menu to servers to disable/enable the hidden channels for that server"
-        ]
-      },
-      {
-        title: "v0.1.9",
-        items: [
-          "Temporarily removed the context menu from servers to prevent people from crashing when they right-click on them"
         ]
       }
     ],
@@ -557,8 +557,9 @@ module.exports = (() => {
         //* Remove lock icon from hidden voice channels
         Patcher.before(ChannelUtil, "KS", (_, args) => {
           if (!args[2]) return;
-          if (args[0]?.isHidden?.() && args[2].locked)
+          if (args[0]?.isHidden?.() && args[2].locked){
             args[2].locked = false;
+          }
         });
 
         //* Manually collapse hidden channel category
@@ -608,14 +609,57 @@ module.exports = (() => {
           Utilities.saveData(config.info.name, "collapsed", this.collapsed);
         });
 
+        Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
+          const GuildCategories = res[DiscordConstants.d4z.GUILD_CATEGORY]; 
+          const hiddenId = `${args[0]}_hidden`; 
+          const hiddenCategory = GuildCategories?.find(m => m.channel.id == hiddenId);
+          if (!hiddenCategory) return res;   
+          const noHiddenCats = GuildCategories.filter(m => m.channel.id !== hiddenId);    
+          const newComprator = (
+            noHiddenCats[noHiddenCats.length - 1] || {
+              comparator: 0,
+            }
+          ).comparator + 1;
+          Object.defineProperty(hiddenCategory.channel, 'position', {
+            value:  newComprator ,
+            writable: true
+          });
+          Object.defineProperty(hiddenCategory, 'comparator', {
+            value:  newComprator ,
+            writable: true
+          });
+          return res;         
+        })
+        Patcher.after(ChannelStore, "getMutableGuildChannelsForGuild", (_, args, res) => {                
+          if (this.settings["sort"] !== "extra" || this.settings["blacklistedGuilds"][args[0]]) return;
+          const hiddenId = `${args[0]}_hidden`;               
+          const HiddenCategoryChannel = new Channel({
+            guild_id: args[0],
+            id: hiddenId,
+            name: "Hidden Channels",
+            type: DiscordConstants.d4z.GUILD_CATEGORY,                  
+          });       
+          const GuildCategories = GuildChannelsStore.getChannels(
+            args[0]
+          )[DiscordConstants.d4z.GUILD_CATEGORY];  
+          Object.defineProperty(HiddenCategoryChannel, 'position', {
+            value:  (
+              GuildCategories[GuildCategories.length - 1] || {
+                comparator: 0,
+              }
+            ).comparator + 1 ,
+            writable: true
+          });  
+          if (!res[hiddenId])
+          res[hiddenId] = HiddenCategoryChannel;
+          return res;
+        });
+
         //* Custom category or sorting order
         Patcher.after(ChannelListStore, "getGuild", (_, args, res) => {
           if (this.settings.debugMode)
-            Logger.info(res)
+            Logger.info("ChannelList", res)
             if (this.settings["blacklistedGuilds"][args[0]]) return;
-            Patcher.after(res.guildChannels, "getCategory", (_, args, res) => {
-             
-            })
           switch (this.settings["sort"]) {
 
             case "bottom": {
@@ -631,11 +675,8 @@ module.exports = (() => {
             }
 
             case "extra": {
-              const Category = Object.values(res.guildChannels.categories)[0]?.constructor;
-              if (!Category) return;
-
               const hiddenId = `${args[0]}_hidden`;
-
+              const HiddenCategory = res.guildChannels.categories[hiddenId]; 
               const hiddenChannels = this.getHiddenChannelRecord(
                 [
                   res.guildChannels.favoritesCategory,
@@ -648,32 +689,10 @@ module.exports = (() => {
                 args[0]
               );
 
-              const GuildCategories = GuildChannelsStore.getChannels(
-                args[0]
-              )[DiscordConstants.d4z.GUILD_CATEGORY];
-      
-              const hiddenCategoryChannel = new Channel({
-                guild_id: args[0],
-                id: hiddenId,
-                name: "Hidden Channels",
-                type: DiscordConstants.d4z.GUILD_CATEGORY,                  
-              });
-
-              Object.defineProperty(hiddenCategoryChannel, 'position', {
-                value: (
-                  GuildCategories[GuildCategories.length - 1] || {
-                    comparator: 0,
-                  }
-                ).comparator - 1,
-                writable: true
-              });
-
-              const HiddenCategory = new Category(
-                res.guildChannels,
-                hiddenCategoryChannel,
-                hiddenChannels.channels,
-                res.guildChannels.initializationData
-              );
+              HiddenCategory.channels = Object.fromEntries(Object.entries(hiddenChannels.records).map(([id, channel]) => {
+                channel.category = HiddenCategory;
+                return [id, channel]
+              }))
             
               HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] && this.collapsed[hiddenId] !== false;
               HiddenCategory.shownChannelIds = this.collapsed[hiddenId] || res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
@@ -684,11 +703,6 @@ module.exports = (() => {
 
                   return xPos < yPos ? -1 : xPos > yPos ? 1 : 0;
                 }).map((m) => m.id);
-
-              if (Object.values(HiddenCategory.channels).length) {
-                res.guildChannels.categories[hiddenId] = HiddenCategory;
-              }
-
               break;
             }
 
@@ -700,6 +714,8 @@ module.exports = (() => {
               ),
             ]);
           }
+
+          return res;
         });
 
         //* add entry in guild context menu
