@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.2
+ * @version 0.2.3
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,20 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.2",
+      version: "0.2.3",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.3",
+        items: [
+          "Updated graphics of the hidden channel page",
+          "Now Channel and Admins are separeted to make it more clear",
+          "Added a setting to show the administrators if they get mentioned the channel's permissions"
+        ]
+      },
       {
         title: "v0.2.2",
         items: [
@@ -35,14 +43,6 @@ module.exports = (() => {
           "Added a setting to show ALL the roles that can see the channel (INCLUDING ADMINISTRATORS) in the \"Roles that can see this channel\" section",
           "Renamed some settings to make them more clear",
           "Now you can click on the users in the \"Users that can see this channel\" section to open their profile"
-        ]
-      },
-      {
-        title: "v0.2.0",
-        items: [
-          "Now the \"Roles that can see this channel\" section is more accurate (now it counts for guild permissions too)",
-          "Fixed a bug where it would show roles that can't see the channel in the \"Roles that can see this channel\" section if they had other allowed permissions",
-          "Added back the context menu to servers to disable/enable the hidden channels for that server"
         ]
       }
     ],
@@ -113,7 +113,7 @@ module.exports = (() => {
       PluginUpdater,
       ReactTools,
       Modals,
-      Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup, Dropdown },
+      Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
       DiscordModules: {
         SwitchRow,
         ChannelStore,
@@ -868,66 +868,100 @@ module.exports = (() => {
                 })()
               ),
 
-              //* Roles
+              //* Channel Roles
               React.createElement(
                 TextElement,
                 {
-                  color: TextElement.Colors.INTERACTIVE_NORMAL,
-                  size: TextElement.Sizes.SIZE_14,
                   style: {
-                    marginTop: 10,
-                    marginBottom: 5,
+                    color: "var(--interactive-normal)",
+                    borderTop: "1px solid var(--background-tertiary)",
+                    padding: 5,
                   },
                 },
-                "Roles that can see this channel: ",
+                "Channel-specific roles: ",
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      color: "var(--interactive-normal)",
+                      paddingTop: 5,
+                    },
+                  },
+                  ...(() => {
+                    const channelRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
+                      (role !== undefined && role?.type == 0) && 
+
+                      //* 1024n = VIEW_CHANNEL permission
+                      //* 8n = ADMINISTRATOR permission
+                      ( 
+                        //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
+                        (this.settings["showAdmin"] && ((props.guild.roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
+
+                        //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
+                        ((role.allow & BigInt(1024)) == BigInt(1024)) ||
+
+                        //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
+                        ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
+                      )
+                    );
+
+                    if (!channelRoles?.length) return ["None"];                      
+                    return channelRoles.map(m => RolePill.render({
+                      canRemove: false,
+                      className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                      disableBorderColor: true,
+                      guildId: props.guild.id,
+                      onRemove: NOOP,
+                      role: props.guild.roles[m.id]
+                    }, NOOP));
+                  })(),
+                ),
               ),
-              React.createElement(
-                "div",
+              this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
+                TextElement,
                 {
                   style: {
                     color: "var(--interactive-normal)",
+                    borderTop: "1px solid var(--background-tertiary)",
+                    padding: 5,
                   },
                 },
-                ...(() => {
-                  const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
-                    (role !== undefined && role?.type == 0) && 
+                "Admin roles: ",
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      color: "var(--interactive-normal)",
+                      paddingTop: 5,
+                    },
+                  },
+                  ...(() => {
+                      const guildRoles = [];
 
-                    //* 1024n = VIEW_CHANNEL permission
-                    //* 8n = ADMINISTRATOR permission
-                    ( 
-                      //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
-                      (this.settings["showAdmin"] && ((props.guild.roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
+                      if (this.settings["showAdmin"]){
+                        Object.values(props.guild.roles).forEach(role => {
+                          if(
+                              (role.permissions & BigInt(8)) == BigInt(8) &&
+                              (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
+                            )
+                            {
+                              guildRoles.push(role);
+                            }
+                        });
+                      }
 
-                      //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
-                      ((role.allow & BigInt(1024)) == BigInt(1024)) ||
-
-                      //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
-                      ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
-                    )
-                  );
-
-                  if (this.settings["showAdmin"]){
-                    Object.values(props.guild.roles).forEach(role => {
-                      if(
-                          ((role.permissions & BigInt(8)) == BigInt(8) && !allRoles.find(r => r.id == role.id)) &&
-                          (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
-                        )
-                        {
-                          allRoles.push(role);
-                        }
-                    });
-                  }
-9
-                  if (!allRoles?.length) return ["None"];                      
-                  return allRoles.map(m => RolePill.render({
-                    canRemove: false,
-                    className: `${rolePill} shc-rolePill`, //${rolePillBorder}
-                    disableBorderColor: true,
-                    guildId: props.guild.id,
-                    onRemove: NOOP,
-                    role: props.guild.roles[m.id]
-                  }, NOOP));
-                })()
+                      if (!guildRoles?.length) return ["None"];                      
+                      return guildRoles.map(m => RolePill.render({
+                        canRemove: false,
+                        className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                        disableBorderColor: true,
+                        guildId: props.guild.id,
+                        onRemove: NOOP,
+                        role: m
+                      }, NOOP));
+                    }
+                  )(),
+                )
               ),
             ),
 
@@ -1208,8 +1242,8 @@ module.exports = (() => {
               this.settings["showAdmin"],
               [
                 {
-                  name: "Don't Show Administrator Roles",
-                  value: false,
+                  name: "Show only channel specific roles",
+                  value: "channel",
                 },
                 {
                   name: "Include Bot Roles",
@@ -1218,7 +1252,11 @@ module.exports = (() => {
                 {
                   name: "Exclude Bot Roles",
                   value: "exclude"
-                }
+                },
+                {
+                  name: "Don't Show Administrator Roles",
+                  value: false,
+                },
               ],
               (i) => {
                 this.settings["showAdmin"] = i;
