@@ -889,7 +889,7 @@ module.exports = (() => {
                   },
                 },
                 ...(() => {
-                  const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
+                  const roles = Object.values(props.channel.permissionOverwrites).filter(role => 
                     (role !== undefined && role?.type == 0) && 
 
                     //* 1024n = VIEW_CHANNEL permission
@@ -905,21 +905,21 @@ module.exports = (() => {
                       ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
                     )
                   );
-
+                    const allRoles = [];
                   if (this.settings["showAdmin"]){
                     Object.values(props.guild.roles).forEach(role => {
                       if(
                           ((role.permissions & BigInt(8)) == BigInt(8) && !allRoles.find(r => r.id == role.id)) &&
-                          (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
+                          (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id)) 
                         )
                         {
                           allRoles.push(role);
-                        }
+                        }else if (roles.find(y=>y.id == role.id)){allRoles.push(role);}
                     });
                   }
 9
                   if (!allRoles?.length) return ["None"];                      
-                  return allRoles.map(m => RolePill.render({
+                  return allRoles.sort((a, b) => b.position - a.position).map(m => RolePill.render({
                     canRemove: false,
                     className: `${rolePill} shc-rolePill`, //${rolePillBorder}
                     disableBorderColor: true,
