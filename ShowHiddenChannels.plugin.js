@@ -27,8 +27,8 @@ module.exports = (() => {
         title: "v0.2.3",
         items: [
           "Updated graphics of the hidden channel page",
-          "Now Channel and Admins are separeted to make it more clear",
-          "Added a setting to show the administrators if they get mentioned the channel's permissions"
+          "Now Channel and Admins are separeted in the hidden channel page to make permissions more clear",
+          "Added a setting to show the administrators if they are in the channel's permissions"
         ]
       },
       {
@@ -231,7 +231,7 @@ module.exports = (() => {
       hiddenChannelIcon: "lock",
       sort: "native",
       showPerms: true,
-      showAdmin: "exclude",
+      showAdmin: "channel",
       MarkUnread: false,
 
       shouldShowEmptyCategory: true,
@@ -823,7 +823,7 @@ module.exports = (() => {
               {
                   style: {
                     marginTop: 20,
-                    backgroundColor: "var(--background-secondary-alt)",
+                    backgroundColor: "var(--background-secondary)",
                     padding: 10,
                     borderRadius: 5,
                     color: "var(--text-normal)",
@@ -839,41 +839,39 @@ module.exports = (() => {
                   size: TextElement.Sizes.SIZE_14,
                 },
                 "Users that can see this channel: ",
-              ),
-              
-              React.createElement(
-                "div",
-                {
-                  style: {
-                    color: "var(--interactive-normal)",
-                    marginTop: 5,
-                    marginBottom: 5,
+                React.createElement(
+                  "div",
+                  {
+                    style: {
+                      marginTop: 5,
+                      marginBottom: 5,
+                    },
                   },
-                },
-                ...(() => {
-                  const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
-                  if (!allUsers?.length) return ["None"];                   
-                  return allUsers.map(m => 
-                    UserMentions.react(
-                      {
-                      userId: m.id,
-                      channelId: props.channel.id
-                      },
-                      NOOP,
-                      {
-                        noStyleAndInteraction: false,
-                      }
-                    )
-                  );
-                })()
+                  ...(() => {
+                    const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
+                    if (!allUsers?.length) return ["None"];                   
+                    return allUsers.map(m => 
+                      UserMentions.react(
+                        {
+                        userId: m.id,
+                        channelId: props.channel.id
+                        },
+                        NOOP,
+                        {
+                          noStyleAndInteraction: false,
+                        }
+                      )
+                    );
+                  })()
+                )
               ),
 
               //* Channel Roles
               React.createElement(
                 TextElement,
                 {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
                   style: {
-                    color: "var(--interactive-normal)",
                     borderTop: "1px solid var(--background-tertiary)",
                     padding: 5,
                   },
@@ -883,7 +881,6 @@ module.exports = (() => {
                   "div",
                   {
                     style: {
-                      color: "var(--interactive-normal)",
                       paddingTop: 5,
                     },
                   },
@@ -920,8 +917,8 @@ module.exports = (() => {
               this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
                 TextElement,
                 {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
                   style: {
-                    color: "var(--interactive-normal)",
                     borderTop: "1px solid var(--background-tertiary)",
                     padding: 5,
                   },
@@ -931,7 +928,6 @@ module.exports = (() => {
                   "div",
                   {
                     style: {
-                      color: "var(--interactive-normal)",
                       paddingTop: 5,
                     },
                   },
@@ -968,8 +964,10 @@ module.exports = (() => {
             //* Forums
             props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
               React.createElement(
-                "div",
+                TextElement,
                 {
+                  color: TextElement.Colors.HEADER_SECONDARY,
+                  size: TextElement.Sizes.SIZE_16,
                   style: {
                     marginTop: 20,
                     backgroundColor: "var(--background-secondary)",
@@ -977,21 +975,23 @@ module.exports = (() => {
                     borderRadius: 5,
                     color: "var(--text-normal)",
 
+
+                    fontWeight: "bold",
                   },
                 },
-
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.HEADER_SECONDARY,
-                    size: TextElement.Sizes.SIZE_16,
-                    style: {
-                      fontWeight: "bold",
-                      marginBottom: 10,
-                    },
-                  },
-                  "Forum"
-                ),
+                "Forum",
+                // React.createElement(
+                //   TextElement,
+                //   {
+                //     color: TextElement.Colors.HEADER_SECONDARY,
+                //     size: TextElement.Sizes.SIZE_16,
+                //     style: {
+                //       fontWeight: "bold",
+                //       marginBottom: 10,
+                //     },
+                //   },
+                //   "Forum"
+                // ),
 
                 //* Tags
                 props.channel.availableTags && props.channel.availableTags.length > 0 &&
@@ -1005,9 +1005,18 @@ module.exports = (() => {
                       },
                     },
                     "Tags: ",
-                    props.channel.availableTags.map((tag) => tag.name).join(", ")
+                    props.channel.availableTags.map((tag) => tag.name).join(", "),
                   ),
-
+                props.channel.availableTags.length == 0 &&
+                  React.createElement(
+                    TextElement,
+                    { 
+                      style: {
+                        marginTop: 5,
+                      },
+                    },
+                    "Tags: No tags avaiable"
+                  ),
                 //* Guidelines
                 props.channel.topic &&
                   React.createElement(
@@ -1021,7 +1030,19 @@ module.exports = (() => {
                     },
                     "Guidelines: ",
                     props.channel.topic
-                  )
+                  ),
+                !props.channel.topic &&
+                 React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Guidelines: No guidelines avaiable",
+                ),
               )
             )
           )
