@@ -890,7 +890,7 @@ module.exports = (() => {
                 },
                 ...(() => {
                   const allRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
-                    (role !== undefined && role?.type == 0) && 
+                    (role && role?.type == 0 && props.guild.roles[role.id]) && 
 
                     //* 1024n = VIEW_CHANNEL permission
                     //* 8n = ADMINISTRATOR permission
