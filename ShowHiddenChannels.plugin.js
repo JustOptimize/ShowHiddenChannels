@@ -27,7 +27,7 @@ module.exports = (() => {
         title: "v0.2.3",
         items: [
           "Updated graphics of the hidden channel page",
-          "Now Channel and Admins are separeted in the hidden channel page to make permissions more clear",
+          "Now Channel and Admins are separated in the hidden channel page to make permissions more clear",
           "Added a setting to show the administrators if they are in the channel's permissions"
         ]
       },
@@ -980,18 +980,6 @@ module.exports = (() => {
                   },
                 },
                 "Forum",
-                // React.createElement(
-                //   TextElement,
-                //   {
-                //     color: TextElement.Colors.HEADER_SECONDARY,
-                //     size: TextElement.Sizes.SIZE_16,
-                //     style: {
-                //       fontWeight: "bold",
-                //       marginBottom: 10,
-                //     },
-                //   },
-                //   "Forum"
-                // ),
 
                 //* Tags
                 props.channel.availableTags && props.channel.availableTags.length > 0 &&
