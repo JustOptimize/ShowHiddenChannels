@@ -450,6 +450,7 @@ module.exports = (() => {
         if (this.settings["hiddenChannelIcon"]) {
           Patcher.after(ChannelItem, "Z", (_, args, res) => {
             const instance = args[0];
+
             if (instance.channel?.isHidden()) {
               const item = res.props?.children?.props;
               if (item?.className)
@@ -461,16 +462,10 @@ module.exports = (() => {
               
               if (children.props?.children) {
                 children.props.children = [
-                  React.createElement(
-                    Tooltip,
-                    {
-                      text: "Hidden Channel",
-                    },
-                    (props) =>
+
                       React.createElement(
                         "div",
                         {
-                          ...props,
                           className: `${iconItem}`,
                           style: {
                             display: "block",
@@ -524,7 +519,6 @@ module.exports = (() => {
                         //     })
                         //   ),
                       )
-                    )
                 ];
               }
 
