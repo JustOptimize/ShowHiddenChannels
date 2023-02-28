@@ -121,7 +121,6 @@ module.exports = (() => {
         TextElement,
         React,
         ReactDOM,
-        Tooltip,
         GuildChannelsStore,
         GuildMemberStore,
         LocaleManager
@@ -132,6 +131,7 @@ module.exports = (() => {
     const NOOP = () => null;
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const { chat } = WebpackModules.getByProps("chat", "chatContent");
+    const Tooltip = BdApi.Components.Tooltip;
 
     const Route = WebpackModules.getModule((m) =>
       ["impressionName", "impressionProperties", "disableTrack"].every(
