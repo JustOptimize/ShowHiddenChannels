@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.3
+ * @version 0.2.4
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,19 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.3",
+      version: "0.2.4",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.4",
+        items: [
+          "Fixed crashing",
+          "Removed the text 'hidden channel' when hovering over the lock icon"
+        ]
+      },
       {
         title: "v0.2.3",
         items: [
@@ -35,14 +42,6 @@ module.exports = (() => {
         title: "v0.2.2",
         items: [
           "Bug fixes"
-        ]
-      },
-      {
-        title: "v0.2.1",
-        items: [
-          "Added a setting to show ALL the roles that can see the channel (INCLUDING ADMINISTRATORS) in the \"Roles that can see this channel\" section",
-          "Renamed some settings to make them more clear",
-          "Now you can click on the users in the \"Users that can see this channel\" section to open their profile"
         ]
       }
     ],
