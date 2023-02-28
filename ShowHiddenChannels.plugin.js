@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.4
+ * @version 0.2.5
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.4",
+      version: "0.2.5",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.5",
+        items: [
+          "Removed context menu option to show hidden channels from the server settings to prevent crashes",
+        ]
+      },
       {
         title: "v0.2.4",
         items: [
@@ -36,12 +42,6 @@ module.exports = (() => {
           "Updated graphics of the hidden channel page",
           "Now Channel and Admins are separated in the hidden channel page to make permissions more clear",
           "Added a setting to show the administrators if they are in the channel's permissions"
-        ]
-      },
-      {
-        title: "v0.2.2",
-        items: [
-          "Bug fixes"
         ]
       }
     ],
@@ -331,7 +331,7 @@ module.exports = (() => {
           {}
         );
 
-        this.processContextMenu = this.processContextMenu.bind(this);
+        // this.processContextMenu = this.processContextMenu.bind(this);
 
         this.settings = Utilities.loadData(
           config.info.name,
@@ -714,7 +714,7 @@ module.exports = (() => {
         });
 
         //* add entry in guild context menu
-        ContextMenu.patch("guild-context", this.processContextMenu);
+        // ContextMenu.patch("guild-context", this.processContextMenu);
       }
 
       lockscreen() {
