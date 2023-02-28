@@ -424,6 +424,7 @@ module.exports = (() => {
           const channelId = res.props?.computedMatch?.params?.channelId;
           const guildId = res.props?.computedMatch?.params?.guildId;
           const channel = ChannelStore?.getChannel(channelId);
+
           if (
             guildId &&
             channel?.isHidden?.() &&
@@ -435,20 +436,18 @@ module.exports = (() => {
                 guild: GuildStore.getGuild(guildId),
               });
           }
+
           return res;
         });
         
         //* Stop fetching messages if the channel is hidden
-        Patcher.instead(MessageActions, "fetchMessages", (_, [args], res) => {
-          if (ChannelStore.getChannel(args.channelId)?.isHidden?.()) {
-            // BdApi.showToast("Channel is hidden, not fetching messages", {type: "error"});
+        Patcher.instead(MessageActions, "fetchMessages", (instance, [args], res) => {
+          if (ChannelStore.getChannel(args.channelId)?.isHidden?.())
             return;
-          }
-
-          return res(args);
+          return res.call(instance, args);
         });
         
-        if (!this.settings.disableIcons) {
+        if (this.settings["hiddenChannelIcon"]) {
           Patcher.after(ChannelItem, "Z", (_, args, res) => {
             const instance = args[0];
             if (instance.channel?.isHidden()) {
@@ -533,6 +532,7 @@ module.exports = (() => {
                 instance.channel.type == DiscordConstants.d4z.GUILD_VOICE &&
                 !instance.connected
               ) {
+                // ChannelClasses.wrapper -> wrapper-1S43wv wrapperCommon-I1TMDb
                 const wrapper = Utilities.findInReactTree(res, (n) =>
                   n?.props?.className?.includes(ChannelClasses.wrapper)
                 );
@@ -540,6 +540,8 @@ module.exports = (() => {
                   wrapper.props.onMouseDown = () => {};
                   wrapper.props.onMouseUp = () => {};
                 }
+
+               //mainContent-uDGa6R not mainContent-20q_Hp
                 const mainContent = Utilities.findInReactTree(res, (n) =>
                   n?.props?.className?.includes(ChannelClasses.mainContent)
                 );
