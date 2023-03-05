@@ -1,11 +1,11 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.5
+ * @version 0.2.6
  * @author JustOptimize (Oggetto)
  * @authorId 347419615007080453
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
- * @updateUrl https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js
+ * @description A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).
 */
 
 module.exports = (() => {
@@ -17,12 +17,18 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.5",
+      version: "0.2.6",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.6",
+        items: [
+          "Added built-in updater"
+        ]
+      },
       {
         title: "v0.2.5",
         items: [
@@ -34,14 +40,6 @@ module.exports = (() => {
         items: [
           "Fixed crashing",
           "Removed the text 'hidden channel' when hovering over the lock icon"
-        ]
-      },
-      {
-        title: "v0.2.3",
-        items: [
-          "Updated graphics of the hidden channel page",
-          "Now Channel and Admins are separated in the hidden channel page to make permissions more clear",
-          "Added a setting to show the administrators if they are in the channel's permissions"
         ]
       }
     ],
@@ -109,7 +107,6 @@ module.exports = (() => {
       Utilities,
       DOMTools,
       Logger,
-      PluginUpdater,
       ReactTools,
       Modals,
       Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
@@ -342,15 +339,48 @@ module.exports = (() => {
         this.can = ChannelPermissionStore.can.__originalFunction ?? ChannelPermissionStore.can;
       }
 
-      checkForUpdates() {
+      async checkForUpdates() {
+        Logger.info("Checking for updates, current version: " + config.info.version);
+        
+        const SHC_U = await fetch(config.info.github_raw);
+        if (!SHC_U.ok) return BdApi.showToast("(ShowHiddenChannels) Failed to check for updates.", { type: "error" });
+        const SHCContent = await SHC_U.text();
+
+        if (SHCContent.match(/(?<=version: ").*(?=")/)[0] <= config.info.version) return Logger.info("No updates found.");
+
+        BdApi.showConfirmationModal("Update available", `ShowHiddenChannels has an update available. Would you like to update to version ${SHCContent.match(/(?<=version: ").*(?=")/)[0]}?`, {
+          confirmText: "Update",
+          cancelText: "Cancel",
+          danger: false,
+
+          onConfirm: () => {
+            this.proceedWithUpdate(SHCContent);
+          },
+
+          onCancel: () => {
+            BdApi.showToast("Update cancelled.", { type: "info" });
+          }
+        });
+      }
+
+      async proceedWithUpdate(SHCContent) {
+        Logger.info("Update confirmed by the user, updating to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0]);
+
         try {
-          PluginUpdater.checkForUpdate(
-            config.info.name,
-            config.info.version,
-            config.info.github_raw
+          const fs = require("fs");
+          const path = require("path");
+
+          await fs.writeFile(
+            path.join(BdApi.Plugins.folder, "ShowHiddenChannels.plugin.js"),
+            SHCContent,
+            (err) => {
+              if (err) return BdApi.showToast("(ShowHiddenChannels) Failed to update.", { type: "error" });
+            }
           );
+
+          BdApi.showToast("ShowHiddenChannels updated to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0], { type: "success" });
         } catch (err) {
-          Logger.err("Plugin Updater could not be reached.", err);
+          return BdApi.showToast("(ShowHiddenChannels) Failed to update.", { type: "error" });
         }
       }
 
