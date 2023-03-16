@@ -1,9 +1,9 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.6
+ * @version 0.2.7
  * @author JustOptimize (Oggetto)
- * @authorId 347419615007080453
+ * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
  * @description A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).
 */
@@ -17,12 +17,20 @@ module.exports = (() => {
         name: "JustOptimize (Oggetto)",
       }],
       description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.6",
+      version: "0.2.7",
       github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
       github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
     },
 
     changelog: [
+      {
+        title: "v0.2.7",
+        items: [
+          "Added back the context menu option to disable the plugin for certain servers",
+          "Brought back the tooltip for the hidden channels icon",
+          "Updated default settings"
+        ]
+      },
       {
         title: "v0.2.6",
         items: [
@@ -33,13 +41,6 @@ module.exports = (() => {
         title: "v0.2.5",
         items: [
           "Removed context menu option to show hidden channels from the server settings to prevent crashes",
-        ]
-      },
-      {
-        title: "v0.2.4",
-        items: [
-          "Fixed crashing",
-          "Removed the text 'hidden channel' when hovering over the lock icon"
         ]
       }
     ],
@@ -117,13 +118,13 @@ module.exports = (() => {
         TextElement,
         React,
         ReactDOM,
-        Tooltip,
         GuildChannelsStore,
         GuildMemberStore,
         LocaleManager
       }
     } = Library;
 
+    const Tooltip = BdApi.Components.Tooltip;
     const { ContextMenu } = BdApi;
     const NOOP = () => null;
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
@@ -230,9 +231,8 @@ module.exports = (() => {
       showAdmin: "channel",
       MarkUnread: false,
 
-      shouldShowEmptyCategory: true,
       alwaysCollapse: false,
-
+      shouldShowEmptyCategory: false,
       debugMode: false,
 
       channels: {
@@ -328,7 +328,7 @@ module.exports = (() => {
           {}
         );
 
-        // this.processContextMenu = this.processContextMenu.bind(this);
+        this.processContextMenu = this.processContextMenu.bind(this);
 
         this.settings = Utilities.loadData(
           config.info.name,
@@ -340,7 +340,9 @@ module.exports = (() => {
       }
 
       async checkForUpdates() {
-        Logger.info("Checking for updates, current version: " + config.info.version);
+        if (this.settings.debugMode){
+          Logger.info("Checking for updates, current version: " + config.info.version);
+        }
         
         const SHC_U = await fetch(config.info.github_raw);
         if (!SHC_U.ok) return BdApi.showToast("(ShowHiddenChannels) Failed to check for updates.", { type: "error" });
@@ -364,7 +366,9 @@ module.exports = (() => {
       }
 
       async proceedWithUpdate(SHCContent) {
-        Logger.info("Update confirmed by the user, updating to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0]);
+        if (this.settings.debugMode){
+          Logger.info("Update confirmed by the user, updating to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0]);
+        }
 
         try {
           const fs = require("fs");
@@ -491,10 +495,16 @@ module.exports = (() => {
               
               if (children.props?.children) {
                 children.props.children = [
-
+                  React.createElement(
+                    Tooltip,
+                    {
+                      text: "Hidden Channel",
+                    },
+                    (props) =>
                       React.createElement(
                         "div",
                         {
+                          ...props,
                           className: `${iconItem}`,
                           style: {
                             display: "block",
@@ -548,6 +558,7 @@ module.exports = (() => {
                         //     })
                         //   ),
                       )
+                  )
                 ];
               }
 
@@ -744,7 +755,7 @@ module.exports = (() => {
         });
 
         //* add entry in guild context menu
-        // ContextMenu.patch("guild-context", this.processContextMenu);
+        ContextMenu.patch("guild-context", this.processContextMenu);
       }
 
       lockscreen() {
@@ -1100,7 +1111,7 @@ module.exports = (() => {
         menuCatagory.props.children.push(
           ContextMenu.buildItem({
             type: "toggle",
-            label: "Hide Hidden Channels",
+            label: "Disable SHC",
             checked: this.settings["blacklistedGuilds"][guild.id],
             action: () => {
               this.settings["blacklistedGuilds"][guild.id] = !this.settings["blacklistedGuilds"][guild.id];
@@ -1315,7 +1326,7 @@ module.exports = (() => {
             ),
             new Switch(
               "Show Empty Category",
-              "Show Empty Category either because there were no channels in it or all channels are under hidden channels category.",
+              "Show category even if it's empty",
               this.settings["shouldShowEmptyCategory"],
               (i) => {
                 this.settings["shouldShowEmptyCategory"] = i;
