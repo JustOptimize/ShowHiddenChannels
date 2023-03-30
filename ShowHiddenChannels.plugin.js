@@ -1,106 +1,93 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.7
+ * @version 0.2.8
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
  * @description A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).
 */
 
-module.exports = (() => {
+const config = {
+  info: {
+    name: "ShowHiddenChannels",
+    authors: [{
+      name: "JustOptimize (Oggetto)",
+    }],
+    description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
+    version: "0.2.8",
+    github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
+    github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
+  },
 
-  const config = {
-    info: {
-      name: "ShowHiddenChannels",
-      authors: [{
-        name: "JustOptimize (Oggetto)",
-      }],
-      description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-      version: "0.2.7",
-      github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
-      github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
+  changelog: [
+    {
+      title: "v0.2.8",
+      items: [
+        "Using common practices for the plugin library and exporting the plugin",
+        "Now you can see voice channels permissions",
+        "Added channel creation date"
+      ]
     },
+    {
+      title: "v0.2.7",
+      items: [
+        "Added back the context menu option to disable the plugin for certain servers",
+        "Brought back the tooltip for the hidden channels icon",
+        "Updated default settings"
+      ]
+    },
+    {
+      title: "v0.2.6",
+      items: [
+        "Added built-in updater"
+      ]
+    }
+  ],
 
-    changelog: [
-      {
-        title: "v0.2.7",
-        items: [
-          "Added back the context menu option to disable the plugin for certain servers",
-          "Brought back the tooltip for the hidden channels icon",
-          "Updated default settings"
-        ]
-      },
-      {
-        title: "v0.2.6",
-        items: [
-          "Added built-in updater"
-        ]
-      },
-      {
-        title: "v0.2.5",
-        items: [
-          "Removed context menu option to show hidden channels from the server settings to prevent crashes",
-        ]
+  main: "ShowHiddenChannels.plugin.js",
+};
+
+class Dummy {
+  constructor() {this._config = config;}
+  start() {}
+  stop() {}
+}
+
+if (!global.ZeresPluginLibrary) {
+  console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
+  
+  BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.name ?? config.info.name} is missing. Please click Download Now to install it.`, {
+      confirmText: "Download Now",
+      cancelText: "Cancel",
+      onConfirm: () => downloadZLib()
+  });
+
+  async function downloadZLib() {
+    require("request").get("https://betterdiscord.app/gh-redirect?id=9", async (err, resp, body) => {
+      if (err) return errorDownloadZLib();
+      if (resp.statusCode === 302) {
+          require("request").get(resp.headers.location, async (error, response, content) => {
+              if (error) return errorDownloadZLib();
+              await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), content, r));
+          });
       }
-    ],
-
-    main: "ShowHiddenChannels.plugin.js",
-  };
-
-  return !window.hasOwnProperty("ZeresPluginLibrary")
-    ? class {
-        load() {
-          BdApi.showConfirmationModal(
-            "ZLib Missing",
-            `The library plugin (ZeresPluginLibrary) needed for ${config.info.name} is missing. Please click Download Now to install it.`,
-            {
-              confirmText: "Download Now",
-              cancelText: "Cancel",
-              onConfirm: () => this.downloadZLib(),
-            }
-          );
-        }
-        async downloadZLib() {
-          const fs = require("fs");
-          const path = require("path");
-          const ZLib = await fetch("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js");
-          if (!ZLib.ok) return this.errorDownloadZLib();
-          const ZLibContent = await ZLib.text();
-          try {
-            await fs.writeFile(
-              path.join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"),
-              ZLibContent,
-              (err) => {
-                if (err) return this.errorDownloadZLib();
-              }
-            );
-          } catch (err) {
-            return this.errorDownloadZLib();
-          }
-        }
-        errorDownloadZLib() {
-          const { shell } = require("electron");
-          BdApi.showConfirmationModal(
-            "Error Downloading",
-            [
-              `ZeresPluginLibrary download failed. Manually install plugin library from the link below.`,
-            ],
-            {
-              confirmText: "Download",
-              cancelText: "Cancel",
-              onConfirm: () => {
-                shell.openExternal(
-                  "https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js"
-                );
-              },
-            }
-          );
-        }
-        start() {}
-        stop() {}
+      else {
+          await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
       }
-    : (([Plugin, Library]) => {
+    });
+  }
+
+  function errorDownloadZLib() {
+    BdApi.showConfirmationModal("Error Downloading", `ZeresPluginLibrary download failed. Manually install plugin library from the link below.`, {
+        confirmText: "Download",
+        cancelText: "Cancel",
+        onConfirm: () => require("electron").shell.openExternal("https://betterdiscord.app/Download?id=9")
+    });
+  }
+}
+module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
+  const plugin = (Plugin, Library) => {
 
     const {
       WebpackModules,
@@ -120,7 +107,9 @@ module.exports = (() => {
         ReactDOM,
         GuildChannelsStore,
         GuildMemberStore,
-        LocaleManager
+        LocaleManager,
+        NavigationUtils,
+        GuildStore
       }
     } = Library;
 
@@ -159,7 +148,6 @@ module.exports = (() => {
     const { iconItem, actionIcon } = WebpackModules.getByProps("iconItem");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
-    const GuildStore = WebpackModules.getByProps("getGuild", "getGuilds");
     const { U: RolePill } = WebpackModules.getModule(
       (m) => m?.U?.render?.toString().includes("roleStyle")
     );
@@ -184,7 +172,7 @@ module.exports = (() => {
         return this.Module.v0;
       },
     };
-
+    
     const ChannelTypes = [
       "GUILD_TEXT",
       "GUILD_VOICE",
@@ -396,16 +384,9 @@ module.exports = (() => {
       }
 
       Patch() {
-        if (this.settings.debugMode) {
-          Logger.info("UnreadStore", UnreadStore);
-          Logger.info("ChannelItem", ChannelItem);
-          Logger.info("UserMention", UserMentions);
-        }
-
         Patcher.instead(Channel.prototype, "isHidden", (_, args, res) => {
           return (![1, 3].includes(_.type) && !this.can(DiscordConstants.Plq.VIEW_CHANNEL, _));
         });
-
 
         if(!this.settings.MarkUnread) {
           Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) => {
@@ -581,7 +562,14 @@ module.exports = (() => {
                 );
 
                 if (mainContent) {
-                  mainContent.props.onClick = () => {};
+                  mainContent.props.onClick = () => {
+                    if (instance.channel?.isGuildVocal()) {
+                      NavigationUtils.transitionTo(
+                        `/channels/${instance.channel.guild_id}/${instance.channel.id}`
+                      );
+                    }
+                  };
+
                   mainContent.props.href = null;
                 }
               }
@@ -792,7 +780,7 @@ module.exports = (() => {
                     fontWeight: "bold"
                   },
                 },
-                "This is a hidden channel."
+                "This is a hidden " + (props.channel.type == 15 ? "thread" : props.channel.type == 0 ? "text" : "voice") + " channel."
               ),
               React.createElement(
                 TextElement,
@@ -837,8 +825,38 @@ module.exports = (() => {
                 this.convertToHMS(props.channel.rateLimitPerUser)
               ),
 
-            //* NSFW
-            props.channel.nsfw &&
+              //* NSFW
+              props.channel.nsfw &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Age-Restricted Channel (NSFW) 🔞"
+                ),
+
+              //* Bitrate
+              props.channel.bitrate && props.channel.type == 2 &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+
+                    size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
+                  },
+                  "Bitrate: ",
+                  props.channel.bitrate / 1000,
+                  "kbps"
+                ),
+
+              //* Creation date
               React.createElement(
                 TextElement,
                 {
@@ -848,224 +866,225 @@ module.exports = (() => {
                     marginTop: 10,
                   },
                 },
-                "Age-Restricted Channel (NSFW) 🔞"
+                "Created on: ",
+                this.getDateFromSnowflake(props.channel.id)
               ),
 
-            //* Permissions
-            this.settings["showPerms"] &&
-            props.channel.permissionOverwrites &&
-            React.createElement(
-              "div",
-              {
-                  style: {
-                    marginTop: 20,
-                    backgroundColor: "var(--background-secondary)",
-                    padding: 10,
-                    borderRadius: 5,
-                    color: "var(--text-normal)",
-
-                  },
-              }, 
-
-              //* Users
-              React.createElement(
-                TextElement,
-                {
-                  color: TextElement.Colors.INTERACTIVE_NORMAL,
-                  size: TextElement.Sizes.SIZE_14,
-                },
-                "Users that can see this channel: ",
+              //* Permissions
+              this.settings["showPerms"] &&
+              props.channel.permissionOverwrites &&
                 React.createElement(
                   "div",
                   {
-                    style: {
-                      marginTop: 5,
-                      marginBottom: 5,
+                      style: {
+                        marginTop: 20,
+                        backgroundColor: "var(--background-secondary)",
+                        padding: 10,
+                        borderRadius: 5,
+                        color: "var(--text-normal)",
+
+                      },
+                  }, 
+
+                  //* Users
+                  React.createElement(
+                    TextElement,
+                    {
+                      color: TextElement.Colors.INTERACTIVE_NORMAL,
+                      size: TextElement.Sizes.SIZE_14,
                     },
-                  },
-                  ...(() => {
-                    const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
-                    if (!allUsers?.length) return ["None"];                   
-                    return allUsers.map(m => 
-                      UserMentions.react(
-                        {
-                        userId: m.id,
-                        channelId: props.channel.id
+                    "Users that can see this channel: ",
+                    React.createElement(
+                      "div",
+                      {
+                        style: {
+                          marginTop: 5,
+                          marginBottom: 5,
                         },
-                        NOOP,
-                        {
-                          noStyleAndInteraction: false,
-                        }
-                      )
-                    );
-                  })()
-                )
-              ),
-
-              //* Channel Roles
-              React.createElement(
-                TextElement,
-                {
-                  color: TextElement.Colors.INTERACTIVE_NORMAL,
-                  style: {
-                    borderTop: "1px solid var(--background-tertiary)",
-                    padding: 5,
-                  },
-                },
-                "Channel-specific roles: ",
-                React.createElement(
-                  "div",
-                  {
-                    style: {
-                      paddingTop: 5,
-                    },
-                  },
-                  ...(() => {
-                    const channelRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
-                      (role !== undefined && role?.type == 0) && 
-
-                      //* 1024n = VIEW_CHANNEL permission
-                      //* 8n = ADMINISTRATOR permission
-                      ( 
-                        //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
-                        (this.settings["showAdmin"] && ((props.guild.roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
-
-                        //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
-                        ((role.allow & BigInt(1024)) == BigInt(1024)) ||
-
-                        //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
-                        ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
-                      )
-                    );
-
-                    if (!channelRoles?.length) return ["None"];                      
-                    return channelRoles.map(m => RolePill.render({
-                      canRemove: false,
-                      className: `${rolePill} shc-rolePill`, //${rolePillBorder}
-                      disableBorderColor: true,
-                      guildId: props.guild.id,
-                      onRemove: NOOP,
-                      role: props.guild.roles[m.id]
-                    }, NOOP));
-                  })(),
-                ),
-              ),
-              this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
-                TextElement,
-                {
-                  color: TextElement.Colors.INTERACTIVE_NORMAL,
-                  style: {
-                    borderTop: "1px solid var(--background-tertiary)",
-                    padding: 5,
-                  },
-                },
-                "Admin roles: ",
-                React.createElement(
-                  "div",
-                  {
-                    style: {
-                      paddingTop: 5,
-                    },
-                  },
-                  ...(() => {
-                      const guildRoles = [];
-
-                      if (this.settings["showAdmin"]){
-                        Object.values(props.guild.roles).forEach(role => {
-                          if(
-                              (role.permissions & BigInt(8)) == BigInt(8) &&
-                              (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
-                            )
+                      },
+                      ...(() => {
+                        const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
+                        if (!allUsers?.length) return ["None"];                   
+                        return allUsers.map(m => 
+                          UserMentions.react(
                             {
-                              guildRoles.push(role);
+                            userId: m.id,
+                            channelId: props.channel.id
+                            },
+                            NOOP,
+                            {
+                              noStyleAndInteraction: false,
                             }
-                        });
-                      }
+                          )
+                        );
+                      })()
+                    )
+                  ),
 
-                      if (!guildRoles?.length) return ["None"];                      
-                      return guildRoles.map(m => RolePill.render({
-                        canRemove: false,
-                        className: `${rolePill} shc-rolePill`, //${rolePillBorder}
-                        disableBorderColor: true,
-                        guildId: props.guild.id,
-                        onRemove: NOOP,
-                        role: m
-                      }, NOOP));
-                    }
-                  )(),
-                )
-              ),
-            ),
-
-            //* Forums
-            props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
-              React.createElement(
-                TextElement,
-                {
-                  color: TextElement.Colors.HEADER_SECONDARY,
-                  size: TextElement.Sizes.SIZE_16,
-                  style: {
-                    marginTop: 20,
-                    backgroundColor: "var(--background-secondary)",
-                    padding: 10,
-                    borderRadius: 5,
-                    color: "var(--text-normal)",
-
-
-                    fontWeight: "bold",
-                  },
-                },
-                "Forum",
-
-                //* Tags
-                props.channel.availableTags && props.channel.availableTags.length > 0 &&
+                  //* Channel Roles
                   React.createElement(
                     TextElement,
                     {
                       color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      size: TextElement.Sizes.SIZE_14,
                       style: {
-                        marginTop: 10,
+                        borderTop: "1px solid var(--background-tertiary)",
+                        padding: 5,
                       },
                     },
-                    "Tags: ",
-                    props.channel.availableTags.map((tag) => tag.name).join(", "),
-                  ),
-                props.channel.availableTags.length == 0 &&
-                  React.createElement(
-                    TextElement,
-                    { 
-                      style: {
-                        marginTop: 5,
+                    "Channel-specific roles: ",
+                    React.createElement(
+                      "div",
+                      {
+                        style: {
+                          paddingTop: 5,
+                        },
                       },
-                    },
-                    "Tags: No tags avaiable"
+                      ...(() => {
+                        const channelRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
+                          (role !== undefined && role?.type == 0) && 
+
+                          //* 1024n = VIEW_CHANNEL permission
+                          //* 8n = ADMINISTRATOR permission
+                          ( 
+                            //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
+                            (this.settings["showAdmin"] && ((props.guild.roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
+
+                            //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
+                            ((role.allow & BigInt(1024)) == BigInt(1024)) ||
+
+                            //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
+                            ((props.guild.roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
+                          )
+                        );
+
+                        if (!channelRoles?.length) return ["None"];                      
+                        return channelRoles.map(m => RolePill.render({
+                          canRemove: false,
+                          className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                          disableBorderColor: true,
+                          guildId: props.guild.id,
+                          onRemove: NOOP,
+                          role: props.guild.roles[m.id]
+                        }, NOOP));
+                      })(),
+                    ),
                   ),
-                //* Guidelines
-                props.channel.topic &&
-                  React.createElement(
+                  this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
                     TextElement,
                     {
                       color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      size: TextElement.Sizes.SIZE_14,
                       style: {
-                        marginTop: 10,
+                        borderTop: "1px solid var(--background-tertiary)",
+                        padding: 5,
                       },
                     },
-                    "Guidelines: ",
-                    props.channel.topic
+                    "Admin roles: ",
+                    React.createElement(
+                      "div",
+                      {
+                        style: {
+                          paddingTop: 5,
+                        },
+                      },
+                      ...(() => {
+                          const guildRoles = [];
+
+                          if (this.settings["showAdmin"]){
+                            Object.values(props.guild.roles).forEach(role => {
+                              if(
+                                  (role.permissions & BigInt(8)) == BigInt(8) &&
+                                  (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))
+                                )
+                                {
+                                  guildRoles.push(role);
+                                }
+                            });
+                          }
+
+                          if (!guildRoles?.length) return ["None"];                      
+                          return guildRoles.map(m => RolePill.render({
+                            canRemove: false,
+                            className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                            disableBorderColor: true,
+                            guildId: props.guild.id,
+                            onRemove: NOOP,
+                            role: m
+                          }, NOOP));
+                        }
+                      )(),
+                    )
                   ),
-                !props.channel.topic &&
-                 React.createElement(
+                ),
+
+              //* Forums
+              props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
+                React.createElement(
                   TextElement,
                   {
-                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                    size: TextElement.Sizes.SIZE_14,
+                    color: TextElement.Colors.HEADER_SECONDARY,
+                    size: TextElement.Sizes.SIZE_16,
                     style: {
-                      marginTop: 10,
+                      marginTop: 20,
+                      backgroundColor: "var(--background-secondary)",
+                      padding: 10,
+                      borderRadius: 5,
+                      color: "var(--text-normal)",
+
+
+                      fontWeight: "bold",
                     },
                   },
-                  "Guidelines: No guidelines avaiable",
+                  "Forum",
+
+                  //* Tags
+                  props.channel.availableTags && props.channel.availableTags.length > 0 &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Tags: ",
+                      props.channel.availableTags.map((tag) => tag.name).join(", "),
+                    ),
+                  props.channel.availableTags.length == 0 &&
+                    React.createElement(
+                      TextElement,
+                      { 
+                        style: {
+                          marginTop: 5,
+                        },
+                      },
+                      "Tags: No tags avaiable"
+                    ),
+                  //* Guidelines
+                  props.channel.topic &&
+                    React.createElement(
+                      TextElement,
+                      {
+                        color: TextElement.Colors.INTERACTIVE_NORMAL,
+                        size: TextElement.Sizes.SIZE_14,
+                        style: {
+                          marginTop: 10,
+                        },
+                      },
+                      "Guidelines: ",
+                      props.channel.topic
+                    ),
+                  !props.channel.topic &&
+                  React.createElement(
+                    TextElement,
+                    {
+                      color: TextElement.Colors.INTERACTIVE_NORMAL,
+                      size: TextElement.Sizes.SIZE_14,
+                      style: {
+                        marginTop: 10,
+                      },
+                    },
+                    "Guidelines: No guidelines avaiable",
                 ),
               )
             )
@@ -1404,6 +1423,6 @@ module.exports = (() => {
         this.rerenderChannels();
       }
     };
-
-  })(window.ZeresPluginLibrary.buildPlugin(config));
-})();
+  };
+  return plugin(Plugin, Library);
+})(global.ZeresPluginLibrary.buildPlugin(config));
