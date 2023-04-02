@@ -26,7 +26,8 @@ const config = {
       items: [
         "Using common practices for the plugin library and exporting the plugin",
         "Now you can see voice channels permissions",
-        "Added channel creation date"
+        "Added channel creation date",
+        "Fixed a bug where some users weren't displayed in the channel permissions",
       ]
     },
     {
@@ -903,20 +904,34 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                         },
                       },
                       ...(() => {
-                        const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) && GuildMemberStore.isMember( props.guild.id, user.id));
-                        if (!allUsers?.length) return ["None"];                   
-                        return allUsers.map(m => 
-                          UserMentions.react(
-                            {
-                            userId: m.id,
-                            channelId: props.channel.id
-                            },
-                            NOOP,
-                            {
-                              noStyleAndInteraction: false,
-                            }
-                          )
-                        );
+                        const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) );
+                        if (!allUsers?.length) return ["None"];
+                        let users = [];
+
+                        allUsers.forEach(user => {
+                          const isMember = GuildMemberStore.isMember(props.guild.id, user.id);
+                          const element = isMember
+                            ? UserMentions.react(
+                                {
+                                  userId: user.id,
+                                  channelId: props.channel.id
+                                },
+                                NOOP,
+                                {
+                                  noStyleAndInteraction: false
+                                }
+                              )
+                            : React.createElement(
+                                "span",
+                                {
+                                  className: "mention wrapper-1ZcZW-"
+                                },
+                                "<@" + user.id + ">"
+                              );
+                          users.push(element);
+                        });
+                        
+                        return users;
                       })()
                     )
                   ),
