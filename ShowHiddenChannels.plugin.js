@@ -781,7 +781,8 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                     fontWeight: "bold"
                   },
                 },
-                "This is a hidden " + (props.channel.type == 15 ? "thread" : props.channel.type == 0 ? "text" : "voice") + " channel."
+                // forum = 15, text = 0, voice = 2, announcement = 5, stage = 13
+                "This is a hidden " + (props.channel.type == 15 ? "forum" : props.channel.type == 0 ? "text" : props.channel.type == 2 ? "voice" : props.channel.type == 5 ? "announcement" : props.channel.type == 13 ? "stage" : "") + " channel."
               ),
               React.createElement(
                 TextElement,
