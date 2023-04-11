@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.8
+ * @version 0.2.9
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,18 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.2.8",
+    version: "0.2.9",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.2.9",
+      items: [
+        "Users that can see this channel now display vertically to follow page style"
+      ]
+    },
     {
       title: "v0.2.8",
       items: [
@@ -36,12 +42,6 @@ const config = {
         "Added back the context menu option to disable the plugin for certain servers",
         "Brought back the tooltip for the hidden channels icon",
         "Updated default settings"
-      ]
-    },
-    {
-      title: "v0.2.6",
-      items: [
-        "Added built-in updater"
       ]
     }
   ],
@@ -902,6 +902,12 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                         style: {
                           marginTop: 5,
                           marginBottom: 5,
+                          display: "flex",
+                          flexDirection: "column",
+                          flexWrap: "wrap",
+                          gap: 4,
+                          padding: 4,
+                          paddingTop: 0,
                         },
                       },
                       ...(() => {
