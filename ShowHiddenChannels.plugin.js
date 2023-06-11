@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.2.9
+ * @version 0.3.0
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,20 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.2.9",
+    version: "0.3.0",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.0",
+      items: [
+        "Fixed voice channels icons not showing up",
+        "New blacklisted guilds interface in the settings",
+        "Now you can click on the id of a user in the \"Users that can see this channel\" list to copy it to your clipboard",
+      ]
+    },
     {
       title: "v0.2.9",
       items: [
@@ -34,14 +42,6 @@ const config = {
         "Now you can see voice channels permissions",
         "Added channel creation date",
         "Fixed a bug where some users weren't displayed in the channel permissions",
-      ]
-    },
-    {
-      title: "v0.2.7",
-      items: [
-        "Added back the context menu option to disable the plugin for certain servers",
-        "Brought back the tooltip for the hidden channels icon",
-        "Updated default settings"
       ]
     }
   ],
@@ -100,7 +100,6 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       Modals,
       Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
       DiscordModules: {
-        SwitchRow,
         ChannelStore,
         MessageActions,
         TextElement,
@@ -135,10 +134,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         m?.KS?.toString().includes(s)
       )
     );
-    const { rolePill, rolePillBorder } = WebpackModules.getByProps(
-      "rolePill",
-      "rolePillBorder"
-    );
+    const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
     const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const { container } = WebpackModules.getByProps("container", "hubContainer");
@@ -243,38 +239,66 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       }
       render() {
         return React.createElement(
-          SwitchRow,
-          Object.assign({}, this.props, {
-            value: this.state.enabled,
-            onChange: (e) => {
-              this.props.onChange(e);
-              this.setState({ enabled: e });
-            },
-          }),
+          "div",
+          {},
           React.createElement(
             "div",
-            { className: "img-switch-wrapper" },
-            this.props.icon &&
-              React.createElement("img", {
+            { 
+              style: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: "15px",
+                marginTop: "15px"
+              },
+            },
+            React.createElement(
+              "img",
+              {
                 src: this.props.icon,
-                width: 32,
-                height: 32,
+                width: 48,
+                height: 48,
+                title: "Click to toggle",
                 style: {
                   borderRadius: "360px",
+                  cursor: "pointer",
+                  border: this.state.enabled ? "3px solid green" : "3px solid grey",
+                  marginRight: "10px"
                 },
-              }),
+                onClick: () => {
+                  this.props.onChange(!this.state.enabled);
+                  this.setState({ enabled: !this.state.enabled });
+                }
+              }
+            ),
             React.createElement(
               "div",
               {
                 style: {
-                  display: "inline",
-                  fontSize: "22px",
-                  position: "relative",
-                  bottom: "7.5px",
-                  left: "2.5px",
-                },
+                  maxWidth: "89%"
+                }
               },
-              this.props.children
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    fontSize: "20px",
+                    color: "var(--header-primary)",
+                    fontWeight: "600",
+                  },
+                },
+                this.props.children,
+              ),
+              React.createElement(
+                "div",
+                {
+                  style: {
+                    color: "var(--header-secondary)",
+                    fontSize: "14px"
+                  }
+                },
+                this.props.note
+              )
             )
           )
         );
@@ -472,7 +496,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
 
               const children = Utilities.findInReactTree(res, (m) =>
-                m?.props?.onClick?.toString().includes("stopPropagation")
+                m?.props?.onClick?.toString().includes("stopPropagation") && m.type === "div"
               );
               
               if (children.props?.children) {
@@ -917,6 +941,15 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
                         allUsers.forEach(user => {
                           const isMember = GuildMemberStore.isMember(props.guild.id, user.id);
+
+                          // if (!isMember) {
+                          //   (async () => {
+                          //     const req = await APIModule.get({
+                          //       url: "/users/" + user.id,
+                          //     });
+                          //   })();
+                          // }
+
                           const element = isMember
                             ? UserMentions.react(
                                 {
@@ -931,7 +964,18 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                             : React.createElement(
                                 "span",
                                 {
-                                  className: "mention wrapper-1ZcZW-"
+                                  className: "mention wrapper-1ZcZW-",
+                                  onClick: () => {
+                                    // Copy user id to clipboard
+                                    const el = document.createElement("textarea");
+                                    el.value = user.id;
+                                    document.body.appendChild(el);
+                                    el.select();
+                                    document.execCommand("copy");
+                                    document.body.removeChild(el);
+                                    // Show toast
+                                    BdApi.showToast("User ID copied to clipboard", { type: "success" });
+                                  },
                                 },
                                 "<@" + user.id + ">"
                               );
@@ -982,7 +1026,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                         if (!channelRoles?.length) return ["None"];                      
                         return channelRoles.map(m => RolePill.render({
                           canRemove: false,
-                          className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                          className: `${rolePill} shc-rolePill`,
                           disableBorderColor: true,
                           guildId: props.guild.id,
                           onRemove: NOOP,
@@ -1026,7 +1070,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                           if (!guildRoles?.length) return ["None"];                      
                           return guildRoles.map(m => RolePill.render({
                             canRemove: false,
-                            className: `${rolePill} shc-rolePill`, //${rolePillBorder}
+                            className: `${rolePill} shc-rolePill`,
                             disableBorderColor: true,
                             guildId: props.guild.id,
                             onRemove: NOOP,
