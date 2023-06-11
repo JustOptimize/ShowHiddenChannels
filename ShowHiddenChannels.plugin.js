@@ -1409,23 +1409,38 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
             }
           ).append(
             ...Object.values(GuildStore.getGuilds()).map(
-              (guild) =>
-                new IconSwitch(
+              (guild) => (
+                new Switch(
                   guild.name,
                   guild.description,
                   this.settings["blacklistedGuilds"][guild.id] ?? false,
                   (e) => {
                     this.settings["blacklistedGuilds"][guild.id] = e;
-                  },
-                  {
-                    icon:
-                      IconUtils.getGuildIconURL(guild) ??
-                      DEFAULT_AVATARS[
-                        randomNo(0, DEFAULT_AVATARS.length - 1)
-                      ],
                   }
                 )
+              )
             )
+
+
+            //TODO: FIX
+            // ...Object.values(GuildStore.getGuilds()).map(
+            //   (guild) =>
+            //     new IconSwitch(
+            //       guild.name,
+            //       guild.description,
+            //       this.settings["blacklistedGuilds"][guild.id] ?? false,
+            //       (e) => {
+            //         this.settings["blacklistedGuilds"][guild.id] = e;
+            //       },
+            //       {
+            //         icon:
+            //           IconUtils.getGuildIconURL(guild) ??
+            //           DEFAULT_AVATARS[
+            //             randomNo(0, DEFAULT_AVATARS.length - 1)
+            //           ],
+            //       }
+            //     )
+            // )
           )
         );
       }
