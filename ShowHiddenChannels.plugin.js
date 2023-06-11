@@ -931,7 +931,18 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                             : React.createElement(
                                 "span",
                                 {
-                                  className: "mention wrapper-1ZcZW-"
+                                  className: "mention wrapper-1ZcZW-",
+                                  onClick: () => {
+                                    // Copy user id to clipboard
+                                    const el = document.createElement("textarea");
+                                    el.value = user.id;
+                                    document.body.appendChild(el);
+                                    el.select();
+                                    document.execCommand("copy");
+                                    document.body.removeChild(el);
+                                    // Show toast
+                                    BdApi.showToast("User ID copied to clipboard", { type: "success" });
+                                  },
                                 },
                                 "<@" + user.id + ">"
                               );
