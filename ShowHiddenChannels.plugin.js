@@ -1233,28 +1233,38 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       }
 
       getHiddenChannelRecord(categories, guildId) {
-        const hiddenChannels = this.getHiddenChannels(guildId);
+        const hiddenChannels = this.getHiddenChannels(guildId); // {channels: Array(n), amount: n}
+        if(!hiddenChannels) return;
 
         if (!this.hiddenChannelCache[guildId]) {
           this.hiddenChannelCache[guildId] = [];
         }
 
         for (const category of categories) {
-          const channels = Object.entries(category.channels);
-          for (const channel of channels) {
-            if (hiddenChannels.channels.some((m) => m.id == channel[0])) {
-              if (!this.hiddenChannelCache[guildId].some(
-                (m) => m[0] == channel[0]
-                )
-              )
+          // Get the channels that are hidden
+          const newHiddenChannels = Object.entries(category.channels).filter(([channelId]) =>
+            hiddenChannels.channels.some((m) => m.id === channelId)
+          );
 
-              this.hiddenChannelCache[guildId].push(channel);
-              delete category.channels[channel[0]];
+          // Add the channels to the cache and remove them from the original category
+          for (const [channelId, channel] of newHiddenChannels) {
+            const isCached = this.hiddenChannelCache[guildId].some(
+              ([cachedChannelId]) => cachedChannelId === channelId
+            );
+            if (!isCached){
+              this.hiddenChannelCache[guildId].push([channelId, channel]);
             }
+
+            // Remove the channel from original category
+            delete category.channels[channelId];
           }
         }
 
-        return { records: Object.fromEntries(this.hiddenChannelCache[guildId]), ...hiddenChannels, };
+        return { 
+          records: Object.fromEntries(this.hiddenChannelCache[guildId]), 
+          channels: hiddenChannels ? hiddenChannels.channels : [], 
+          amount: hiddenChannels ? hiddenChannels.amount : 0
+        };
       }
 
       getHiddenChannels(guildId) {
