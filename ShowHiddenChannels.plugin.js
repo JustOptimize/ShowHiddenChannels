@@ -1232,39 +1232,44 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
           .map((n) => n.id);
       }
 
-      getHiddenChannelRecord(categories, guildId) {
-        const hiddenChannels = this.getHiddenChannels(guildId);
+getHiddenChannelRecord(categories, guildId) {
+  const hiddenChannels = this.getHiddenChannels(guildId);
 
-        if (!this.hiddenChannelCache[guildId]) {
-          this.hiddenChannelCache[guildId] = [];
-        }
+  if (!this.hiddenChannelCache[guildId]) {
+    this.hiddenChannelCache[guildId] = [];
+  }
 
-        for (const category of categories) {
-          const channels = Object.entries(category.channels);
-          for (const channel of channels) {
-            if (hiddenChannels.channels.some((m) => m.id == channel[0])) {
-              if (!this.hiddenChannelCache[guildId].some(
-                (m) => m[0] == channel[0]
-                )
-              )
-
-              this.hiddenChannelCache[guildId].push(channel);
-              delete category.channels[channel[0]];
-            }
-          }
-        }
-
-        return { records: Object.fromEntries(this.hiddenChannelCache[guildId]), ...hiddenChannels, };
+  const updatedHiddenChannels = hiddenChannels.channels.filter((hiddenChannel) => {
+    const isHidden = categories.some((category) => {
+      const channel = category.channels[hiddenChannel.id];
+      if (channel) {
+        this.hiddenChannelCache[guildId].push([hiddenChannel.id, channel]);
+        delete category.channels[hiddenChannel.id];
+        return true;
       }
+      return false;
+    });
+    return isHidden;
+  });
 
-      getHiddenChannels(guildId) {
-        if (!guildId) return { channels: [], amount: 0 };
+  return {
+    records: Object.fromEntries(this.hiddenChannelCache[guildId]),
+    channels: updatedHiddenChannels,
+    amount: updatedHiddenChannels.length,
+  };
+}
 
-        const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
-        const hiddenChannels = Object.values(guildChannels).filter((m) => m.isHidden() && m.type != DiscordConstants.d4z.GUILD_CATEGORY)
-        
-        return { channels: hiddenChannels, amount: hiddenChannels.length };
-      }
+getHiddenChannels(guildId) {
+  if (!guildId) return { channels: [], amount: 0 };
+
+  const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
+
+  const hiddenChannels = Object.values(guildChannels).filter((channel) =>
+    channel.isHidden() && channel.type !== DiscordConstants.d4z.GUILD_CATEGORY
+  );
+
+  return { channels: hiddenChannels, amount: hiddenChannels.length };
+}
 
       rerenderChannels() {
         const ChannelPermsssionCache = ChannelPermissionStore.__getLocalVars();
