@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.0
+ * @version 0.3.1
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,21 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.3.0",
+    version: "0.3.1",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.1",
+      items: [
+        "Fixed voice channels hidden pages not showing up",
+        "Moved ZeresPluginLibrary download to the dummy plugin",
+        "Added a modal to download ZeresPluginLibrary if it's missing when clicking on the settings icon",
+        "Made code more readable"
+      ]
+    },
     {
       title: "v0.3.0",
       items: [
@@ -34,15 +43,6 @@ const config = {
       items: [
         "Users that can see this channel now display vertically to follow page style"
       ]
-    },
-    {
-      title: "v0.2.8",
-      items: [
-        "Using common practices for the plugin library and exporting the plugin",
-        "Now you can see voice channels permissions",
-        "Added channel creation date",
-        "Fixed a bug where some users weren't displayed in the channel permissions",
-      ]
     }
   ],
 
@@ -50,43 +50,73 @@ const config = {
 };
 
 class Dummy {
-  constructor() {this._config = config;}
+  constructor() {
+    console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
+    this.downloadZLibPopup();
+  }  
+
   start() {}
   stop() {}
-}
-
-if (!global.ZeresPluginLibrary) {
-  console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
   
-  BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.name ?? config.info.name} is missing. Please click Download Now to install it.`, {
-      confirmText: "Download Now",
-      cancelText: "Cancel",
-      onConfirm: () => downloadZLib()
-  });
+  getDescription () {return `The library plugin needed for ${config.info.name} is missing. Please enable this plugin, click the settings icon on the right and click "Download Now" to install it.`}
 
-  async function downloadZLib() {
+  getSettingsPanel () {
+    // Close Settings Panel and show modal to download ZLib
+    const buttonClicker = document.createElement("oggetto");
+    buttonClicker.addEventListener("DOMNodeInserted", () => {
+      // Hide Settings Panel to prevent it from showing up before the modal
+      buttonClicker.parentElement.parentElement.parentElement.style.display = "none";
+
+      // Close Settings Panel
+      const buttonToClick = document.querySelector(".bd-button > div");
+      buttonToClick.click();
+
+      // Show modal to download ZLib
+      this.downloadZLibPopup();
+    });
+
+    return buttonClicker;
+  }
+
+  async downloadZLib() {
+    BdApi.showToast("Downloading ZeresPluginLibrary...", { type: "info" });
+
     require("request").get("https://betterdiscord.app/gh-redirect?id=9", async (err, resp, body) => {
-      if (err) return errorDownloadZLib();
+      if (err) return this.downloadZLibErrorPopup();
+
+      // If the response is a redirect to the actual file
       if (resp.statusCode === 302) {
           require("request").get(resp.headers.location, async (error, response, content) => {
-              if (error) return errorDownloadZLib();
+              if (error) return this.downloadZLibErrorPopup();
               await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), content, r));
           });
-      }
-      else {
+      
+      // If the response is the actual file
+      } else {
           await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
       }
+
+      BdApi.showToast("Successfully downloaded ZeresPluginLibrary!", { type: "success" });
     });
   }
 
-  function errorDownloadZLib() {
+  downloadZLibPopup() {
+    BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+      confirmText: "Download Now",
+      cancelText: "Cancel",
+      onConfirm: () => this.downloadZLib()
+    });
+  }
+  
+  downloadZLibErrorPopup() {
     BdApi.showConfirmationModal("Error Downloading", `ZeresPluginLibrary download failed. Manually install plugin library from the link below.`, {
-        confirmText: "Download",
+        confirmText: "Visit Download Page",
         cancelText: "Cancel",
         onConfirm: () => require("electron").shell.openExternal("https://betterdiscord.app/Download?id=9")
     });
   }
 }
+
 module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
   const plugin = (Plugin, Library) => {
 
@@ -135,7 +165,6 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       )
     );
     const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
-    const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const { container } = WebpackModules.getByProps("container", "hubContainer");
     const { Sf: Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
@@ -572,22 +601,21 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 instance.channel.type == DiscordConstants.d4z.GUILD_VOICE &&
                 !instance.connected
               ) {
-                // ChannelClasses.wrapper -> wrapper-1S43wv wrapperCommon-I1TMDb
                 const wrapper = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes(ChannelClasses.wrapper)
+                  n?.props?.className?.includes("shc-hidden-channel-type-2")
                 );
+                
                 if (wrapper) {
                   wrapper.props.onMouseDown = () => {};
                   wrapper.props.onMouseUp = () => {};
                 }
 
-               //mainContent-uDGa6R not mainContent-20q_Hp
-                const mainContent = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes(ChannelClasses.mainContent)
-                );
+                const mainContent = wrapper?.props?.children[1]?.props?.children;
 
                 if (mainContent) {
                   mainContent.props.onClick = () => {
+                    Logger.log("clicked");
+
                     if (instance.channel?.isGuildVocal()) {
                       NavigationUtils.transitionTo(
                         `/channels/${instance.channel.guild_id}/${instance.channel.id}`
@@ -1233,28 +1261,38 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       }
 
       getHiddenChannelRecord(categories, guildId) {
-        const hiddenChannels = this.getHiddenChannels(guildId);
+        const hiddenChannels = this.getHiddenChannels(guildId); // {channels: Array(n), amount: n}
+        if(!hiddenChannels) return;
 
         if (!this.hiddenChannelCache[guildId]) {
           this.hiddenChannelCache[guildId] = [];
         }
 
         for (const category of categories) {
-          const channels = Object.entries(category.channels);
-          for (const channel of channels) {
-            if (hiddenChannels.channels.some((m) => m.id == channel[0])) {
-              if (!this.hiddenChannelCache[guildId].some(
-                (m) => m[0] == channel[0]
-                )
-              )
+          // Get the channels that are hidden
+          const newHiddenChannels = Object.entries(category.channels).filter(([channelId]) =>
+            hiddenChannels.channels.some((m) => m.id === channelId)
+          );
 
-              this.hiddenChannelCache[guildId].push(channel);
-              delete category.channels[channel[0]];
+          // Add the channels to the cache and remove them from the original category
+          for (const [channelId, channel] of newHiddenChannels) {
+            const isCached = this.hiddenChannelCache[guildId].some(
+              ([cachedChannelId]) => cachedChannelId === channelId
+            );
+            if (!isCached){
+              this.hiddenChannelCache[guildId].push([channelId, channel]);
             }
+
+            // Remove the channel from original category
+            delete category.channels[channelId];
           }
         }
 
-        return { records: Object.fromEntries(this.hiddenChannelCache[guildId]), ...hiddenChannels, };
+        return { 
+          records: Object.fromEntries(this.hiddenChannelCache[guildId]), 
+          channels: hiddenChannels ? hiddenChannels.channels : [], 
+          amount: hiddenChannels ? hiddenChannels.amount : 0
+        };
       }
 
       getHiddenChannels(guildId) {
@@ -1432,8 +1470,12 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
           }).append(
 
             ...Object.values(ChannelTypes).map((type) => {
+              let formattedType = type.split("_"); // GUILD_STAGE_VOICE => [GUILD, STAGE, VOICE]
+              formattedType.shift(); // Remove the first element (GUILD)
+              formattedType = formattedType.map((word) => capitalizeFirst(word)).join(" "); // [STAGE, VOICE] => Stage Voice
+
               return new Switch(
-                `Show ${capitalizeFirst(type.split("_")[1])}${(type.split("_").length == 3) ? " " + capitalizeFirst(type.split("_")[2]) : ""} Channels`,
+                `Show ${formattedType} Channels`,
                 null,
                 this.settings["channels"][type],
                 (i) => {
