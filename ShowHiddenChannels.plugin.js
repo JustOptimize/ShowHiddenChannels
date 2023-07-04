@@ -50,43 +50,73 @@ const config = {
 };
 
 class Dummy {
-  constructor() {this._config = config;}
+  constructor() {
+    console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
+    this.downloadZLibPopup();
+  }  
+
   start() {}
   stop() {}
-}
-
-if (!global.ZeresPluginLibrary) {
-  console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
   
-  BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.name ?? config.info.name} is missing. Please click Download Now to install it.`, {
-      confirmText: "Download Now",
-      cancelText: "Cancel",
-      onConfirm: () => downloadZLib()
-  });
+  getDescription () {return `The library plugin needed for ${config.info.name} is missing. Please enable this plugin, click the settings icon on the right and click "Download Now" to install it.`}
 
-  async function downloadZLib() {
+  getSettingsPanel () {
+    // Close Settings Panel and show modal to download ZLib
+    const buttonClicker = document.createElement("oggetto");
+    buttonClicker.addEventListener("DOMNodeInserted", () => {
+      // Hide Settings Panel to prevent it from showing up before the modal
+      buttonClicker.parentElement.parentElement.parentElement.style.display = "none";
+
+      // Close Settings Panel
+      const buttonToClick = document.querySelector(".bd-button > div");
+      buttonToClick.click();
+
+      // Show modal to download ZLib
+      this.downloadZLibPopup();
+    });
+
+    return buttonClicker;
+  }
+
+  async downloadZLib() {
+    BdApi.showToast("Downloading ZeresPluginLibrary...", { type: "info" });
+
     require("request").get("https://betterdiscord.app/gh-redirect?id=9", async (err, resp, body) => {
-      if (err) return errorDownloadZLib();
+      if (err) return this.downloadZLibErrorPopup();
+
+      // If the response is a redirect to the actual file
       if (resp.statusCode === 302) {
           require("request").get(resp.headers.location, async (error, response, content) => {
-              if (error) return errorDownloadZLib();
+              if (error) return this.downloadZLibErrorPopup();
               await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), content, r));
           });
-      }
-      else {
+      
+      // If the response is the actual file
+      } else {
           await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
       }
+
+      BdApi.showToast("Successfully downloaded ZeresPluginLibrary!", { type: "success" });
     });
   }
 
-  function errorDownloadZLib() {
+  downloadZLibPopup() {
+    BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+      confirmText: "Download Now",
+      cancelText: "Cancel",
+      onConfirm: () => this.downloadZLib()
+    });
+  }
+  
+  downloadZLibErrorPopup() {
     BdApi.showConfirmationModal("Error Downloading", `ZeresPluginLibrary download failed. Manually install plugin library from the link below.`, {
-        confirmText: "Download",
+        confirmText: "Visit Download Page",
         cancelText: "Cancel",
         onConfirm: () => require("electron").shell.openExternal("https://betterdiscord.app/Download?id=9")
     });
   }
 }
+
 module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
   const plugin = (Plugin, Library) => {
 
