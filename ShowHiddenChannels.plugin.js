@@ -1470,8 +1470,12 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
           }).append(
 
             ...Object.values(ChannelTypes).map((type) => {
+              let formattedType = type.split("_"); // GUILD_STAGE_VOICE => [GUILD, STAGE, VOICE]
+              formattedType.shift(); // Remove the first element (GUILD)
+              formattedType = formattedType.map((word) => capitalizeFirst(word)).join(" "); // [STAGE, VOICE] => Stage Voice
+
               return new Switch(
-                `Show ${capitalizeFirst(type.split("_")[1])}${(type.split("_").length == 3) ? " " + capitalizeFirst(type.split("_")[2]) : ""} Channels`,
+                `Show ${formattedType} Channels`,
                 null,
                 this.settings["channels"][type],
                 (i) => {
