@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.0
+ * @version 0.3.1
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,21 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.3.0",
+    version: "0.3.1",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.1",
+      items: [
+        "Fixed voice channels hidden pages not showing up",
+        "Moved ZeresPluginLibrary download to the dummy plugin",
+        "Added a modal to download ZeresPluginLibrary if it's missing when clicking on the settings icon",
+        "Made code more readable"
+      ]
+    },
     {
       title: "v0.3.0",
       items: [
@@ -33,15 +42,6 @@ const config = {
       title: "v0.2.9",
       items: [
         "Users that can see this channel now display vertically to follow page style"
-      ]
-    },
-    {
-      title: "v0.2.8",
-      items: [
-        "Using common practices for the plugin library and exporting the plugin",
-        "Now you can see voice channels permissions",
-        "Added channel creation date",
-        "Fixed a bug where some users weren't displayed in the channel permissions",
       ]
     }
   ],
