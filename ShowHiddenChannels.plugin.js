@@ -604,20 +604,31 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
               ) {
                 // ChannelClasses.wrapper -> wrapper-1S43wv wrapperCommon-I1TMDb
                 const wrapper = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes(ChannelClasses.wrapper)
+                  n?.props?.className?.includes("wrapper-NhbLHG") //ChannelClasses.wrapper
                 );
+
+                
                 if (wrapper) {
                   wrapper.props.onMouseDown = () => {};
                   wrapper.props.onMouseUp = () => {};
                 }
 
-               //mainContent-uDGa6R not mainContent-20q_Hp
-                const mainContent = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes(ChannelClasses.mainContent)
-                );
+                //mainContent-uDGa6R not mainContent-20q_Hp
+                // const mainContent = Utilities.findInReactTree(res, (n) =>
+                //   n?.props?.className?.includes() //ChannelClasses.mainContent
+                // );
+                
+                // maincontent is wrapper first child
+                let mainContent = wrapper?.props?.children[1];
+                Logger.log(mainContent.props.children.props);
+
+                mainContent = mainContent.props.children;
+                // Logger.log(ChannelClasses);
 
                 if (mainContent) {
                   mainContent.props.onClick = () => {
+                    Logger.log("clicked");
+
                     if (instance.channel?.isGuildVocal()) {
                       NavigationUtils.transitionTo(
                         `/channels/${instance.channel.guild_id}/${instance.channel.id}`
