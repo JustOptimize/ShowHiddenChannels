@@ -165,7 +165,6 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       )
     );
     const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
-    const ChannelClasses = WebpackModules.getByProps("wrapper", "mainContent");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
     const { container } = WebpackModules.getByProps("container", "hubContainer");
     const { Sf: Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
@@ -602,28 +601,16 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 instance.channel.type == DiscordConstants.d4z.GUILD_VOICE &&
                 !instance.connected
               ) {
-                // ChannelClasses.wrapper -> wrapper-1S43wv wrapperCommon-I1TMDb
                 const wrapper = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes("wrapper-NhbLHG") //ChannelClasses.wrapper
+                  n?.props?.className?.includes("shc-hidden-channel-type-2")
                 );
-
                 
                 if (wrapper) {
                   wrapper.props.onMouseDown = () => {};
                   wrapper.props.onMouseUp = () => {};
                 }
 
-                //mainContent-uDGa6R not mainContent-20q_Hp
-                // const mainContent = Utilities.findInReactTree(res, (n) =>
-                //   n?.props?.className?.includes() //ChannelClasses.mainContent
-                // );
-                
-                // maincontent is wrapper first child
-                let mainContent = wrapper?.props?.children[1];
-                Logger.log(mainContent.props.children.props);
-
-                mainContent = mainContent.props.children;
-                // Logger.log(ChannelClasses);
+                const mainContent = wrapper?.props?.children[1]?.props?.children;
 
                 if (mainContent) {
                   mainContent.props.onClick = () => {
