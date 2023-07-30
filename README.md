@@ -1,5 +1,5 @@
 # Return ShowHiddenChannels
-ShowHiddenChannels is a plugin for [BetterDiscord](https://betterdiscord.net/) that allows users to view information about hidden channels in a Discord server, such as their name, description and which roles or users have access to these hidden channels.
+ShowHiddenChannels is a plugin for [BetterDiscord](https://betterdiscord.app/) that allows users to view information about hidden channels in a Discord server, such as their name, description and which roles or users have access to these hidden channels.
 **Please note that this plugin will not allow you to read the messages in these channels, it will only show you information about them.**
 
 The original plugin by [@rauenzi](https://github.com/rauenzi/) was discontinued and removed from the official BetterDiscordAddons repository, so this plugin was created to fill that void.
@@ -15,7 +15,7 @@ If you are searching for the [Replugged](https://replugged.dev/) version of this
 - Restart Discord to complete the installation.
 - Enjoy the plugin!
 
-In addition you can also use the [PermissionsViewer](https://github.com/rauenzi/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer) plugin by [@rauenzi](https://github.com/rauenzi/) to see the channel permissions/access.
+In addition, you can also use the [PermissionsViewer](https://github.com/rauenzi/BetterDiscordAddons/tree/master/Plugins/PermissionsViewer) plugin by [@rauenzi](https://github.com/rauenzi/) to see the channel permissions/access.
 
 ## Preview
 ![image](https://user-images.githubusercontent.com/54294419/225766894-48d40546-ed7a-4794-888f-f0aafba26100.png)
