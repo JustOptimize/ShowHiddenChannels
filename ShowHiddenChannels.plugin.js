@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.1
+ * @version 0.3.2
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,19 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.3.1",
+    version: "0.3.2",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.2",
+      items: [
+        "Added icon emoji to the this is a hidden channel page (note: not every server/channel has this feature)",
+        "Formatted the channel info to be more readable"
+      ]
+    },
     {
       title: "v0.3.1",
       items: [
@@ -36,12 +43,6 @@ const config = {
         "Fixed voice channels icons not showing up",
         "New blacklisted guilds interface in the settings",
         "Now you can click on the id of a user in the \"Users that can see this channel\" list to copy it to your clipboard",
-      ]
-    },
-    {
-      title: "v0.2.9",
-      items: [
-        "Users that can see this channel now display vertically to follow page style"
       ]
     }
   ],
@@ -851,17 +852,21 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
               //* Topic
               props.channel.topic && props.channel.type != 15 && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
 
-              //* Last message
-              props.channel.lastMessageId &&
+              //* Icon Emoji
+              props.channel?.iconEmoji &&
                 React.createElement(
                   TextElement,
                   {
                     color: TextElement.Colors.INTERACTIVE_NORMAL,
                     size: TextElement.Sizes.SIZE_14,
+                    style: {
+                      marginTop: 10,
+                    },
                   },
-                  "Last message sent: ",
-                  this.getDateFromSnowflake(props.channel.lastMessageId)
+                  "Icon emoji: ",
+                  props.channel.iconEmoji.name ?? props.channel.iconEmoji.id
                 ),
+
 
 
               //* Slowmode
@@ -871,9 +876,6 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 {
                   color: TextElement.Colors.INTERACTIVE_NORMAL,
                   size: TextElement.Sizes.SIZE_14,
-                  style: {
-                    marginTop: 10,
-                  },
                 },
                 "Slowmode: ",
                 this.convertToHMS(props.channel.rateLimitPerUser)
@@ -886,9 +888,6 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                   {
                     color: TextElement.Colors.INTERACTIVE_NORMAL,
                     size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    },
                   },
                   "Age-Restricted Channel (NSFW) 🔞"
                 ),
@@ -899,11 +898,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                   TextElement,
                   {
                     color: TextElement.Colors.INTERACTIVE_NORMAL,
-
                     size: TextElement.Sizes.SIZE_14,
-                    style: {
-                      marginTop: 10,
-                    },
                   },
                   "Bitrate: ",
                   props.channel.bitrate / 1000,
@@ -923,6 +918,18 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 "Created on: ",
                 this.getDateFromSnowflake(props.channel.id)
               ),
+              
+              //* Last message
+              props.channel.lastMessageId &&
+                React.createElement(
+                  TextElement,
+                  {
+                    color: TextElement.Colors.INTERACTIVE_NORMAL,
+                    size: TextElement.Sizes.SIZE_14,
+                  },
+                  "Last message sent: ",
+                  this.getDateFromSnowflake(props.channel.lastMessageId)
+                ),
 
               //* Permissions
               this.settings["showPerms"] &&
