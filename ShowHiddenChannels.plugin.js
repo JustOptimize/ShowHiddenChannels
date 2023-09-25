@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.2
+ * @version 0.3.3
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,19 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels, which can't be accessed due to Role Restrictions, this won't allow you to read them (impossible).",
-    version: "0.3.2",
+    version: "0.3.3",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.3",
+      items: [
+        "Fixed some issues after Discord update",
+        "Added a way to automatically check if something is missing"
+      ]
+    },
     {
       title: "v0.3.2",
       items: [
@@ -35,14 +42,6 @@ const config = {
         "Moved ZeresPluginLibrary download to the dummy plugin",
         "Added a modal to download ZeresPluginLibrary if it's missing when clicking on the settings icon",
         "Made code more readable"
-      ]
-    },
-    {
-      title: "v0.3.0",
-      items: [
-        "Fixed voice channels icons not showing up",
-        "New blacklisted guilds interface in the settings",
-        "Now you can click on the id of a user in the \"Users that can see this channel\" list to copy it to your clipboard",
       ]
     }
   ],
@@ -140,12 +139,16 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         GuildMemberStore,
         LocaleManager,
         NavigationUtils,
-        GuildStore
+        GuildStore,
+        Dispatcher
       }
     } = Library;
 
     const Tooltip = BdApi.Components.Tooltip;
     const { ContextMenu } = BdApi;
+    const Utils = BdApi.Utils;
+
+    
     const NOOP = () => null;
     const DiscordConstants = WebpackModules.getModule((m) => m?.Plq?.ADMINISTRATOR == 8n);
     const { chat } = WebpackModules.getByProps("chat", "chatContent");
@@ -167,6 +170,10 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     );
     const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
+
+    const PermissionStoreActionHandler = Utils.findInTree(Dispatcher, (c) => c?.name == "PermissionStore" && typeof c?.actionHandler?.CONNECTION_OPEN === "function")?.actionHandler;
+    const ChannelListStoreActionHandler = Utils.findInTree(Dispatcher, (c) => c?.name == "ChannelListStore" && typeof c?.actionHandler?.CONNECTION_OPEN === "function")?.actionHandler;
+
     const { container } = WebpackModules.getByProps("container", "hubContainer");
     const { Sf: Channel } = WebpackModules.getModule(m => m?.Sf?.prototype?.isManaged);
     const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
@@ -436,6 +443,47 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         DOMTools.addStyle(config.info.name, CSS);
         this.Patch();
         this.rerenderChannels();
+        this.checkVariables();
+      }
+
+      checkVariables() {
+        if (!this.settings.debugMode) return;
+  
+        const toBeChecked = [
+          DiscordConstants,
+          ChannelItem,
+          ChannelUtil,
+          rolePill,
+          ChannelPermissionStore,
+          PermissionStoreActionHandler,
+          ChannelListStoreActionHandler,
+          container,
+          ChannelListStore,
+          IconUtils,
+          DEFAULT_AVATARS,
+          iconItem,
+          actionIcon,
+          UnreadStore,
+          Voice,
+          RolePill,
+          UserMentions,
+          CategoryUtil,
+          CategoryStore,
+          ChannelUtils.Module,
+          ChannelUtils.ChannelTopic
+        ];
+
+        for (const variable of toBeChecked) {
+          if (!variable) {
+            Logger.error("Variable not found: " + variable);
+          }
+        }
+
+        if (toBeChecked.includes(undefined)) {
+          BdApi.showToast("Some variables are missing, check the console for more info.", { type: "error" });
+        } else {
+          Logger.info("All variables found.");
+        }
       }
 
       Patch() {
@@ -735,9 +783,11 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
         //* Custom category or sorting order
         Patcher.after(ChannelListStore, "getGuild", (_, args, res) => {
-          if (this.settings.debugMode)
-            Logger.info("ChannelList", res)
-            if (this.settings["blacklistedGuilds"][args[0]]) return;
+          // if (this.settings.debugMode)
+          //   Logger.info("ChannelList", res)
+        
+          if (this.settings["blacklistedGuilds"][args[0]]) return;
+
           switch (this.settings["sort"]) {
 
             case "bottom": {
@@ -803,9 +853,9 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       lockscreen() {
         return React.memo((props) => {
           
-          if (this.settings.debugMode) {
-            Logger.info(props);
-          }
+          // if (this.settings.debugMode) {
+          //   Logger.info(props);
+          // }
 
           return React.createElement(
             "div",
@@ -1312,27 +1362,9 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       }
 
       rerenderChannels() {
-        const ChannelPermsssionCache = ChannelPermissionStore.__getLocalVars();
+        PermissionStoreActionHandler?.CONNECTION_OPEN();
+        ChannelListStoreActionHandler?.CONNECTION_OPEN();
         
-        for (const key in ChannelPermsssionCache) {
-          if (typeof ChannelPermsssionCache[key] != "object" && Array.isArray(ChannelPermsssionCache[key]) && ChannelPermsssionCache[key] === null) {
-            return;
-          }
-
-          for (const id in ChannelPermsssionCache[key]) {
-            delete ChannelPermsssionCache[key][id];
-          }
-        }
-
-        ChannelPermissionStore.initialize();
-
-        const ChanneListCache = ChannelListStore.__getLocalVars();
-        for (const guildId in ChanneListCache.state.guilds) {
-          delete ChanneListCache.state.guilds[guildId];
-        }
-
-        ChannelListStore.initialize();
-
         this.forceUpdate(document.querySelector(`.${container}`));
       }
 
