@@ -874,7 +874,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
       lockscreen() {
         return React.memo((props) => {
-          
+          console.log(props);
           // if (this.settings.debugMode) {
           //   Logger.info(props);
           // }
@@ -1047,7 +1047,10 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                         let users = [];
 
                         allUsers.forEach(user => {
-                          const isMember = GuildMemberStore.isMember(props.guild.id, user.id);
+                          const isMember = GuildMemberStore.isMember(props.channel.guild_id, user.id);
+
+                          //TODO:
+                          // const isMember = false;
 
                           // if (!isMember) {
                           //   (async () => {
@@ -1095,6 +1098,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                   ),
 
                   //* Channel Roles
+                  false && //TODO: Fix this
                   React.createElement(
                     TextElement,
                     {
@@ -1142,6 +1146,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                       })(),
                     ),
                   ),
+                  false && //TODO: Fix this
                   this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
                     TextElement,
                     {
@@ -1179,7 +1184,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                             canRemove: false,
                             className: `${rolePill} shc-rolePill`,
                             disableBorderColor: true,
-                            guildId: props.guild.id,
+                            guildId: props.channel.guild_id,
                             onRemove: NOOP,
                             role: m
                           }, NOOP));
