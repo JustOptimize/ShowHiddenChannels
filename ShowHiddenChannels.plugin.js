@@ -546,17 +546,20 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
         //* Make hidden channel visible
         Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
-          if (!args[1]?.isHidden?.()) return res;
+          const _permission = args[0];
+          const _channel = args[1];
 
-          if (args[0] == DiscordConstants.Permissions.VIEW_CHANNEL)
-            return (!this.settings["blacklistedGuilds"][args[1].guild_id] && this.settings["channels"][DiscordConstants.ChannelTypes[args[1].type]]);
-          if (args[0] == DiscordConstants.Permissions.CONNECT)
+          if (!_channel?.isHidden?.()) return res;
+
+          if (_permission == DiscordConstants.Permissions.VIEW_CHANNEL)
+            return (!this.settings["blacklistedGuilds"][_channel.guild_id] && this.settings["channels"][DiscordConstants.ChannelTypes[_channel.type]]);
+          if (_permission == DiscordConstants.Permissions.CONNECT)
             return false;
 
           return res;
         });
 
-        Patcher.after(Route, "Z", (_, args, res) => {
+        Patcher.after(Route, "default", (_, args, res) => {
           const channelId = res.props?.computedMatch?.params?.channelId;
           const guildId = res.props?.computedMatch?.params?.guildId;
           const channel = ChannelStore?.getChannel(channelId);
@@ -584,7 +587,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         });
         
         if (this.settings["hiddenChannelIcon"]) {
-          Patcher.after(ChannelItem, "Z", (_, args, res) => {
+          Patcher.after(ChannelItem, "default", (_, args, res) => {
             const instance = args[0];
 
             if (instance.channel?.isHidden()) {
