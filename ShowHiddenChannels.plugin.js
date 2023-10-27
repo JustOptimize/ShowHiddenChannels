@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.4
+ * @version 0.3.5
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,19 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.4",
+    version: "0.3.5",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.5",
+      items: [
+        "Fixed EVERYTHING, I hope (Thanks to @Tharki-God for helping me out with this one)",
+        "Added user fetching to the channel info page"
+      ]
+    },
     {
       title: "v0.3.4",
       items: [
@@ -33,13 +40,6 @@ const config = {
       items: [
         "Fixed some issues after Discord update",
         "Added a way to automatically check if something is missing"
-      ]
-    },
-    {
-      title: "v0.3.2",
-      items: [
-        "Added icon emoji to the this is a hidden channel page (note: not every server/channel has this feature)",
-        "Formatted the channel info to be more readable"
       ]
     }
   ],
@@ -137,35 +137,28 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         GuildMemberStore,
         LocaleManager,
         NavigationUtils,
-        GuildStore,
+        ImageResolver,
+        UserStore,
         Dispatcher
       }
     } = Library;
+
+    const GuildStore = WebpackModules.getByProps("getGuild","getGuildCount","getGuildIds","getGuilds","isLoaded");
 
     const Tooltip = window.BdApi.Components.Tooltip;
     const { ContextMenu } = window.BdApi;
     const Utils = window.BdApi.Utils;
 
-    
-    const NOOP = () => null;
-    const DiscordConstants = WebpackModules.getModule((m) => m?.Permissions?.ADMINISTRATOR == 8n);
+    const DiscordConstants = WebpackModules.getByProps("Permissions", "ChannelTypes");
     const { chat } = WebpackModules.getByProps("chat", "chatContent");
 
     const Route = WebpackModules.getModule((m) =>
-      ["impressionName", "impressionProperties", "disableTrack"].every(
-        (s) => m?.default?.toString().includes(s)
-      )
+      m?.default?.toString().includes(".Route,{...")
     );
-    const ChannelItem = WebpackModules.getModule((m) =>
-      ["canHaveDot", "unreadRelevant", "UNREAD_HIGHLIGHT"].every((s) =>
-        m?.default?.toString().includes(s)
-      )
-    );
-    const ChannelUtil = WebpackModules.getModule((m) =>
-      ["locked", "hasActiveThreads"].every((s) =>
-        m?.ChannelItemIcon?.toString().includes(s)
-      )
-    );
+    
+    const ChannelItem = WebpackModules.getByProps("ChannelItemIcon");
+    const ChannelItemUtils = WebpackModules.getByProps("getChannelIconComponent","getChannelIconTooltipText","getSimpleChannelIconComponent");
+
     const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
 
@@ -173,39 +166,20 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     const ChannelListStoreActionHandler = Utils.findInTree(Dispatcher, (c) => c?.name == "ChannelListStore" && typeof c?.actionHandler?.CONNECTION_OPEN === "function")?.actionHandler;
 
     const { container } = WebpackModules.getByProps("container", "hubContainer");
-    const { ChannelRecordBase: Channel } = WebpackModules.getModule(m => m?.ChannelRecordBase?.prototype?.isManaged);
+    const { ChannelRecordBase: Channel } = WebpackModules.getByProps("ChannelRecordBase");
 
     const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
-    const IconUtils = WebpackModules.getByProps("getUserAvatarURL");
     const { DEFAULT_AVATARS } = WebpackModules.getByProps("DEFAULT_AVATARS");
     const { iconItem, actionIcon } = WebpackModules.getByProps("iconItem");
     const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
-    const { MemberRole: RolePill } = WebpackModules.getModule(
-      (m) => m?.MemberRole?.render?.toString().includes("roleStyle")
-    );
-    const {default: UserMentions} = WebpackModules.getModule(m => m?.default?.react?.toString().includes("inlinePreview"));
-    const CategoryUtil = WebpackModules.getModule((m) =>
-      m?.voiceCategoryCollapse?.toString().includes("CATEGORY_COLLAPSE")
-    );
-
-    const CategoryStore = WebpackModules.getByProps(
-      "isCollapsed",
-      "getCollapsedCategories"
-    );
-
-    const ChannelUtils = {
-      get Module() {
-        //TODO: This is the wrong function
-        return WebpackModules.getModule((m) =>
-          ["channel", "guild"].every((s) => m?.default?.toString().includes(s))
-        );
-      },
-      get ChannelTopic() {
-        return this.Module.default;
-      },
-    };
+    const { MemberRole: RolePill } = WebpackModules.getByProps("MemberRole");
+    const UserMentions = WebpackModules.getByProps("handleUserContextMenu");
+    const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "ChannelEmoji", "renderTitle");
     
+    const ProfileActions = WebpackModules.getByProps("fetchProfile", "getUser");
+    const PermissionUtils = WebpackModules.getByProps("isRoleHigher","makeEveryoneOverwrite");
+
     const ChannelTypes = [
       "GUILD_TEXT",
       "GUILD_VOICE",
@@ -366,17 +340,17 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     }
 
     function checkVariables() {
-      const toBeChecked = [
+      const toBeChecked = {
         DiscordConstants,
         ChannelItem,
-        ChannelUtil,
+        ChannelItemUtils,
         rolePill,
         ChannelPermissionStore,
         PermissionStoreActionHandler,
         ChannelListStoreActionHandler,
         container,
         ChannelListStore,
-        IconUtils,
+        ImageResolver,
         DEFAULT_AVATARS,
         iconItem,
         actionIcon,
@@ -384,22 +358,19 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         Voice,
         RolePill,
         UserMentions,
-        CategoryUtil,
-        CategoryStore,
-        ChannelUtils.Module,
-        ChannelUtils.ChannelTopic
-      ];
+        ChannelUtils,
+        ProfileActions,
+        PermissionUtils,
+        UserStore
+      };
 
-      let pos = 0;
-      for (const variable of toBeChecked) {
-        pos++;
-
-        if (!variable) {
-          Logger.error("Variable not found at position " + pos);
+      for (const variable in toBeChecked) {
+        if (!toBeChecked[variable]) {
+          Logger.error("Variable not found at position " + variable);
         }
       }
 
-      if (toBeChecked.includes(undefined)) {
+      if (Object.values(toBeChecked).includes(undefined)) {
         window.BdApi.showToast("Some variables are missing, check the console for more info.", { type: "error" });
       } else {
         Logger.info("All variables found.");
@@ -561,7 +532,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
           const channelId = res.props?.computedMatch?.params?.channelId;
           const guildId = res.props?.computedMatch?.params?.guildId;
           const channel = ChannelStore?.getChannel(channelId);
-
+          
           if (
             guildId &&
             channel?.isHidden?.() &&
@@ -701,58 +672,32 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         }
 
         //* Remove lock icon from hidden voice channels
-        Patcher.before(ChannelUtil, "KS", (_, args) => {
+        Patcher.before(ChannelItemUtils, "getChannelIconComponent", (_, args) => {
           if (!args[2]) return;
+          
           if (args[0]?.isHidden?.() && args[2].locked){
             args[2].locked = false;
           }
         });
 
         //* Manually collapse hidden channel category
-        Patcher.after(CategoryStore, "getCollapsedCategories", (_, args, res) => {
-            return { ...res, ...this.collapsed };
-          }
-        );
-
-        Patcher.after(CategoryStore, "isCollapsed", (_, args, res) => {
-          if (!args[0]?.endsWith("hidden")) {
+        Patcher.after(ChannelStore, "getChannel", (_, args, res) => {
+          if (
+            this.settings["sort"] !== "extra" ||
+            this.settings["blacklistedGuilds"][args[0]?.replace("_hidden", "")] ||
+            !args[0]?.endsWith("_hidden")
+          ){
             return res;
           }
 
-          if (!this.settings["alwaysCollapse"]) {
-            return this.collapsed[args[0]];
-          }
-          
-          return (this.settings["alwaysCollapse"] && this.collapsed[args[0]] !== false);
-        });
+          const HiddenCategoryChannel = new Channel({
+            guild_id: args[0]?.replace("_hidden", ""),
+            id: args[0],
+            name: "Hidden Channels",
+            type: DiscordConstants.ChannelTypes.GUILD_CATEGORY,
+          });
 
-        Patcher.after(CategoryUtil, "c4", (_, args, res) => {
-          if (!args[0]?.endsWith("hidden") || this.collapsed[args[0]]) return;
-
-          this.collapsed[args[0]] = true;
-          this.rerenderChannels();
-          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
-        });
-
-        Patcher.after(CategoryUtil, "N5", (_, args, res) => {
-          if (this.collapsed[`${args[0]}_hidden`]) return;
-
-          this.collapsed[`${args[0]}_hidden`] = true;
-          this.rerenderChannels();
-          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
-        });
-
-        Patcher.after(CategoryUtil, "mJ", (_, args, res) => {
-          if (!args[0]?.endsWith("hidden")) return;
-          this.collapsed[args[0]] = false;
-          this.rerenderChannels();
-          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
-        });
-
-        Patcher.after(CategoryUtil, "lc", (_, args, res) => {
-          this.collapsed[`${args[0]}_hidden`] = false;
-          this.rerenderChannels();
-          Utilities.saveData(config.info.name, "collapsed", this.collapsed);
+          return HiddenCategoryChannel;
         });
 
         Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
@@ -877,6 +822,51 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
             Logger.info(props);
           }
 
+          const [userMentionComponents, setUserMentionComponents] = React.useState([]);
+          
+          const fetchMemberAndMap = async () => {
+            if(!this.settings["showPerms"]) return setUserMentionComponents(["None"]);
+
+            const allUserOverwrites = Object.values(props.channel.permissionOverwrites).filter(
+              (user) => Boolean(user && user?.type === 1),
+            );
+
+            for (const user of allUserOverwrites) {
+              await ProfileActions.fetchProfile(user.id, {
+                guildId: props.guild.id,
+                withMutualGuilds: false,
+              });
+            }
+
+            const filteredUserOverwrites = Object.values(props.channel.permissionOverwrites).filter(
+              (user) => Boolean(
+                PermissionUtils.can({
+                  permission: DiscordConstants.Permissions.VIEW_CHANNEL,
+                  user: UserStore.getUser(user.id),
+                  context: props.channel,
+                }) && GuildMemberStore.isMember(props.guild.id, user.id),
+              ),
+            );
+
+            if (!filteredUserOverwrites?.length) return setUserMentionComponents(["None"]);
+            const mentionArray = filteredUserOverwrites.map((m) => UserMentions.react(
+                  {
+                    userId: m.id,
+                    channelId: props.channel.id,
+                  },
+                  () => null,
+                  {
+                    noStyleAndInteraction: false,
+                  },
+            ));
+
+            return setUserMentionComponents(mentionArray);
+          };
+
+          React.useEffect(() => {
+            fetchMemberAndMap();
+          }, [props.channel.id, props.guild.id, this.settings["showPerms"]]);
+
           return React.createElement(
             "div",
             {
@@ -920,8 +910,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 props.channel.topic && props.channel.type != 15 && "However, you may see its topic."
               ),
               //* Topic
-              // TODO: Fix this, i think the channelTopic function is the wrong one
-              props.channel.topic && props.channel.type != 15 && false && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+              props.channel.topic && props.channel.type != 15 && ChannelUtils?.renderTopic(props.channel, props.guild),
 
               //* Icon Emoji
               props.channel?.iconEmoji &&
@@ -1040,64 +1029,11 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                           paddingTop: 0,
                         },
                       },
-                      ...(() => {
-                        const allUsers = Object.values(props.channel.permissionOverwrites).filter(user => (user !== undefined && user?.type == 1) && (user.allow && BigInt(user.allow)) );
-                        if (!allUsers?.length) return ["None"];
-                        let users = [];
-
-                        allUsers.forEach(user => {
-                          const isMember = GuildMemberStore.isMember(props.channel.guild_id, user.id);
-
-                          //TODO:
-                          // const isMember = false;
-
-                          // if (!isMember) {
-                          //   (async () => {
-                          //     const req = await APIModule.get({
-                          //       url: "/users/" + user.id,
-                          //     });
-                          //   })();
-                          // }
-
-                          const element = isMember
-                            ? UserMentions.react(
-                                {
-                                  userId: user.id,
-                                  channelId: props.channel.id
-                                },
-                                NOOP,
-                                {
-                                  noStyleAndInteraction: false
-                                }
-                              )
-                            : React.createElement(
-                                "span",
-                                {
-                                  className: "mention wrapper-1ZcZW-",
-                                  onClick: () => {
-                                    // Copy user id to clipboard
-                                    const el = document.createElement("textarea");
-                                    el.value = user.id;
-                                    document.body.appendChild(el);
-                                    el.select();
-                                    document.execCommand("copy");
-                                    document.body.removeChild(el);
-                                    // Show toast
-                                    window.BdApi.showToast("User ID copied to clipboard", { type: "success" });
-                                  },
-                                },
-                                "<@" + user.id + ">"
-                              );
-                          users.push(element);
-                        });
-                        
-                        return users;
-                      })()
+                      ...userMentionComponents
                     )
                   ),
 
                   //* Channel Roles
-                  false && //TODO: Fix this
                   React.createElement(
                     TextElement,
                     {
@@ -1138,14 +1074,14 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                           canRemove: false,
                           className: `${rolePill} shc-rolePill`,
                           disableBorderColor: true,
-                          guildId: props.channel.guild_id,
-                          onRemove: NOOP,
+                          guildId: props.guild.id,
+                          onRemove: DiscordConstants.NOOP,
                           role: props.guild.roles[m.id]
-                        }, NOOP));
+                        }, DiscordConstants.NOOP));
                       })(),
                     ),
                   ),
-                  false && //TODO: Fix this
+
                   this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
                     TextElement,
                     {
@@ -1183,10 +1119,10 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                             canRemove: false,
                             className: `${rolePill} shc-rolePill`,
                             disableBorderColor: true,
-                            guildId: props.channel.guild_id,
-                            onRemove: NOOP,
+                            guildId: props.guild.id,
+                            onRemove: DiscordConstants.NOOP,
                             role: m
-                          }, NOOP));
+                          }, DiscordConstants.NOOP));
                         }
                       )(),
                     )
@@ -1551,33 +1487,33 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
             })
 
           ),
-
-          // new SettingGroup(
-          //   "Guilds Blacklist",
-          //   {
-          //     collapsible: true,
-          //     shown: false,
-          //   }
-          // ).append(
-          //   ...Object.values(GuildStore.getGuilds()).map(
-          //     (guild) =>
-          //       new IconSwitch(
-          //         guild.name,
-          //         guild.description,
-          //         this.settings["blacklistedGuilds"][guild.id] ?? false,
-          //         (e) => {
-          //           this.settings["blacklistedGuilds"][guild.id] = e;
-          //         },
-          //         {
-          //           icon:
-          //             IconUtils.getGuildIconURL(guild) ??
-          //             DEFAULT_AVATARS[
-          //               randomNo(0, DEFAULT_AVATARS.length - 1)
-          //             ],
-          //         }
-          //       )
-          //   )
-          // )
+          
+          new SettingGroup(
+            "Guilds Blacklist",
+            {
+              collapsible: true,
+              shown: false,
+            }
+          ).append(
+            ...Object.values(GuildStore.getGuilds()).map(
+              (guild) =>
+                new IconSwitch(
+                  guild.name,
+                  guild.description,
+                  this.settings["blacklistedGuilds"][guild.id] ?? false,
+                  (e) => {
+                    this.settings["blacklistedGuilds"][guild.id] = e;
+                  },
+                  {
+                    icon:
+                      ImageResolver.getGuildIconURL(guild) ??
+                      DEFAULT_AVATARS[
+                        randomNo(0, DEFAULT_AVATARS.length - 1)
+                      ],
+                  }
+                )
+            )
+          )
         );
       }
 
