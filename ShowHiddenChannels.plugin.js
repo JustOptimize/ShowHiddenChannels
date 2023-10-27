@@ -873,9 +873,9 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       lockscreen() {
         return React.memo((props) => {
           //TODO: WTF GUILD IS UNDEFINED
-          // if (this.settings.debugMode) {
-          //   Logger.info(props);
-          // }
+          if (this.settings.debugMode) {
+            Logger.info(props);
+          }
 
           return React.createElement(
             "div",
@@ -1552,32 +1552,32 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
           ),
 
-          new SettingGroup(
-            "Guilds Blacklist",
-            {
-              collapsible: true,
-              shown: false,
-            }
-          ).append(
-            ...Object.values(GuildStore.getGuilds()).map(
-              (guild) =>
-                new IconSwitch(
-                  guild.name,
-                  guild.description,
-                  this.settings["blacklistedGuilds"][guild.id] ?? false,
-                  (e) => {
-                    this.settings["blacklistedGuilds"][guild.id] = e;
-                  },
-                  {
-                    icon:
-                      IconUtils.getGuildIconURL(guild) ??
-                      DEFAULT_AVATARS[
-                        randomNo(0, DEFAULT_AVATARS.length - 1)
-                      ],
-                  }
-                )
-            )
-          )
+          // new SettingGroup(
+          //   "Guilds Blacklist",
+          //   {
+          //     collapsible: true,
+          //     shown: false,
+          //   }
+          // ).append(
+          //   ...Object.values(GuildStore.getGuilds()).map(
+          //     (guild) =>
+          //       new IconSwitch(
+          //         guild.name,
+          //         guild.description,
+          //         this.settings["blacklistedGuilds"][guild.id] ?? false,
+          //         (e) => {
+          //           this.settings["blacklistedGuilds"][guild.id] = e;
+          //         },
+          //         {
+          //           icon:
+          //             IconUtils.getGuildIconURL(guild) ??
+          //             DEFAULT_AVATARS[
+          //               randomNo(0, DEFAULT_AVATARS.length - 1)
+          //             ],
+          //         }
+          //       )
+          //   )
+          // )
         );
       }
 
