@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.3
+ * @version 0.3.4
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,19 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.3",
+    version: "0.3.4",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.4",
+      items: [
+        "Fixed some issues after Discord update, AGAIN",
+        "Functionality is limited, some features are disabled until I find a way to fix them"
+      ]
+    },
     {
       title: "v0.3.3",
       items: [
@@ -33,15 +40,6 @@ const config = {
       items: [
         "Added icon emoji to the this is a hidden channel page (note: not every server/channel has this feature)",
         "Formatted the channel info to be more readable"
-      ]
-    },
-    {
-      title: "v0.3.1",
-      items: [
-        "Fixed voice channels hidden pages not showing up",
-        "Moved ZeresPluginLibrary download to the dummy plugin",
-        "Added a modal to download ZeresPluginLibrary if it's missing when clicking on the settings icon",
-        "Made code more readable"
       ]
     }
   ],
@@ -197,10 +195,10 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     );
 
     const ChannelUtils = {
-      filter: ["channel", "guild"],
       get Module() {
+        //TODO: This is the wrong function
         return WebpackModules.getModule((m) =>
-          this.filter.every((s) => m?.default?.toString().includes(s))
+          ["channel", "guild"].every((s) => m?.default?.toString().includes(s))
         );
       },
       get ChannelTopic() {
@@ -874,7 +872,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
 
       lockscreen() {
         return React.memo((props) => {
-          console.log(props);
+          //TODO: WTF GUILD IS UNDEFINED
           // if (this.settings.debugMode) {
           //   Logger.info(props);
           // }
@@ -922,7 +920,8 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                 props.channel.topic && props.channel.type != 15 && "However, you may see its topic."
               ),
               //* Topic
-              props.channel.topic && props.channel.type != 15 && props.guild && ChannelUtils?.ChannelTopic(props.channel, props.guild),
+              // TODO: Fix this, i think the channelTopic function is the wrong one
+              props.channel.topic && props.channel.type != 15 && false && ChannelUtils?.ChannelTopic(props.channel, props.guild),
 
               //* Icon Emoji
               props.channel?.iconEmoji &&
@@ -1139,7 +1138,7 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
                           canRemove: false,
                           className: `${rolePill} shc-rolePill`,
                           disableBorderColor: true,
-                          guildId: props.guild.id,
+                          guildId: props.channel.guild_id,
                           onRemove: NOOP,
                           role: props.guild.roles[m.id]
                         }, NOOP));
