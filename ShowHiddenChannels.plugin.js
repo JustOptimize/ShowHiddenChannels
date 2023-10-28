@@ -47,7 +47,7 @@ const config = {
   main: "ShowHiddenChannels.plugin.js",
 };
 
-class Dummy {
+class MissingZeresDummy {
   constructor() {
     console.warn("ZeresPluginLibrary is required for this plugin to work. Please install it from https://betterdiscord.app/Download?id=9");
     this.downloadZLibPopup();
@@ -115,9 +115,8 @@ class Dummy {
   }
 }
 
-module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
+module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Library]) => {
   const plugin = (Plugin, Library) => {
-
     const {
       WebpackModules,
       Patcher,
@@ -126,7 +125,15 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
       Logger,
       ReactTools,
       Modals,
-      Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
+
+      Settings: {
+        SettingField,
+        SettingPanel,
+        SettingGroup,
+        Switch,
+        RadioGroup
+      },
+
       DiscordModules: {
         ChannelStore,
         MessageActions,
@@ -142,15 +149,15 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         Dispatcher
       }
     } = Library;
+    
+    const Tooltip = window.BdApi?.Components?.Tooltip;
+    const ContextMenu = window.BdApi?.ContextMenu;
+    const Utils = window.BdApi?.Utils;
+    const BetterWebpackModules = window.BdApi?.Webpack;
 
     const GuildStore = WebpackModules.getByProps("getGuild","getGuildCount","getGuildIds","getGuilds","isLoaded");
-
-    const Tooltip = window.BdApi.Components.Tooltip;
-    const { ContextMenu } = window.BdApi;
-    const Utils = window.BdApi.Utils;
-
     const DiscordConstants = WebpackModules.getByProps("Permissions", "ChannelTypes");
-    const { chat } = WebpackModules.getByProps("chat", "chatContent");
+    const chat = WebpackModules.getByProps("chat", "chatContent")?.chat;
 
     const Route = WebpackModules.getModule((m) =>
       m?.default?.toString().includes(".Route,{...")
@@ -159,26 +166,94 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     const ChannelItem = WebpackModules.getByProps("ChannelItemIcon");
     const ChannelItemUtils = WebpackModules.getByProps("getChannelIconComponent","getChannelIconTooltipText","getSimpleChannelIconComponent");
 
-    const { rolePill } = WebpackModules.getByProps("rolePill","rolePillBorder");
+    const rolePill = WebpackModules.getByProps("rolePill","rolePillBorder")?.rolePill;
     const ChannelPermissionStore = WebpackModules.getByProps("getChannelPermissions");
 
     const PermissionStoreActionHandler = Utils.findInTree(Dispatcher, (c) => c?.name == "PermissionStore" && typeof c?.actionHandler?.CONNECTION_OPEN === "function")?.actionHandler;
     const ChannelListStoreActionHandler = Utils.findInTree(Dispatcher, (c) => c?.name == "ChannelListStore" && typeof c?.actionHandler?.CONNECTION_OPEN === "function")?.actionHandler;
 
-    const { container } = WebpackModules.getByProps("container", "hubContainer");
-    const { ChannelRecordBase: Channel } = WebpackModules.getByProps("ChannelRecordBase");
+    const container = WebpackModules.getByProps("container", "hubContainer")?.container;
+    const Channel = WebpackModules.getByProps("ChannelRecordBase")?.ChannelRecordBase;
 
     const ChannelListStore = WebpackModules.getByProps("getGuildWithoutChangingCommunityRows");
-    const { DEFAULT_AVATARS } = WebpackModules.getByProps("DEFAULT_AVATARS");
-    const { iconItem, actionIcon } = WebpackModules.getByProps("iconItem");
-    const UnreadStore = WebpackModules.getByProps("isForumPostUnread");
+    const DEFAULT_AVATARS = WebpackModules.getByProps("DEFAULT_AVATARS")?.DEFAULT_AVATARS;
+    
+    const Icon = WebpackModules.getByProps("iconItem");
+    const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
+    
+    const ReadStateStore = BetterWebpackModules.getStore("ReadStateStore")
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
-    const { MemberRole: RolePill } = WebpackModules.getByProps("MemberRole");
+    const RolePill = WebpackModules.getByProps("MemberRole")?.MemberRole;
     const UserMentions = WebpackModules.getByProps("handleUserContextMenu");
     const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "ChannelEmoji", "renderTitle");
     
     const ProfileActions = WebpackModules.getByProps("fetchProfile", "getUser");
     const PermissionUtils = WebpackModules.getByProps("isRoleHigher","makeEveryoneOverwrite");
+
+    
+    const UsedModules = {
+      /* Library */
+      WebpackModules,
+      Patcher,
+      Utilities,
+      DOMTools,
+      Logger,
+      ReactTools,
+      Modals,
+      
+      /* Settings */
+      SettingField,
+      SettingPanel,
+      SettingGroup,
+      Switch,
+      RadioGroup,
+
+      /* Discord Modules (From lib) */
+      ChannelStore,
+      MessageActions,
+      TextElement,
+      React,
+      ReactDOM,
+      GuildChannelsStore,
+      GuildMemberStore,
+      LocaleManager,
+      NavigationUtils,
+      ImageResolver,
+      UserStore,
+      Dispatcher,
+
+      /* BdApi */
+      BetterWebpackModules,
+      Tooltip,
+      ContextMenu,
+      Utils,
+
+      /* Manually found modules */
+      GuildStore,
+      DiscordConstants,
+      chat,
+      Route,
+      ChannelItem,
+      ChannelItemUtils,
+      rolePill,
+      ChannelPermissionStore,
+      PermissionStoreActionHandler,
+      ChannelListStoreActionHandler,
+      container,
+      Channel,
+      ChannelListStore,
+      DEFAULT_AVATARS,
+      iconItem,
+      actionIcon,
+      ReadStateStore,
+      Voice,
+      RolePill,
+      UserMentions,
+      ChannelUtils,
+      ProfileActions,
+      PermissionUtils
+    };
+
 
     const ChannelTypes = [
       "GUILD_TEXT",
@@ -340,60 +415,24 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
     }
 
     function checkVariables() {
-      const toBeChecked = {
-        DiscordConstants,
-        ChannelItem,
-        ChannelItemUtils,
-        rolePill,
-        ChannelPermissionStore,
-        PermissionStoreActionHandler,
-        ChannelListStoreActionHandler,
-        container,
-        ChannelListStore,
-        ImageResolver,
-        DEFAULT_AVATARS,
-        iconItem,
-        actionIcon,
-        UnreadStore,
-        Voice,
-        RolePill,
-        UserMentions,
-        ChannelUtils,
-        ProfileActions,
-        PermissionUtils,
-        UserStore
-      };
-
-      for (const variable in toBeChecked) {
-        if (!toBeChecked[variable]) {
+      for (const variable in UsedModules) {
+        if (!UsedModules[variable]) {
           Logger.error("Variable not found at position " + variable);
         }
       }
 
-      if (Object.values(toBeChecked).includes(undefined)) {
+      if (Object.values(UsedModules).includes(undefined)) {
         window.BdApi.showToast("Some variables are missing, check the console for more info.", { type: "error" });
+
+        return false;
       } else {
         Logger.info("All variables found.");
+
+        return true;
       }
     }
   
-    checkVariables();
-    
-    // function searchForMissingStuff(m, property){
-    //     // Replace this with the thing you need to check
-    //     return ["locked", "hasActiveThreads"].every((s) => m?.[property].toString().includes(s))
-    // }
-
-    // BdApi.Webpack.getModule(m => {
-    //     for (const property in m) {
-    //       if (searchForMissingStuff(m, property)) {
-    //         console.log(`Found it on ${property}`);
-    //         return true;
-    //       } 
-    //     }
-        
-    //     return false;
-    // });
+    const checks_passed = checkVariables();
 
     return class ShowHiddenChannels extends Plugin {
       constructor() {
@@ -449,6 +488,10 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
           Logger.info("Update confirmed by the user, updating to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0]);
         }
 
+        function failed() {
+          window.BdApi.showToast("(ShowHiddenChannels) Failed to update.", { type: "error" });
+        }
+
         try {
           const fs = require("fs");
           const path = require("path");
@@ -457,18 +500,39 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
             path.join(window.BdApi.Plugins.folder, "ShowHiddenChannels.plugin.js"),
             SHCContent,
             (err) => {
-              if (err) return window.BdApi.showToast("(ShowHiddenChannels) Failed to update.", { type: "error" });
+              if (err) return failed();
             }
           );
 
           window.BdApi.showToast("ShowHiddenChannels updated to version " + SHCContent.match(/(?<=version: ").*(?=")/)[0], { type: "success" });
         } catch (err) {
-          return window.BdApi.showToast("(ShowHiddenChannels) Failed to update.", { type: "error" });
+          return failed();
         }
       }
 
       onStart() {
         this.checkForUpdates();
+
+        if (checks_passed){
+          this.doStart();
+        }else{
+          window.BdApi.showConfirmationModal("(SHC) Broken Modules", `ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)`, {
+            confirmText: "Start anyway",
+            cancelText: "Cancel",
+            danger: true,
+  
+            onConfirm: () => {
+              this.doStart();
+            },
+  
+            onCancel: () => {
+              window.BdApi.Plugins.disable("ShowHiddenChannels")
+            }
+          });
+        }
+      }
+      
+      doStart() {
         DOMTools.addStyle(config.info.name, CSS);
         this.Patch();
         this.rerenderChannels();
@@ -480,35 +544,35 @@ module.exports = !global.ZeresPluginLibrary ? Dummy : (([Plugin, Library]) => {
         });
 
         if(!this.settings.MarkUnread) {
-          Patcher.after(UnreadStore, "getGuildChannelUnreadState", (_, args, res) => {
+          Patcher.after(ReadStateStore, "getGuildChannelUnreadState", (_, args, res) => {
             return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
           });
 
-          Patcher.after(UnreadStore, "getMentionCount", (_, args, res) => {
+          Patcher.after(ReadStateStore, "getMentionCount", (_, args, res) => {
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
           });
 
-          Patcher.after(UnreadStore, "getUnreadCount", (_, args, res) => {
+          Patcher.after(ReadStateStore, "getUnreadCount", (_, args, res) => {
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
           });
 
-          Patcher.after(UnreadStore, "hasNotableUnread", (_, args, res) => {             
+          Patcher.after(ReadStateStore, "hasNotableUnread", (_, args, res) => {             
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
-          Patcher.after(UnreadStore, "hasRelevantUnread", (_, args, res) => {
+          Patcher.after(ReadStateStore, "hasRelevantUnread", (_, args, res) => {
             return res && !args[0].isHidden();
           });
 
-          Patcher.after(UnreadStore, "hasTrackedUnread", (_, args, res) => {
+          Patcher.after(ReadStateStore, "hasTrackedUnread", (_, args, res) => {
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
-          Patcher.after(UnreadStore, "hasUnread", (_, args, res) => {
+          Patcher.after(ReadStateStore, "hasUnread", (_, args, res) => {
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
 
-          Patcher.after(UnreadStore, "hasUnreadPins", (_, args, res) => {
+          Patcher.after(ReadStateStore, "hasUnreadPins", (_, args, res) => {
             return res && !ChannelStore.getChannel(args[0])?.isHidden();
           });
         }
