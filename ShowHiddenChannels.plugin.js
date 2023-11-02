@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.5
+ * @version 0.3.6
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,20 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.5",
+    version: "0.3.6",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.3.6",
+      items: [
+        "Added a verification check that actually prevents crashing",
+        "Now the plugin won't try pathcing undefined modules, this should prevent crashing too",
+        "More info here: https://github.com/JustOptimize/return-ShowHiddenChannels/discussions/149",
+      ]
+    },
     {
       title: "v0.3.5",
       items: [
@@ -33,13 +41,6 @@ const config = {
       items: [
         "Fixed some issues after Discord update, AGAIN",
         "Functionality is limited, some features are disabled until I find a way to fix them"
-      ]
-    },
-    {
-      title: "v0.3.3",
-      items: [
-        "Fixed some issues after Discord update",
-        "Added a way to automatically check if something is missing"
       ]
     }
   ],
@@ -539,344 +540,387 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
       }
 
       Patch() {
+        // Check for needed modules
+        if (!Channel || !DiscordConstants || !ChannelStore)
+          return window.BdApi.showToast("(ShowHiddenChannels) Some crucial modules are missing, aborting.", { type: "error" });
+        
         Patcher.instead(Channel.prototype, "isHidden", (channel, args, res) => {
           return (![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel));
         });
 
         if(!this.settings.MarkUnread) {
-          Patcher.after(ReadStateStore, "getGuildChannelUnreadState", (_, args, res) => {
-            return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
-          });
+          if (!ReadStateStore) {
+            window.BdApi.showToast("(ShowHiddenChannels) ReadStateStore is missing, skipping.", { type: "error" });
+          } else {
+            Patcher.after(ReadStateStore, "getGuildChannelUnreadState", (_, args, res) => {
+              return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
+            });
 
-          Patcher.after(ReadStateStore, "getMentionCount", (_, args, res) => {
-            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-          });
+            Patcher.after(ReadStateStore, "getMentionCount", (_, args, res) => {
+              return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+            });
 
-          Patcher.after(ReadStateStore, "getUnreadCount", (_, args, res) => {
-            return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-          });
+            Patcher.after(ReadStateStore, "getUnreadCount", (_, args, res) => {
+              return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
+            });
 
-          Patcher.after(ReadStateStore, "hasNotableUnread", (_, args, res) => {             
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+            Patcher.after(ReadStateStore, "hasNotableUnread", (_, args, res) => {             
+              return res && !ChannelStore.getChannel(args[0])?.isHidden();
+            });
 
-          Patcher.after(ReadStateStore, "hasRelevantUnread", (_, args, res) => {
-            return res && !args[0].isHidden();
-          });
+            Patcher.after(ReadStateStore, "hasRelevantUnread", (_, args, res) => {
+              return res && !args[0].isHidden();
+            });
 
-          Patcher.after(ReadStateStore, "hasTrackedUnread", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+            Patcher.after(ReadStateStore, "hasTrackedUnread", (_, args, res) => {
+              return res && !ChannelStore.getChannel(args[0])?.isHidden();
+            });
 
-          Patcher.after(ReadStateStore, "hasUnread", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+            Patcher.after(ReadStateStore, "hasUnread", (_, args, res) => {
+              return res && !ChannelStore.getChannel(args[0])?.isHidden();
+            });
 
-          Patcher.after(ReadStateStore, "hasUnreadPins", (_, args, res) => {
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
+            Patcher.after(ReadStateStore, "hasUnreadPins", (_, args, res) => {
+              return res && !ChannelStore.getChannel(args[0])?.isHidden();
+            });
+          }
         }
 
         //* Make hidden channel visible
-        Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
-          const _permission = args[0];
-          const _channel = args[1];
+        if (!ChannelPermissionStore?.can) {
+          window.BdApi.showToast("(ShowHiddenChannels) ChannelPermissionStore is missing, skipping.", { type: "error" });
+        } else {
+          Patcher.after(ChannelPermissionStore, "can", (_, args, res) => {
+            const _permission = args[0];
+            const _channel = args[1];
 
-          if (!_channel?.isHidden?.()) return res;
+            if (!_channel?.isHidden?.()) return res;
 
-          if (_permission == DiscordConstants.Permissions.VIEW_CHANNEL)
-            return (!this.settings["blacklistedGuilds"][_channel.guild_id] && this.settings["channels"][DiscordConstants.ChannelTypes[_channel.type]]);
-          if (_permission == DiscordConstants.Permissions.CONNECT)
-            return false;
+            if (_permission == DiscordConstants.Permissions.VIEW_CHANNEL)
+              return (!this.settings["blacklistedGuilds"][_channel.guild_id] && this.settings["channels"][DiscordConstants.ChannelTypes[_channel.type]]);
+            if (_permission == DiscordConstants.Permissions.CONNECT)
+              return false;
 
-          return res;
-        });
-
-        Patcher.after(Route, "default", (_, args, res) => {
-          const channelId = res.props?.computedMatch?.params?.channelId;
-          const guildId = res.props?.computedMatch?.params?.guildId;
-          const channel = ChannelStore?.getChannel(channelId);
-          
-          if (
-            guildId &&
-            channel?.isHidden?.() &&
-            channel?.id != Voice.getChannelId()
-          ) {
-            res.props.render = () =>
-              React.createElement(this.lockscreen(), {
-                channel: channel,
-                guild: GuildStore.getGuild(guildId),
-              });
-          }
-
-          return res;
-        });
-        
-        //* Stop fetching messages if the channel is hidden
-        Patcher.instead(MessageActions, "fetchMessages", (instance, [args], res) => {
-          if (ChannelStore.getChannel(args.channelId)?.isHidden?.())
-            return;
-          return res.call(instance, args);
-        });
-        
-        if (this.settings["hiddenChannelIcon"]) {
-          Patcher.after(ChannelItem, "default", (_, args, res) => {
-            const instance = args[0];
-
-            if (instance.channel?.isHidden()) {
-              const item = res.props?.children?.props;
-              if (item?.className)
-                item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
-
-              const children = Utilities.findInReactTree(res, (m) =>
-                m?.props?.onClick?.toString().includes("stopPropagation") && m.type === "div"
-              );
-              
-              if (children.props?.children) {
-                children.props.children = [
-                  React.createElement(
-                    Tooltip,
-                    {
-                      text: "Hidden Channel",
-                    },
-                    (props) =>
-                      React.createElement(
-                        "div",
-                        {
-                          ...props,
-                          className: `${iconItem}`,
-                          style: {
-                            display: "block",
-                          },
-                        },
-                        this.settings["hiddenChannelIcon"] == "lock" &&
-                          React.createElement(
-                            "svg",
-                            {
-                              class: actionIcon,
-                              viewBox: "0 0 24 24",
-                            },
-                              React.createElement("path", {
-                                fill: "currentColor",
-                                d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z",
-                              }),
-                          ),
-
-                        this.settings["hiddenChannelIcon"] == "eye" &&
-                          React.createElement(
-                            "svg",
-                            {
-                              class: actionIcon,
-                              viewBox: "0 0 24 24",
-                            },
-                            React.createElement("path", {
-                              fill: "currentColor",
-                              d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z",
-                            }),
-                            React.createElement("path", {
-                              fill: "currentColor",
-                              d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z",
-                            }),
-                            React.createElement("polygon", {
-                              fill: "currentColor",
-                              points:
-                                "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 ",
-                            })
-                          ),
-                        //* Here you can add your own icons
-                        // this.settings["hiddenChannelIcon"] == "" &&
-                        //   React.createElement(
-                        //     "svg",
-                        //     {
-                        //       class: actionIcon,
-                        //       viewBox: "0 0 24 24",
-                        //     },
-                        //     React.createElement("path", {
-                        //       fill: "currentColor",
-                        //       d: "",
-                        //     })
-                        //   ),
-                      )
-                  )
-                ];
-              }
-
-              if (
-                instance.channel.type == DiscordConstants.ChannelTypes.GUILD_VOICE &&
-                !instance.connected
-              ) {
-                const wrapper = Utilities.findInReactTree(res, (n) =>
-                  n?.props?.className?.includes("shc-hidden-channel-type-2")
-                );
-                
-                if (wrapper) {
-                  wrapper.props.onMouseDown = () => {};
-                  wrapper.props.onMouseUp = () => {};
-                }
-
-                const mainContent = wrapper?.props?.children[1]?.props?.children;
-
-                if (mainContent) {
-                  mainContent.props.onClick = () => {
-                    Logger.log("clicked");
-
-                    if (instance.channel?.isGuildVocal()) {
-                      NavigationUtils.transitionTo(
-                        `/channels/${instance.channel.guild_id}/${instance.channel.id}`
-                      );
-                    }
-                  };
-
-                  mainContent.props.href = null;
-                }
-              }
-            }
             return res;
           });
         }
 
-        //* Remove lock icon from hidden voice channels
-        Patcher.before(ChannelItemUtils, "getChannelIconComponent", (_, args) => {
-          if (!args[2]) return;
-          
-          if (args[0]?.isHidden?.() && args[2].locked){
-            args[2].locked = false;
+        if (!Route || !Voice) {
+          window.BdApi.showToast("(ShowHiddenChannels) Route or Voice are missing, skipping.", { type: "error" });
+        } else {
+          Patcher.after(Route, "default", (_, args, res) => {
+            const channelId = res.props?.computedMatch?.params?.channelId;
+            const guildId = res.props?.computedMatch?.params?.guildId;
+            const channel = ChannelStore?.getChannel(channelId);
+            
+            if (
+              guildId &&
+              channel?.isHidden?.() &&
+              channel?.id != Voice.getChannelId()
+            ) {
+              res.props.render = () =>
+                React.createElement(this.lockscreen(), {
+                  channel: channel,
+                  guild: GuildStore.getGuild(guildId),
+                });
+            }
+  
+            return res;
+          });
+        }
+        
+        if (!MessageActions?.fetchMessages) {
+          window.BdApi.showToast("(ShowHiddenChannels) MessageActions is missing, skipping.", { type: "error" });
+        } else {
+          //* Stop fetching messages if the channel is hidden
+          Patcher.instead(MessageActions, "fetchMessages", (instance, [args], res) => {
+            if (ChannelStore.getChannel(args.channelId)?.isHidden?.())
+              return;
+            return res.call(instance, args);
+          });
+        }
+        
+        if (this.settings["hiddenChannelIcon"]) {
+          if (!ChannelItem) {
+            window.BdApi.showToast("(ShowHiddenChannels) ChannelItem is missing, skipping.", { type: "error" });
+          } else {
+            Patcher.after(ChannelItem, "default", (_, args, res) => {
+              const instance = args[0];
+
+              if (instance.channel?.isHidden()) {
+                const item = res.props?.children?.props;
+                if (item?.className)
+                  item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
+
+                const children = Utilities.findInReactTree(res, (m) =>
+                  m?.props?.onClick?.toString().includes("stopPropagation") && m.type === "div"
+                );
+                
+                if (children.props?.children) {
+                  children.props.children = [
+                    React.createElement(
+                      Tooltip,
+                      {
+                        text: "Hidden Channel",
+                      },
+                      (props) =>
+                        React.createElement(
+                          "div",
+                          {
+                            ...props,
+                            className: `${iconItem}`,
+                            style: {
+                              display: "block",
+                            },
+                          },
+                          this.settings["hiddenChannelIcon"] == "lock" &&
+                            React.createElement(
+                              "svg",
+                              {
+                                class: actionIcon,
+                                viewBox: "0 0 24 24",
+                              },
+                                React.createElement("path", {
+                                  fill: "currentColor",
+                                  d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z",
+                                }),
+                            ),
+
+                          this.settings["hiddenChannelIcon"] == "eye" &&
+                            React.createElement(
+                              "svg",
+                              {
+                                class: actionIcon,
+                                viewBox: "0 0 24 24",
+                              },
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z",
+                              }),
+                              React.createElement("path", {
+                                fill: "currentColor",
+                                d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z",
+                              }),
+                              React.createElement("polygon", {
+                                fill: "currentColor",
+                                points:
+                                  "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 ",
+                              })
+                            ),
+                          //* Here you can add your own icons
+                          // this.settings["hiddenChannelIcon"] == "" &&
+                          //   React.createElement(
+                          //     "svg",
+                          //     {
+                          //       class: actionIcon,
+                          //       viewBox: "0 0 24 24",
+                          //     },
+                          //     React.createElement("path", {
+                          //       fill: "currentColor",
+                          //       d: "",
+                          //     })
+                          //   ),
+                        )
+                    )
+                  ];
+                }
+
+                if (
+                  instance.channel.type == DiscordConstants.ChannelTypes.GUILD_VOICE &&
+                  !instance.connected
+                ) {
+                  const wrapper = Utilities.findInReactTree(res, (n) =>
+                    n?.props?.className?.includes("shc-hidden-channel-type-2")
+                  );
+                  
+                  if (wrapper) {
+                    wrapper.props.onMouseDown = () => {};
+                    wrapper.props.onMouseUp = () => {};
+                  }
+
+                  const mainContent = wrapper?.props?.children[1]?.props?.children;
+
+                  if (mainContent) {
+                    mainContent.props.onClick = () => {
+                      Logger.log("clicked");
+
+                      if (instance.channel?.isGuildVocal()) {
+                        NavigationUtils.transitionTo(
+                          `/channels/${instance.channel.guild_id}/${instance.channel.id}`
+                        );
+                      }
+                    };
+
+                    mainContent.props.href = null;
+                  }
+                }
+              }
+              return res;
+            });
           }
-        });
+        }
+
+        //* Remove lock icon from hidden voice channels
+        if (!ChannelItemUtils?.getChannelIconComponent) {
+          window.BdApi.showToast("(ShowHiddenChannels) ChannelItemUtils is missing, skipping.", { type: "error" });
+        } else {
+          Patcher.before(ChannelItemUtils, "getChannelIconComponent", (_, args) => {
+            if (!args[2]) return;
+            
+            if (args[0]?.isHidden?.() && args[2].locked){
+              args[2].locked = false;
+            }
+          });
+        }
 
         //* Manually collapse hidden channel category
-        Patcher.after(ChannelStore, "getChannel", (_, args, res) => {
-          if (
-            this.settings["sort"] !== "extra" ||
-            this.settings["blacklistedGuilds"][args[0]?.replace("_hidden", "")] ||
-            !args[0]?.endsWith("_hidden")
-          ){
-            return res;
-          }
-
-          const HiddenCategoryChannel = new Channel({
-            guild_id: args[0]?.replace("_hidden", ""),
-            id: args[0],
-            name: "Hidden Channels",
-            type: DiscordConstants.ChannelTypes.GUILD_CATEGORY,
-          });
-
-          return HiddenCategoryChannel;
-        });
-
-        Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
-          const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY]; 
-          const hiddenId = `${args[0]}_hidden`; 
-          const hiddenCategory = GuildCategories?.find(m => m.channel.id == hiddenId);
-          if (!hiddenCategory) return res;   
-          const noHiddenCats = GuildCategories.filter(m => m.channel.id !== hiddenId);    
-          const newComprator = (
-            noHiddenCats[noHiddenCats.length - 1] || {
-              comparator: 0,
+        if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
+          window.BdApi.showToast("(ShowHiddenChannels) ChannelStore is missing, skipping.", { type: "error" });
+        } else {
+          Patcher.after(ChannelStore, "getChannel", (_, args, res) => {
+            if (
+              this.settings["sort"] !== "extra" ||
+              this.settings["blacklistedGuilds"][args[0]?.replace("_hidden", "")] ||
+              !args[0]?.endsWith("_hidden")
+            ){
+              return res;
             }
-          ).comparator + 1;
-          Object.defineProperty(hiddenCategory.channel, 'position', {
-            value:  newComprator ,
-            writable: true
+
+            const HiddenCategoryChannel = new Channel({
+              guild_id: args[0]?.replace("_hidden", ""),
+              id: args[0],
+              name: "Hidden Channels",
+              type: DiscordConstants.ChannelTypes.GUILD_CATEGORY,
+            });
+
+            return HiddenCategoryChannel;
           });
-          Object.defineProperty(hiddenCategory, 'comparator', {
-            value:  newComprator ,
-            writable: true
+
+          Patcher.after(ChannelStore, "getMutableGuildChannelsForGuild", (_, args, res) => {                
+            if (this.settings["sort"] !== "extra" || this.settings["blacklistedGuilds"][args[0]]) return;
+            const hiddenId = `${args[0]}_hidden`;               
+            const HiddenCategoryChannel = new Channel({
+              guild_id: args[0],
+              id: hiddenId,
+              name: "Hidden Channels",
+              type: DiscordConstants.ChannelTypes.GUILD_CATEGORY,                  
+            });       
+            const GuildCategories = GuildChannelsStore.getChannels(
+              args[0]
+            )[DiscordConstants.ChannelTypes.GUILD_CATEGORY];  
+            Object.defineProperty(HiddenCategoryChannel, 'position', {
+              value:  (
+                GuildCategories[GuildCategories.length - 1] || {
+                  comparator: 0,
+                }
+              ).comparator + 1 ,
+              writable: true
+            });  
+            if (!res[hiddenId])
+            res[hiddenId] = HiddenCategoryChannel;
+            return res;
           });
-          return res;         
-        })
-        Patcher.after(ChannelStore, "getMutableGuildChannelsForGuild", (_, args, res) => {                
-          if (this.settings["sort"] !== "extra" || this.settings["blacklistedGuilds"][args[0]]) return;
-          const hiddenId = `${args[0]}_hidden`;               
-          const HiddenCategoryChannel = new Channel({
-            guild_id: args[0],
-            id: hiddenId,
-            name: "Hidden Channels",
-            type: DiscordConstants.ChannelTypes.GUILD_CATEGORY,                  
-          });       
-          const GuildCategories = GuildChannelsStore.getChannels(
-            args[0]
-          )[DiscordConstants.ChannelTypes.GUILD_CATEGORY];  
-          Object.defineProperty(HiddenCategoryChannel, 'position', {
-            value:  (
-              GuildCategories[GuildCategories.length - 1] || {
+        }
+
+        if (!GuildChannelsStore?.getChannels) {
+          window.BdApi.showToast("(ShowHiddenChannels) GuildChannelsStore is missing, skipping.", { type: "error" });
+        } else {
+          Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
+            const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY]; 
+            const hiddenId = `${args[0]}_hidden`; 
+            const hiddenCategory = GuildCategories?.find(m => m.channel.id == hiddenId);
+            if (!hiddenCategory) return res;   
+            const noHiddenCats = GuildCategories.filter(m => m.channel.id !== hiddenId);    
+            const newComprator = (
+              noHiddenCats[noHiddenCats.length - 1] || {
                 comparator: 0,
               }
-            ).comparator + 1 ,
-            writable: true
-          });  
-          if (!res[hiddenId])
-          res[hiddenId] = HiddenCategoryChannel;
-          return res;
-        });
+            ).comparator + 1;
+            Object.defineProperty(hiddenCategory.channel, 'position', {
+              value:  newComprator ,
+              writable: true
+            });
+            Object.defineProperty(hiddenCategory, 'comparator', {
+              value:  newComprator ,
+              writable: true
+            });
+            return res;         
+          })
+        }
 
         //* Custom category or sorting order
-        Patcher.after(ChannelListStore, "getGuild", (_, args, res) => {
-          // if (this.settings.debugMode)
-          //   Logger.info("ChannelList", res)
-        
-          if (this.settings["blacklistedGuilds"][args[0]]) return;
+        if (!ChannelListStore?.getGuild) {
+          Patcher.after(ChannelListStore, "getGuild", (_, args, res) => {
+            // if (this.settings.debugMode)
+            //   Logger.info("ChannelList", res)
+          
+            if (this.settings["blacklistedGuilds"][args[0]]) return;
 
-          switch (this.settings["sort"]) {
+            switch (this.settings["sort"]) {
 
-            case "bottom": {
-              this.sortChannels(res.guildChannels.favoritesCategory);
-              this.sortChannels(res.guildChannels.recentsCategory);
-              this.sortChannels(res.guildChannels.noParentCategory);
+              case "bottom": {
+                this.sortChannels(res.guildChannels.favoritesCategory);
+                this.sortChannels(res.guildChannels.recentsCategory);
+                this.sortChannels(res.guildChannels.noParentCategory);
 
-              for (const id in res.guildChannels.categories) {
-                this.sortChannels(res.guildChannels.categories[id]);
+                for (const id in res.guildChannels.categories) {
+                  this.sortChannels(res.guildChannels.categories[id]);
+                }
+
+                break;
               }
 
-              break;
+              case "extra": {
+                const hiddenId = `${args[0]}_hidden`;
+                const HiddenCategory = res.guildChannels.categories[hiddenId]; 
+                const hiddenChannels = this.getHiddenChannelRecord(
+                  [
+                    res.guildChannels.favoritesCategory,
+                    res.guildChannels.recentsCategory,
+                    res.guildChannels.noParentCategory,
+                    ...Object.values(res.guildChannels.categories).filter(
+                      (m) => m.id !== hiddenId
+                    ),
+                  ],
+                  args[0]
+                );
+
+                HiddenCategory.channels = Object.fromEntries(Object.entries(hiddenChannels.records).map(([id, channel]) => {
+                  channel.category = HiddenCategory;
+                  return [id, channel]
+                }))
+              
+                HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] && this.collapsed[hiddenId] !== false;
+                HiddenCategory.shownChannelIds = this.collapsed[hiddenId] || res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
+                  .sort((x, y) => {
+
+                    const xPos = x.position + (x.isGuildVocal() ? 1e4 : 1e5);
+                    const yPos = y.position + (y.isGuildVocal() ? 1e4 : 1e5);
+
+                    return xPos < yPos ? -1 : xPos > yPos ? 1 : 0;
+                  }).map((m) => m.id);
+                break;
+              }
+
             }
 
-            case "extra": {
-              const hiddenId = `${args[0]}_hidden`;
-              const HiddenCategory = res.guildChannels.categories[hiddenId]; 
-              const hiddenChannels = this.getHiddenChannelRecord(
-                [
-                  res.guildChannels.favoritesCategory,
-                  res.guildChannels.recentsCategory,
-                  res.guildChannels.noParentCategory,
-                  ...Object.values(res.guildChannels.categories).filter(
-                    (m) => m.id !== hiddenId
-                  ),
-                ],
-                args[0]
-              );
-
-              HiddenCategory.channels = Object.fromEntries(Object.entries(hiddenChannels.records).map(([id, channel]) => {
-                channel.category = HiddenCategory;
-                return [id, channel]
-              }))
-            
-              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] && this.collapsed[hiddenId] !== false;
-              HiddenCategory.shownChannelIds = this.collapsed[hiddenId] || res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
-                .sort((x, y) => {
-
-                  const xPos = x.position + (x.isGuildVocal() ? 1e4 : 1e5);
-                  const yPos = y.position + (y.isGuildVocal() ? 1e4 : 1e5);
-
-                  return xPos < yPos ? -1 : xPos > yPos ? 1 : 0;
-                }).map((m) => m.id);
-              break;
+            if (this.settings["shouldShowEmptyCategory"]) {
+              this.patchEmptyCategoryFunction([...Object.values(res.guildChannels.categories).filter(
+                  (m) => !m.id.includes("hidden")
+                ),
+              ]);
             }
 
-          }
-
-          if (this.settings["shouldShowEmptyCategory"]) {
-            this.patchEmptyCategoryFunction([...Object.values(res.guildChannels.categories).filter(
-                (m) => !m.id.includes("hidden")
-              ),
-            ]);
-          }
-
-          return res;
-        });
+            return res;
+          });
+        }
 
         //* add entry in guild context menu
-        ContextMenu.patch("guild-context", this.processContextMenu);
+        if (!ContextMenu?.patch) {
+          window.BdApi.showToast("(ShowHiddenChannels) ContextMenu is missing, skipping.", { type: "error" });
+        } else {
+          ContextMenu.patch("guild-context", this.processContextMenu);
+        }
       }
 
       lockscreen() {
