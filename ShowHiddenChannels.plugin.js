@@ -418,19 +418,16 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
     function checkVariables() {
       for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-          Logger.error("Variable not found at position " + variable);
+          Logger.error("Variable not found: " + variable);
         }
       }
 
       if (Object.values(UsedModules).includes(undefined)) {
-        window.BdApi.UI.showToast("Some variables are missing, check the console for more info.", { type: "error" });
-
         return false;
-      } else {
-        Logger.info("All variables found.");
-
-        return true;
       }
+
+      Logger.info("All variables found.");
+      return true;
     }
   
     const loaded_successfully = checkVariables();
@@ -994,7 +991,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                 props.channel.topic && props.channel.type != 15 && "However, you may see its topic."
               ),
               //* Topic
-              props.channel.topic && props.channel.type != 15 && ChannelUtils?.renderTopic(props.channel, props.guild),
+              props.channel.topic && props.channel.type != 15 && (ChannelUtils?.renderTopic(props.channel, props.guild) || "ChannelUtils module is missing, topic won't be shown."),
 
               //* Icon Emoji
               props.channel?.iconEmoji &&
