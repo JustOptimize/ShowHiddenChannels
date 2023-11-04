@@ -27,6 +27,7 @@ const config = {
         "Improved code readability",
         "Missing modules warnings will now tell you which feature will be affected",
         "Updated all deprecated BdApi functions",
+        "Fixed extra category sorting (#152), thanks @JPXR for reporting it",
       ]
     },
     {
