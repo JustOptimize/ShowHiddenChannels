@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.7
+ * @version 0.3.8
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,14 +15,20 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.7",
+    version: "0.3.8",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
     {
-      title: "v0.3.7",
+      title: "v0.3.8 - Small temporary patch",
+      items: [
+        "Temp patch for #154, will be fixed in the future"
+      ]
+    },
+    {
+      title: "v0.3.7 - Bug Fixes & Improvements",
       items: [
         "Improved code readability",
         "Missing modules warnings will now tell you which feature will be affected",
@@ -31,18 +37,11 @@ const config = {
       ]
     },
     {
-      title: "v0.3.6",
+      title: "v0.3.6 - Crash Protection",
       items: [
         "Added a verification check that actually prevents crashing",
         "Now the plugin won't try pathcing undefined modules, this should prevent crashing too",
         "More info here: https://github.com/JustOptimize/return-ShowHiddenChannels/discussions/149",
-      ]
-    },
-    {
-      title: "v0.3.5",
-      items: [
-        "Fixed EVERYTHING, I hope (Thanks to @Tharki-God for helping me out with this one)",
-        "Added user fetching to the channel info page"
       ]
     }
   ],
@@ -438,7 +437,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
 
         this.hiddenChannelCache = {};
 
-        this.collapsed = Utilities.loadData(config.info.name, "collapsed", {});
+        // this.collapsed = Utilities.loadData(config.info.name, "collapsed", {});
         this.processContextMenu = this?.processContextMenu?.bind(this);
         this.settings = Utilities.loadData(config.info.name, "settings", defaultSettings);
 
@@ -869,8 +868,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                 return [id, channel]
               }))
             
-              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] && this.collapsed[hiddenId] !== false;
-              HiddenCategory.shownChannelIds = this.collapsed[hiddenId] || res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
+              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] || res.guildChannels.collapsedCategoryIds[hiddenId]
+              HiddenCategory.shownChannelIds = res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
                 .sort((x, y) => {
 
                   const xPos = x.position + (x.isGuildVocal() ? 1e4 : 1e5);
