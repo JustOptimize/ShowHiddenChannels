@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.8
+ * @version 0.3.9
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,16 +15,23 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.8",
+    version: "0.3.9",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
     {
+      title: "v0.3.9 - Collapsing",
+      items: [
+        "Fixed collapsing for Extra Category sorting (Thanks @TharkiDev)",
+        "Fixed collapsing for Bottom Category sorting (Thanks @Gpax971)"
+      ]
+    },
+    {
       title: "v0.3.8 - Small temporary patch",
       items: [
-        "Temp patch for #154, will be fixed in the future"
+        "Temp patch for extra category collapsing (#154), will be fixed in the future"
       ]
     },
     {
@@ -34,14 +41,6 @@ const config = {
         "Missing modules warnings will now tell you which feature will be affected",
         "Updated all deprecated BdApi functions",
         "Fixed extra category sorting (#152), thanks @JPXR for reporting it",
-      ]
-    },
-    {
-      title: "v0.3.6 - Crash Protection",
-      items: [
-        "Added a verification check that actually prevents crashing",
-        "Now the plugin won't try pathcing undefined modules, this should prevent crashing too",
-        "More info here: https://github.com/JustOptimize/return-ShowHiddenChannels/discussions/149",
       ]
     }
   ],
@@ -191,6 +190,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
     
     const ProfileActions = WebpackModules?.getByProps("fetchProfile", "getUser");
     const PermissionUtils = WebpackModules?.getByProps("isRoleHigher","makeEveryoneOverwrite");
+
+    const CategoryStore = WebpackModules?.getByProps("isCollapsed","getCollapsedCategories");
     
     const UsedModules = {
       /* Library */
@@ -251,7 +252,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
       UserMentions,
       ChannelUtils,
       ProfileActions,
-      PermissionUtils
+      PermissionUtils,
+      CategoryStore
     };
 
 
@@ -804,6 +806,13 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
           });
         }
 
+        Patcher.after(CategoryStore, "isCollapsed", (_, args, res) => {
+          if (this.settings["sort"] !== "extra") return res;
+         
+          const hiddenId = `${args[0]}_hidden`;
+          return args[0] == hiddenId ? this.settings["alwaysCollapse"] : res;
+        });
+
         Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
           const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY]; 
           const hiddenId = `${args[0]}_hidden`; 
@@ -868,7 +877,9 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                 return [id, channel]
               }))
             
-              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] || res.guildChannels.collapsedCategoryIds[hiddenId]
+              HiddenCategory.isCollapsed = res.guildChannels.collapsedCategoryIds[hiddenId] ?? CategoryStore.isCollapsed(hiddenId);
+              if (HiddenCategory.isCollapsed) res.guildChannels.collapsedCategoryIds[hiddenId] = true;
+
               HiddenCategory.shownChannelIds = res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
                 .sort((x, y) => {
 
@@ -1342,7 +1353,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
       }
 
       sortChannels(category) {
-        if (!category) return;
+        if (!category || category.isCollapsed) return;
+
         const channelArray = Object.values(category.channels);
         category.shownChannelIds = channelArray
           .sort((x, y) => {
