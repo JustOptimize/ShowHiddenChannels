@@ -191,6 +191,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
     
     const ProfileActions = WebpackModules?.getByProps("fetchProfile", "getUser");
     const PermissionUtils = WebpackModules?.getByProps("isRoleHigher","makeEveryoneOverwrite");
+
+    const CategoryStore = WebpackModules?.getByProps("isCollapsed","getCollapsedCategories");
     
     const UsedModules = {
       /* Library */
@@ -251,7 +253,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
       UserMentions,
       ChannelUtils,
       ProfileActions,
-      PermissionUtils
+      PermissionUtils,
+      CategoryStore
     };
 
 
@@ -804,6 +807,13 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
           });
         }
 
+        Patcher.after(CategoryStore, "isCollapsed", (_, args, res) => {
+          if (this.settings["sort"] !== "extra") return res;
+         
+          const hiddenId = `${args[0]}_hidden`;
+          return args[0] == hiddenId ? this.settings["alwaysCollapse"] : res;
+        });
+
         Patcher.after(GuildChannelsStore, "getChannels", (_, args, res) => {         
           const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY]; 
           const hiddenId = `${args[0]}_hidden`; 
@@ -868,7 +878,9 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                 return [id, channel]
               }))
             
-              HiddenCategory.isCollapsed = this.settings["alwaysCollapse"] || res.guildChannels.collapsedCategoryIds[hiddenId]
+              HiddenCategory.isCollapsed = res.guildChannels.collapsedCategoryIds[hiddenId] ?? CategoryStore.isCollapsed(hiddenId);
+              if (HiddenCategory.isCollapsed) res.guildChannels.collapsedCategoryIds[hiddenId] = true;
+
               HiddenCategory.shownChannelIds = res.guildChannels.collapsedCategoryIds[hiddenId] || HiddenCategory.isCollapsed ? [] : hiddenChannels.channels
                 .sort((x, y) => {
 
