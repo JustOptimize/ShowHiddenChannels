@@ -1354,7 +1354,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
       }
 
       sortChannels(category) {
-        if (!category) return;
+        if (!category || category.isCollapsed) return;
+
         const channelArray = Object.values(category.channels);
         category.shownChannelIds = channelArray
           .sort((x, y) => {
