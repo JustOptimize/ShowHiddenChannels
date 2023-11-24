@@ -542,7 +542,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
           }
 
           Patcher.after(ReadStateStore, "getGuildChannelUnreadState", (_, args, res) => {
-            return args[0]?.isHidden() ? { mentionCount: 0, hasNotableUnread: false } : res;
+            return args[0]?.isHidden() ? { mentionCount: 0, unread: false } : res;
           });
 
           Patcher.after(ReadStateStore, "getMentionCount", (_, args, res) => {
@@ -551,14 +551,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
 
           Patcher.after(ReadStateStore, "getUnreadCount", (_, args, res) => {
             return ChannelStore.getChannel(args[0])?.isHidden() ? 0 : res;
-          });
-
-          Patcher.after(ReadStateStore, "hasNotableUnread", (_, args, res) => {             
-            return res && !ChannelStore.getChannel(args[0])?.isHidden();
-          });
-
-          Patcher.after(ReadStateStore, "hasRelevantUnread", (_, args, res) => {
-            return res && !args[0].isHidden();
           });
 
           Patcher.after(ReadStateStore, "hasTrackedUnread", (_, args, res) => {
