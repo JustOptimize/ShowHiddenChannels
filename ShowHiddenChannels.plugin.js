@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.3.8
+ * @version 0.3.9
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,16 +15,23 @@ const config = {
       name: "JustOptimize (Oggetto)",
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.3.8",
+    version: "0.3.9",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
     {
+      title: "v0.3.9 - Collapsing",
+      items: [
+        "Fixed collapsing for Extra Category sorting",
+        "Fixed collapsing for Bottom Category sorting (Thanks @Gpax971)"
+      ]
+    },
+    {
       title: "v0.3.8 - Small temporary patch",
       items: [
-        "Temp patch for #154, will be fixed in the future"
+        "Temp patch for extra category collapsing (#154), will be fixed in the future"
       ]
     },
     {
@@ -34,14 +41,6 @@ const config = {
         "Missing modules warnings will now tell you which feature will be affected",
         "Updated all deprecated BdApi functions",
         "Fixed extra category sorting (#152), thanks @JPXR for reporting it",
-      ]
-    },
-    {
-      title: "v0.3.6 - Crash Protection",
-      items: [
-        "Added a verification check that actually prevents crashing",
-        "Now the plugin won't try pathcing undefined modules, this should prevent crashing too",
-        "More info here: https://github.com/JustOptimize/return-ShowHiddenChannels/discussions/149",
       ]
     }
   ],
