@@ -24,7 +24,7 @@ const config = {
     {
       title: "v0.3.9 - Collapsing",
       items: [
-        "Fixed collapsing for Extra Category sorting",
+        "Fixed collapsing for Extra Category sorting (Thanks @TharkiDev)",
         "Fixed collapsing for Bottom Category sorting (Thanks @Gpax971)"
       ]
     },
