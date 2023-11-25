@@ -684,19 +684,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                                 "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 ",
                             })
                           ),
-                        //* Here you can add your own icons
-                        // this.settings["hiddenChannelIcon"] == "" &&
-                        //   React.createElement(
-                        //     "svg",
-                        //     {
-                        //       class: actionIcon,
-                        //       viewBox: "0 0 24 24",
-                        //     },
-                        //     React.createElement("path", {
-                        //       fill: "currentColor",
-                        //       d: "",
-                        //     })
-                        //   ),
                       )
                   )
                 ];
@@ -965,7 +952,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
                   WebkitUserDrag: "none",
                   maxHeight: 128,
                 },
-                src: "https://raw.githubusercontent.com/Tharki-God/files-random-host/main/unknown copy.png",
+                src: this.settings["hiddenChannelIcon"] == "eye" ? "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/assets/eye.png" : "/assets/755d4654e19c105c3cd108610b78d01c.svg",
               }),
               React.createElement(
                 TextElement,
