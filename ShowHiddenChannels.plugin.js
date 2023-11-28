@@ -22,10 +22,11 @@ const config = {
 
   changelog: [
     {
-      title: "v0.4.0 - Icons, Icons, Icons",
+      title: "v0.4.0 - Users & Icons",
       items: [
         "Using selected icon in the hidden channel lockscreen",
         "Moved eye icon to github assets folder",
+        "Fixed users getting fetched multiple times",
       ]
     },
     {
@@ -713,8 +714,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
 
                 if (mainContent) {
                   mainContent.props.onClick = () => {
-                    Logger.log("clicked");
-
                     if (instance.channel?.isGuildVocal()) {
                       NavigationUtils.transitionTo(
                         `/channels/${instance.channel.guild_id}/${instance.channel.id}`
@@ -910,7 +909,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
 
             for (const user of allUserOverwrites) {
               if (UserStore.getUser(user.id)) continue;
-              
+
               await ProfileActions.fetchProfile(user.id, {
                 guildId: props.guild.id,
                 withMutualGuilds: false,
