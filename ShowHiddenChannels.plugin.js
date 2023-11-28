@@ -909,6 +909,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Plugin, Lib
             );
 
             for (const user of allUserOverwrites) {
+              if (UserStore.getUser(user.id)) continue;
+              
               await ProfileActions.fetchProfile(user.id, {
                 guildId: props.guild.id,
                 withMutualGuilds: false,
