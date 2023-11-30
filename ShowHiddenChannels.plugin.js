@@ -28,7 +28,7 @@ const config = {
         "Moved eye icon to github assets folder",
         "Fixed users getting fetched multiple times",
         "Fixed context menu not showing up in some cases",
-        "Revrited some code to improve performance and readability"
+        "Rewritten code to improve performance and readability"
       ]
     },
     {
