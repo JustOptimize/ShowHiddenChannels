@@ -968,7 +968,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
             return setUserMentionComponents(mentionArray);
           };
 
-          React.useEffect(() => fetchMemberAndMap(), [props.channel.id, props.guild.id, this.settings["showPerms"]]);
+          React.useEffect(() => { fetchMemberAndMap(); }, [props.channel.id, props.guild.id, this.settings["showPerms"]]);
 
           return React.createElement(
             "div",
