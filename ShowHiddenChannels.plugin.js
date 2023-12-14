@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.0
+ * @version 0.4.1
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,18 @@ const config = {
       name: "JustOptimize (Oggetto)"
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.4.0",
+    version: "0.4.1",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.4.1 - Bug Fixes",
+      items: [
+        "Removed alwaysCollapse setting (broken)"
+      ]
+    },
     {
       title: "v0.4.0 - Users, Icons & Bug Fixes",
       items: [
@@ -313,7 +319,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
       showAdmin: "channel",
       MarkUnread: false,
 
-      alwaysCollapse: false,
+      // alwaysCollapse: false,
       shouldShowEmptyCategory: false,
       debugMode: false,
 
@@ -449,7 +455,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
 
         this.hiddenChannelCache = {};
 
-        // this.collapsed = Utilities.loadData(config.info.name, "collapsed", {});
+        this.collapsed = {};
         this.processContextMenu = this?.processContextMenu?.bind(this);
         this.settings = Utilities.loadData(config.info.name, "settings", defaultSettings);
 
@@ -819,14 +825,15 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
           return GuildChannels;
         });
 
-        Patcher.after(CategoryStore, "isCollapsed", (_, [channelId], res) => {
-          if (this.settings["sort"] !== "extra") return res;
+        // ! Disabled because it's broken
+        // Patcher.after(CategoryStore, "isCollapsed", (_, [channelId], res) => {
+        //   if (this.settings["sort"] !== "extra") return res;
          
-          const isHiddenCategory = channelId?.endsWith('_hidden');
-          if (!isHiddenCategory) return res;
+        //   const isHiddenCategory = channelId?.endsWith('_hidden');
+        //   if (!isHiddenCategory) return res;
 
-          return this.settings["alwaysCollapse"] ? true : res;
-        });
+        //   return this.settings["alwaysCollapse"] ? true : res;
+        // });
 
         Patcher.after(GuildChannelsStore, "getChannels", (_, [guildId], res) => {
           const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY];
@@ -1551,14 +1558,14 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                 this.settings["MarkUnread"] = i;
               }
             ),
-            new Switch(
-              "Collapse Hidden Category",
-              "Collapse hidden category by default (requires sorting order as extra category).",
-              this.settings["alwaysCollapse"],
-              (i) => {
-                this.settings["alwaysCollapse"] = i;
-              }
-            ),
+            // new Switch(
+            //   "Collapse Hidden Category",
+            //   "Collapse hidden category by default (requires sorting order as extra category).",
+            //   this.settings["alwaysCollapse"],
+            //   (i) => {
+            //     this.settings["alwaysCollapse"] = i;
+            //   }
+            // ),
             new Switch(
               "Show Empty Category",
               "Show category even if it's empty",
