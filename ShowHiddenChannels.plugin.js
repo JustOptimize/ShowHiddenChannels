@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.1
+ * @version 0.4.2
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,18 @@ const config = {
       name: "JustOptimize (Oggetto)"
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.4.1",
+    version: "0.4.2",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.4.2 - Fix Crashing",
+      items: [
+        "Fix \"(SHC) Broken Modules\", thanks Shynno Scarlet for the quick pull request."
+      ]
+    },
     {
       title: "v0.4.1 - Bug Fixes",
       items: [
@@ -35,28 +41,6 @@ const config = {
         "Fixed users getting fetched multiple times",
         "Fixed context menu not showing up in some cases",
         "Rewritten code to improve performance and readability"
-      ]
-    },
-    {
-      title: "v0.3.9 - Collapsing",
-      items: [
-        "Fixed collapsing for Extra Category sorting (Thanks @TharkiDev)",
-        "Fixed collapsing for Bottom Category sorting (Thanks @Gpax971)"
-      ]
-    },
-    {
-      title: "v0.3.8 - Small temporary patch",
-      items: [
-        "Temp patch for extra category collapsing (#154), will be fixed in the future"
-      ]
-    },
-    {
-      title: "v0.3.7 - Bug Fixes & Improvements",
-      items: [
-        "Improved code readability",
-        "Missing modules warnings will now tell you which feature will be affected",
-        "Updated all deprecated BdApi functions",
-        "Fixed extra category sorting (#152), thanks @JPXR for reporting it"
       ]
     }
   ],
@@ -204,7 +188,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
     const RolePill = WebpackModules.getByProps("MemberRole")?.MemberRole;
     const UserMentions = WebpackModules.getByProps("handleUserContextMenu");
-    const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "ChannelEmoji", "renderTitle");
+    const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "renderTitle");
     
     const ProfileActions = WebpackModules.getByProps("fetchProfile", "getUser");
     const PermissionUtils = WebpackModules.getByProps("isRoleHigher", "makeEveryoneOverwrite");
