@@ -204,7 +204,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
     const Voice = WebpackModules.getByProps("getVoiceStateStats");
     const RolePill = WebpackModules.getByProps("MemberRole")?.MemberRole;
     const UserMentions = WebpackModules.getByProps("handleUserContextMenu");
-    const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "ChannelEmoji", "renderTitle");
+    const ChannelUtils = WebpackModules.getByProps("renderTopic", "HeaderGuildBreadcrumb", "renderTitle");
     
     const ProfileActions = WebpackModules.getByProps("fetchProfile", "getUser");
     const PermissionUtils = WebpackModules.getByProps("isRoleHigher", "makeEveryoneOverwrite");
