@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.2
+ * @version 0.4.3
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -15,12 +15,18 @@ const config = {
       name: "JustOptimize (Oggetto)"
     }],
     description: "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-    version: "0.4.2",
+    version: "0.4.3",
     github: "https://github.com/JustOptimize/return-ShowHiddenChannels",
     github_raw: "https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js"
   },
 
   changelog: [
+    {
+      title: "v0.4.3 - Prevent Crashing (Limited Features)",
+      items: [
+        "Disabled Show Permissions feature, it's broken and causes crashes."
+      ]
+    },
     {
       title: "v0.4.2 - Fix Crashing",
       items: [
@@ -31,16 +37,6 @@ const config = {
       title: "v0.4.1 - Bug Fixes",
       items: [
         "Removed alwaysCollapse setting (broken)"
-      ]
-    },
-    {
-      title: "v0.4.0 - Users, Icons & Bug Fixes",
-      items: [
-        "Using selected icon in the hidden channel lockscreen",
-        "Moved eye icon to github assets folder",
-        "Fixed users getting fetched multiple times",
-        "Fixed context menu not showing up in some cases",
-        "Rewritten code to improve performance and readability"
       ]
     }
   ],
@@ -1089,6 +1085,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                 ),
 
               //* Permissions
+              // ! Disabled because it's broken
+              false &&
               this.settings["showPerms"] &&
               props.channel.permissionOverwrites &&
                 React.createElement(
