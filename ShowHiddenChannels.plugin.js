@@ -957,6 +957,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
 
           React.useEffect(() => { fetchMemberAndMap(); }, [props.channel.id, props.guild.id, this.settings["showPerms"]]);
 
+          console.log(props);
+
           return React.createElement(
             "div",
             {
@@ -1086,7 +1088,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
 
               //* Permissions
               // ! Disabled because it's broken
-              false &&
               this.settings["showPerms"] &&
               props.channel.permissionOverwrites &&
                 React.createElement(
@@ -1128,6 +1129,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   ),
 
                   //* Channel Roles
+                  false &&
                   React.createElement(
                     TextElement,
                     {
@@ -1176,6 +1178,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                     )
                   ),
 
+                  false &&
                   this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
                     TextElement,
                     {
