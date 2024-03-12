@@ -1,0 +1,14 @@
+{
+  "name": "showhiddenchannels",
+  "version": "0.0.0",
+  "description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)",
+  "main": "ShowHiddenChannels.plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "JustOptimize (Oggetto)",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "eslint": "^8.54.0"
+  }
+}
