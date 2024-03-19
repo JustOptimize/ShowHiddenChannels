@@ -270,7 +270,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
           flex-direction: column;
           text-align: center;
           overflow-y: auto;
-          padding: 10vh 0px;
+          padding: 10dvh 0px;
           margin: 0px auto;
           width: 100%;
       }	 
@@ -280,10 +280,10 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
       .shc-hidden-notice > div[class^="topic"] {
           background-color: var(--background-secondary);
           padding: 5px;
-          max-width: 50vh;
+          max-width: 50dvh;
           text-overflow: ellipsis;
-          border-radius: 5px;
-          margin: 10px auto;
+          border-radius: 8px;
+          margin: 12px auto 0 auto;
           overflow: visible;
       }
 
@@ -332,8 +332,8 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                marginBottom: "15px",
-                marginTop: "15px"
+                marginBottom: "16px",
+                marginTop: "16px"
               }
             },
             React.createElement(
@@ -347,7 +347,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   borderRadius: "360px",
                   cursor: "pointer",
                   border: this.state.enabled ? "3px solid green" : "3px solid grey",
-                  marginRight: "10px"
+                  marginRight: "8px"
                 },
                 onClick: () => {
                   this.props.onChange(!this.state.enabled);
@@ -378,7 +378,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                 {
                   style: {
                     color: "var(--header-secondary)",
-                    fontSize: "14px"
+                    fontSize: "16px"
                   }
                 },
                 this.props.note
@@ -806,16 +806,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
           return GuildChannels;
         });
 
-        // ! Disabled because it's broken
-        // Patcher.after(CategoryStore, "isCollapsed", (_, [channelId], res) => {
-        //   if (this.settings["sort"] !== "extra") return res;
-         
-        //   const isHiddenCategory = channelId?.endsWith('_hidden');
-        //   if (!isHiddenCategory) return res;
-
-        //   return this.settings["alwaysCollapse"] ? true : res;
-        // });
-
         Patcher.after(GuildChannelsStore, "getChannels", (_, [guildId], res) => {
           const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY];
           const hiddenCategoryId = `${guildId}_hidden`;
@@ -971,13 +961,13 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
               "div",
               {
                 style: {
-                  marginTop: 5,
-                  marginBottom: 5,
+                  marginTop: 8,
+                  marginBottom: 8,
                   display: "flex",
                   flexDirection: "column",
                   flexWrap: "wrap",
-                  gap: 4,
-                  padding: 4,
+                  gap: 8,
+                  padding: 8,
                   paddingTop: 0,
                 }
               },
@@ -993,7 +983,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
               color: TextElement.Colors.INTERACTIVE_NORMAL,
               style: {
                 borderTop: "1px solid var(--background-tertiary)",
-                padding: 5
+                padding: 8
               }
             },
             "Channel-specific roles: ",
@@ -1001,7 +991,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
               "div",
               {
                 style: {
-                  paddingTop: 5
+                  paddingTop: 8
                 }
               },
               ...(() => {
@@ -1086,41 +1076,30 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
             TextElement,
             {
               color: TextElement.Colors.HEADER_SECONDARY,
-              size: TextElement.Sizes.SIZE_16,
+              size: TextElement.Sizes.SIZE_24,
               style: {
-                margin: "20px 10px", 
+                margin: 16, 
                 backgroundColor: "var(--background-secondary)",
-                padding: '10px 30px',
-                borderRadius: 5,
+                padding: 24,
+                borderRadius: 8,
                 color: "var(--text-normal)",
                 fontWeight: "bold",
-                // maxWidth: "min-content"
               }
             },
             "Forum",
 
             //* Tags
-            props.channel.availableTags && props.channel.availableTags.length > 0 &&
               React.createElement(
                 TextElement,
                 {
                   color: TextElement.Colors.INTERACTIVE_NORMAL,
                   size: TextElement.Sizes.SIZE_14,
                   style: {
-                    marginTop: 10
+                    marginTop: 24
                   }
                 },
-                "Tags: ",
-                props.channel.availableTags.map((tag) => tag.name).join(", ")
-              ),
-            props.channel.availableTags.length == 0 &&
-              React.createElement(
-                TextElement,
-                { 
-                  style: {
-                    marginTop: 5
-                  }
-                },
+                (props.channel.availableTags && props.channel.availableTags.length > 0) ?
+                "Tags: " + props.channel.availableTags.map((tag) => tag.name).join(", ") :
                 "Tags: No tags avaiable"
               ),
             //* Guidelines
@@ -1131,7 +1110,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   color: TextElement.Colors.INTERACTIVE_NORMAL,
                   size: TextElement.Sizes.SIZE_14,
                   style: {
-                    marginTop: 10
+                    marginTop: 16
                   }
                 },
                 "Guidelines: ",
@@ -1144,7 +1123,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                 color: TextElement.Colors.INTERACTIVE_NORMAL,
                 size: TextElement.Sizes.SIZE_14,
                 style: {
-                  marginTop: 10
+                  marginTop: 8
                 }
               },
               "Guidelines: No guidelines avaiable"
@@ -1200,7 +1179,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   color: TextElement.Colors.HEADER_SECONDARY,
                   size: TextElement.Sizes.SIZE_16,
                   style: {
-                    marginTop: 10
+                    marginTop: 8
                   }
                 },
                 "You cannot see the contents of this channel. ",
@@ -1217,7 +1196,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                     color: TextElement.Colors.INTERACTIVE_NORMAL,
                     size: TextElement.Sizes.SIZE_14,
                     style: {
-                      marginTop: 10
+                      marginTop: 16
                     }
                   },
                   "Icon emoji: ",
@@ -1267,7 +1246,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   color: TextElement.Colors.INTERACTIVE_NORMAL,
                   size: TextElement.Sizes.SIZE_14,
                   style: {
-                    marginTop: 10
+                    marginTop: 8
                   }
                 },
                 "Created on: ",
@@ -1293,7 +1272,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   "div",
                   {
                       style: {
-                        margin: "20px auto",
+                        margin: "16px auto 0 auto",
                         backgroundColor: "var(--background-secondary)",
                         padding: 10,
                         borderRadius: 5,
