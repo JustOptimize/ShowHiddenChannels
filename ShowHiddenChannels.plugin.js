@@ -268,10 +268,10 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
       .shc-hidden-notice {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          align-items: center;
           text-align: center;
           overflow-y: auto;
+          padding: 10vh 0px;
+          margin: 0px auto;
           width: 100%;
       }	 
       .shc-hidden-notice > div[class^="divider"] {
@@ -284,6 +284,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
           text-overflow: ellipsis;
           border-radius: 5px;
           margin: 10px auto;
+          overflow: visible;
       }
 
       .shc-rolePill {
@@ -977,7 +978,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   flexWrap: "wrap",
                   gap: 4,
                   padding: 4,
-                  paddingTop: 0
+                  paddingTop: 0,
                 }
               },
               ...userMentionComponents
@@ -1087,13 +1088,13 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
               color: TextElement.Colors.HEADER_SECONDARY,
               size: TextElement.Sizes.SIZE_16,
               style: {
-                marginTop: 20,
+                margin: "20px 10px", 
                 backgroundColor: "var(--background-secondary)",
-                padding: 10,
+                padding: '10px 30px',
                 borderRadius: 5,
                 color: "var(--text-normal)",
                 fontWeight: "bold",
-                maxWidth: "min-content"
+                // maxWidth: "min-content"
               }
             },
             "Forum",
@@ -1161,7 +1162,6 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
               style: {
                 justifyContent: "center",
                 alignItems: "center",
-                padding: "10vh 0"
               }
             },
             React.createElement(
@@ -1293,7 +1293,7 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                   "div",
                   {
                       style: {
-                        marginTop: 20,
+                        margin: "20px auto",
                         backgroundColor: "var(--background-secondary)",
                         padding: 10,
                         borderRadius: 5,
