@@ -270,8 +270,9 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          margin: auto;
           text-align: center;
+          overflow-y: auto;
+          width: 100%;
       }	 
       .shc-hidden-notice > div[class^="divider"] {
           display: none
@@ -909,12 +910,14 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
         ContextMenu?.patch("guild-context", this.processContextMenu);
       }
 
+
+      
       lockscreen() {
-        return React.memo((props) => {
+        function UserMentionsComponent({props, settings}) {
           const [userMentionComponents, setUserMentionComponents] = React.useState([]);
           
           const fetchMemberAndMap = async () => {
-            if (!this.settings["showPerms"]) return setUserMentionComponents(["None"]);
+            if (!settings.showPerms) return setUserMentionComponents(["None"]);
 
             const allUserOverwrites = Object.values(props.channel.permissionOverwrites).filter(
               (user) => Boolean(user && user?.type === 1)
@@ -954,19 +957,217 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
             return setUserMentionComponents(mentionArray);
           };
 
-          React.useEffect(() => { fetchMemberAndMap(); }, [props.channel.id, props.guild.id, this.settings["showPerms"]]);
+          React.useEffect(() => { fetchMemberAndMap(); }, [props.channel.id, props.guild.id, settings.showPerms]);
 
+          return React.createElement(
+            TextElement,
+            {
+              color: TextElement.Colors.INTERACTIVE_NORMAL,
+              size: TextElement.Sizes.SIZE_14
+            },
+            "Users that can see this channel: ",
+            React.createElement(
+              "div",
+              {
+                style: {
+                  marginTop: 5,
+                  marginBottom: 5,
+                  display: "flex",
+                  flexDirection: "column",
+                  flexWrap: "wrap",
+                  gap: 4,
+                  padding: 4,
+                  paddingTop: 0
+                }
+              },
+              ...userMentionComponents
+            )
+          )
+        }
+        
+        function ChannelRolesComponent({props, settings, roles}) {
+          return React.createElement(
+            TextElement,
+            {
+              color: TextElement.Colors.INTERACTIVE_NORMAL,
+              style: {
+                borderTop: "1px solid var(--background-tertiary)",
+                padding: 5
+              }
+            },
+            "Channel-specific roles: ",
+            React.createElement(
+              "div",
+              {
+                style: {
+                  paddingTop: 5
+                }
+              },
+              ...(() => {
+                const channelRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
+                  (role !== undefined && role?.type == 0) && 
+
+                  //* 1024n = VIEW_CHANNEL permission
+                  //* 8n = ADMINISTRATOR permission
+                  ( 
+                    //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
+                    (settings.showAdmin && ((roles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
+
+                    //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
+                    ((role.allow & BigInt(1024)) == BigInt(1024)) ||
+
+                    //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
+                    ((roles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
+                  )
+                );
+
+                if (!channelRoles?.length) return ["None"];
+                return channelRoles.map(m => RolePill.render({
+                  canRemove: false,
+                  className: `${rolePill} shc-rolePill`,
+                  disableBorderColor: true,
+                  guildId: props.guild.id,
+                  onRemove: DiscordConstants.NOOP,
+                  role: roles[m.id]
+                }, DiscordConstants.NOOP));
+              })()
+            )
+          )
+        }
+
+        function AdminRolesComponent({props, settings, roles}) {
+          return settings["showAdmin"] && settings["showAdmin"] != "channel" && React.createElement(
+            TextElement,
+            {
+              color: TextElement.Colors.INTERACTIVE_NORMAL,
+              style: {
+                borderTop: "1px solid var(--background-tertiary)",
+                padding: 5
+              }
+            },
+            "Admin roles: ",
+            React.createElement(
+              "div",
+              {
+                style: {
+                  paddingTop: 5
+                }
+              },
+              ...(() => {
+                  const adminRoles = [];
+
+                  Object.values(roles).forEach(role => {
+                    if ((role.permissions & BigInt(8)) == BigInt(8) && (settings["showAdmin"] == "include" || (settings["showAdmin"] == "exclude" && !role.tags?.bot_id))) {
+                      adminRoles.push(role);
+                    }
+                  });
+
+                  if (!adminRoles?.length) return ["None"];                      
+                  return adminRoles.map(m => RolePill.render({
+                    canRemove: false,
+                    className: `${rolePill} shc-rolePill`,
+                    disableBorderColor: true,
+                    guildId: props.guild.id,
+                    onRemove: DiscordConstants.NOOP,
+                    role: m
+                  }, DiscordConstants.NOOP));
+                }
+              )()
+            )
+          )
+        }
+
+        function ForumComponent({props, settings}) {
+          if (props.channel.type != 15) return null;
+          if (!props.channel.availableTags && !props.channel.topic) return null;
+
+          return React.createElement(
+            TextElement,
+            {
+              color: TextElement.Colors.HEADER_SECONDARY,
+              size: TextElement.Sizes.SIZE_16,
+              style: {
+                marginTop: 20,
+                backgroundColor: "var(--background-secondary)",
+                padding: 10,
+                borderRadius: 5,
+                color: "var(--text-normal)",
+                fontWeight: "bold",
+                maxWidth: "min-content"
+              }
+            },
+            "Forum",
+
+            //* Tags
+            props.channel.availableTags && props.channel.availableTags.length > 0 &&
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                  style: {
+                    marginTop: 10
+                  }
+                },
+                "Tags: ",
+                props.channel.availableTags.map((tag) => tag.name).join(", ")
+              ),
+            props.channel.availableTags.length == 0 &&
+              React.createElement(
+                TextElement,
+                { 
+                  style: {
+                    marginTop: 5
+                  }
+                },
+                "Tags: No tags avaiable"
+              ),
+            //* Guidelines
+            props.channel.topic &&
+              React.createElement(
+                TextElement,
+                {
+                  color: TextElement.Colors.INTERACTIVE_NORMAL,
+                  size: TextElement.Sizes.SIZE_14,
+                  style: {
+                    marginTop: 10
+                  }
+                },
+                "Guidelines: ",
+                props.channel.topic
+              ),
+            !props.channel.topic &&
+            React.createElement(
+              TextElement,
+              {
+                color: TextElement.Colors.INTERACTIVE_NORMAL,
+                size: TextElement.Sizes.SIZE_14,
+                style: {
+                  marginTop: 10
+                }
+              },
+              "Guidelines: No guidelines avaiable"
+          )
+        )
+        }
+
+        return React.memo((props) => {
           const guildRoles = GuildStore.getRoles(props.guild.id);
 
           return React.createElement(
             "div",
             {
-              className: ["shc-hidden-chat-content", chat].filter(Boolean).join(" ")
+              className: ["shc-hidden-chat-content", chat].filter(Boolean).join(" "),
+              style: {
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "10vh 0"
+              }
             },
             React.createElement(
               "div",
               {
-                className: "shc-hidden-notice"
+                className: "shc-hidden-notice",
               },
               React.createElement("img", {
                 style: {
@@ -1098,193 +1299,20 @@ module.exports = !global.ZeresPluginLibrary ? MissingZeresDummy : (([Pl, Lib]) =
                         borderRadius: 5,
                         color: "var(--text-normal)"
                       }
-                  }, 
+                  },
 
                   //* Users
-                  React.createElement(
-                    TextElement,
-                    {
-                      color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      size: TextElement.Sizes.SIZE_14
-                    },
-                    "Users that can see this channel: ",
-                    React.createElement(
-                      "div",
-                      {
-                        style: {
-                          marginTop: 5,
-                          marginBottom: 5,
-                          display: "flex",
-                          flexDirection: "column",
-                          flexWrap: "wrap",
-                          gap: 4,
-                          padding: 4,
-                          paddingTop: 0
-                        }
-                      },
-                      ...userMentionComponents
-                    )
-                  ),
-
+                  React.createElement(UserMentionsComponent, { props, settings: this.settings }),
+                  
                   //* Channel Roles
-                  React.createElement(
-                    TextElement,
-                    {
-                      color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      style: {
-                        borderTop: "1px solid var(--background-tertiary)",
-                        padding: 5
-                      }
-                    },
-                    "Channel-specific roles: ",
-                    React.createElement(
-                      "div",
-                      {
-                        style: {
-                          paddingTop: 5
-                        }
-                      },
-                      ...(() => {
-                        const channelRoles = Object.values(props.channel.permissionOverwrites).filter(role => 
-                          (role !== undefined && role?.type == 0) && 
+                  React.createElement(ChannelRolesComponent, { props, settings: this.settings, roles: guildRoles }),
 
-                          //* 1024n = VIEW_CHANNEL permission
-                          //* 8n = ADMINISTRATOR permission
-                          ( 
-                            //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
-                            (this.settings["showAdmin"] && ((guildRoles[role.id].permissions & BigInt(8)) == BigInt(8))) ||
-
-                            //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
-                            ((role.allow & BigInt(1024)) == BigInt(1024)) ||
-
-                            //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
-                            ((guildRoles[role.id].permissions & BigInt(1024)) && ((role.deny & BigInt(1024)) == 0))
-                          )
-                        );
-
-                        if (!channelRoles?.length) return ["None"];
-                        return channelRoles.map(m => RolePill.render({
-                          canRemove: false,
-                          className: `${rolePill} shc-rolePill`,
-                          disableBorderColor: true,
-                          guildId: props.guild.id,
-                          onRemove: DiscordConstants.NOOP,
-                          role: guildRoles[m.id]
-                        }, DiscordConstants.NOOP));
-                      })()
-                    )
-                  ),
-
-                  this.settings["showAdmin"] && this.settings["showAdmin"] != "channel" && React.createElement(
-                    TextElement,
-                    {
-                      color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      style: {
-                        borderTop: "1px solid var(--background-tertiary)",
-                        padding: 5
-                      }
-                    },
-                    "Admin roles: ",
-                    React.createElement(
-                      "div",
-                      {
-                        style: {
-                          paddingTop: 5
-                        }
-                      },
-                      ...(() => {
-                          const adminRoles = [];
-
-                          Object.values(guildRoles).forEach(role => {
-                            if ((role.permissions & BigInt(8)) == BigInt(8) && (this.settings["showAdmin"] == "include" || (this.settings["showAdmin"] == "exclude" && !role.tags?.bot_id))) {
-                              adminRoles.push(role);
-                            }
-                          });
-
-                          if (!adminRoles?.length) return ["None"];                      
-                          return adminRoles.map(m => RolePill.render({
-                            canRemove: false,
-                            className: `${rolePill} shc-rolePill`,
-                            disableBorderColor: true,
-                            guildId: props.guild.id,
-                            onRemove: DiscordConstants.NOOP,
-                            role: m
-                          }, DiscordConstants.NOOP));
-                        }
-                      )()
-                    )
-                  )
+                  //* Admin Roles
+                  React.createElement(AdminRolesComponent, { props, settings: this.settings, roles: guildRoles }),
                 ),
 
               //* Forums
-              props.channel.type == 15 && (props.channel.availableTags || props.channel.topic) &&
-                React.createElement(
-                  TextElement,
-                  {
-                    color: TextElement.Colors.HEADER_SECONDARY,
-                    size: TextElement.Sizes.SIZE_16,
-                    style: {
-                      marginTop: 20,
-                      backgroundColor: "var(--background-secondary)",
-                      padding: 10,
-                      borderRadius: 5,
-                      color: "var(--text-normal)",
-                      fontWeight: "bold"
-                    }
-                  },
-                  "Forum",
-
-                  //* Tags
-                  props.channel.availableTags && props.channel.availableTags.length > 0 &&
-                    React.createElement(
-                      TextElement,
-                      {
-                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                        size: TextElement.Sizes.SIZE_14,
-                        style: {
-                          marginTop: 10
-                        }
-                      },
-                      "Tags: ",
-                      props.channel.availableTags.map((tag) => tag.name).join(", ")
-                    ),
-                  props.channel.availableTags.length == 0 &&
-                    React.createElement(
-                      TextElement,
-                      { 
-                        style: {
-                          marginTop: 5
-                        }
-                      },
-                      "Tags: No tags avaiable"
-                    ),
-                  //* Guidelines
-                  props.channel.topic &&
-                    React.createElement(
-                      TextElement,
-                      {
-                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                        size: TextElement.Sizes.SIZE_14,
-                        style: {
-                          marginTop: 10
-                        }
-                      },
-                      "Guidelines: ",
-                      props.channel.topic
-                    ),
-                  !props.channel.topic &&
-                  React.createElement(
-                    TextElement,
-                    {
-                      color: TextElement.Colors.INTERACTIVE_NORMAL,
-                      size: TextElement.Sizes.SIZE_14,
-                      style: {
-                        marginTop: 10
-                      }
-                    },
-                    "Guidelines: No guidelines avaiable"
-                )
-              )
+              React.createElement(ForumComponent, { props, settings: this.settings })
             )
           );
         });
