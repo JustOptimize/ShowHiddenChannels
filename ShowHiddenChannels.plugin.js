@@ -282,33 +282,32 @@ module.exports = !global.ZeresPluginLibrary
         const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
         const CSS = `
-.shc-hidden-notice {
-display: flex;
-flex-direction: column;
-text-align: center;
-overflow-y: auto;
-padding: 10dvh 0px;
-margin: 0px auto;
-width: 100%;
-}	 
-.shc-hidden-notice > div[class^="divider"] {
-display: none
-}	 
-.shc-hidden-notice > div[class^="topic"] {
-background-color: var(--background-secondary);
-padding: 5px;
-max-width: 50dvh;
-text-overflow: ellipsis;
-border-radius: 8px;
-margin: 12px auto 0 auto;
-overflow: visible;
-}
+        .shc-hidden-notice {
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+          overflow-y: auto;
+          padding: 10dvh 0px;
+          margin: 0px auto;
+          width: 100%;
+        }	 
+        .shc-hidden-notice > div[class^="divider"] {
+          display: none
+        }	 
+        .shc-hidden-notice > div[class^="topic"] {
+          background-color: var(--background-secondary);
+          padding: 5px;
+          max-width: 50dvh;
+          text-overflow: ellipsis;
+          border-radius: 8px;
+          margin: 12px auto 0 auto;
+          overflow: visible;
+        }
 
-.shc-rolePill {
-margin-right: 0px !important;
-background-color: var(--background-primary);
-}
-`;
+        .shc-rolePill {
+          margin-right: 0px !important;
+          background-color: var(--background-primary);
+        }`;
 
         const defaultSettings = {
             hiddenChannelIcon: 'lock',
@@ -1685,14 +1684,6 @@ background-color: var(--background-primary);
                                 this.settings['MarkUnread'] = i;
                             }
                         ),
-                        // new Switch(
-                        //   "Collapse Hidden Category",
-                        //   "Collapse hidden category by default (requires sorting order as extra category).",
-                        //   this.settings["alwaysCollapse"],
-                        //   (i) => {
-                        //     this.settings["alwaysCollapse"] = i;
-                        //   }
-                        // ),
                         new Switch(
                             'Show Empty Category',
                             "Show category even if it's empty",
