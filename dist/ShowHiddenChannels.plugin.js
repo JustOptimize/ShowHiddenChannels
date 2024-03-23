@@ -1,12 +1,152 @@
 /**
- * @name My Component Demo
- * @description Showing off a settings panel with a custom react component.
- * @author BetterDiscord
- * @version 0.0.0
+ * @name ShowHiddenChannels
+ * @displayName Show Hidden Channels (SHC)
+ * @version 0.4.4
+ * @author JustOptimize (Oggetto)
+ * @authorId 619203349954166804
+ * @source https://github.com/JustOptimize/return-ShowHiddenChannels
+ * @description A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).
  */
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/components/IconSwitchWrapper.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/IconSwitchWrapper.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ IconSwitchWrapper)
+/* harmony export */ });
+const React = BdApi.React;
+
+// class IconSwitchWrapper extends React.Component {
+// 	constructor(props) {
+// 		super(props);
+// 		this.state = {
+// 			enabled: this.props.value,
+// 		};
+// 	}
+// 	render() {
+// 		return React.createElement(
+// 			'div',
+// 			{},
+// 			React.createElement(
+// 				'div',
+// 				{
+// 					style: {
+// 						display: 'flex',
+// 						flexDirection: 'row',
+// 						alignItems: 'center',
+// 						marginBottom: '16px',
+// 						marginTop: '16px',
+// 					},
+// 				},
+// 				React.createElement('img', {
+// 					src: this.props.icon,
+// 					width: 48,
+// 					height: 48,
+// 					title: 'Click to toggle',
+// 					style: {
+// 						borderRadius: '360px',
+// 						cursor: 'pointer',
+// 						border: this.state.enabled ? '3px solid green' : '3px solid grey',
+// 						marginRight: '8px',
+// 					},
+// 					onClick: () => {
+// 						this.props.onChange(!this.state.enabled);
+// 						this.setState({
+// 							enabled: !this.state.enabled,
+// 						});
+// 					},
+// 				}),
+// 				React.createElement(
+// 					'div',
+// 					{
+// 						style: {
+// 							maxWidth: '89%',
+// 						},
+// 					},
+// 					React.createElement(
+// 						'div',
+// 						{
+// 							style: {
+// 								fontSize: '20px',
+// 								color: 'var(--header-primary)',
+// 								fontWeight: '600',
+// 							},
+// 						},
+// 						this.props.children
+// 					),
+// 					React.createElement(
+// 						'div',
+// 						{
+// 							style: {
+// 								color: 'var(--header-secondary)',
+// 								fontSize: '16px',
+// 							},
+// 						},
+// 						this.props.note
+// 					)
+// 				)
+// 			)
+// 		);
+// 	}
+// }
+
+function IconSwitchWrapper({
+  icon,
+  value,
+  onChange,
+  children,
+  note
+}) {
+  const [enabled, setEnabled] = React.useState(value);
+  return BdApi.React.createElement("div", null, BdApi.React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: '16px',
+      marginTop: '16px'
+    }
+  }, BdApi.React.createElement("img", {
+    src: icon,
+    width: 48,
+    height: 48,
+    title: "Click to toggle",
+    style: {
+      borderRadius: '360px',
+      cursor: 'pointer',
+      border: enabled ? '3px solid green' : '3px solid grey',
+      marginRight: '8px'
+    },
+    onClick: () => {
+      onChange(!enabled);
+      setEnabled(!enabled);
+    }
+  }), BdApi.React.createElement("div", {
+    style: {
+      maxWidth: '89%'
+    }
+  }, BdApi.React.createElement("div", {
+    style: {
+      fontSize: '20px',
+      color: 'var(--header-primary)',
+      fontWeight: '600'
+    }
+  }, children), BdApi.React.createElement("div", {
+    style: {
+      color: 'var(--header-secondary)',
+      fontSize: '16px'
+    }
+  }, note))));
+}
+
+/***/ }),
 
 /***/ "./src/components/hiddenChannelIcon.jsx":
 /*!**********************************************!*\
@@ -136,8 +276,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/hiddenChannelIcon */ "./src/components/hiddenChannelIcon.jsx");
-/* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
+/* harmony import */ var _components_IconSwitchWrapper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
+/* harmony import */ var _components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/hiddenChannelIcon */ "./src/components/hiddenChannelIcon.jsx");
+/* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
+
 
 
 
@@ -567,7 +709,7 @@ const MyPlugin = (([Pl, Lib]) => {
             }
 
             doStart() {
-                DOMTools.addStyle(config.info.name, _styles_css__WEBPACK_IMPORTED_MODULE_1__["default"]);
+                DOMTools.addStyle(config.info.name, _styles_css__WEBPACK_IMPORTED_MODULE_2__["default"]);
                 this.Patch();
                 this.rerenderChannels();
             }
@@ -715,7 +857,7 @@ const MyPlugin = (([Pl, Lib]) => {
 
                         if (children.props?.children) {
                             children.props.children = [
-                                React.createElement(_components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_0__["default"], {
+                                React.createElement(_components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_1__["default"], {
                                     icon: this.settings['hiddenChannelIcon'],
                                     iconItem: iconItem,
                                     actionIcon: actionIcon,
@@ -1553,79 +1695,6 @@ const MyPlugin = (([Pl, Lib]) => {
             }
 
             getSettingsPanel() {
-                class IconSwitchWrapper extends React.Component {
-                    constructor(props) {
-                        super(props);
-                        this.state = {
-                            enabled: this.props.value,
-                        };
-                    }
-                    render() {
-                        return React.createElement(
-                            'div',
-                            {},
-                            React.createElement(
-                                'div',
-                                {
-                                    style: {
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        marginBottom: '16px',
-                                        marginTop: '16px',
-                                    },
-                                },
-                                React.createElement('img', {
-                                    src: this.props.icon,
-                                    width: 48,
-                                    height: 48,
-                                    title: 'Click to toggle',
-                                    style: {
-                                        borderRadius: '360px',
-                                        cursor: 'pointer',
-                                        border: this.state.enabled ? '3px solid green' : '3px solid grey',
-                                        marginRight: '8px',
-                                    },
-                                    onClick: () => {
-                                        this.props.onChange(!this.state.enabled);
-                                        this.setState({
-                                            enabled: !this.state.enabled,
-                                        });
-                                    },
-                                }),
-                                React.createElement(
-                                    'div',
-                                    {
-                                        style: {
-                                            maxWidth: '89%',
-                                        },
-                                    },
-                                    React.createElement(
-                                        'div',
-                                        {
-                                            style: {
-                                                fontSize: '20px',
-                                                color: 'var(--header-primary)',
-                                                fontWeight: '600',
-                                            },
-                                        },
-                                        this.props.children
-                                    ),
-                                    React.createElement(
-                                        'div',
-                                        {
-                                            style: {
-                                                color: 'var(--header-secondary)',
-                                                fontSize: '16px',
-                                            },
-                                        },
-                                        this.props.note
-                                    )
-                                )
-                            )
-                        );
-                    }
-                }
                 class IconSwitch extends SettingField {
                     constructor(name, note, isChecked, onChange, options = {}) {
                         super(name, note, onChange);
@@ -1636,7 +1705,7 @@ const MyPlugin = (([Pl, Lib]) => {
                     onAdded() {
                         ReactDOM.createRoot(this.getElement()).render(
                             React.createElement(
-                                IconSwitchWrapper,
+                                _components_IconSwitchWrapper__WEBPACK_IMPORTED_MODULE_0__["default"],
                                 {
                                     icon: this.icon,
                                     note: this.note,

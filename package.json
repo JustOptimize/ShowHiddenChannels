@@ -1,6 +1,5 @@
 {
   "name": "showhiddenchannels",
-  "version": "0.0.0",
   "description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)",
   "main": "ShowHiddenChannels.plugin.js",
   "scripts": {
@@ -18,5 +17,31 @@
     "raw-loader": "^4.0.2",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "targets": {
+            "node": "16.17.1",
+            "chrome": "108"
+          }
+        }
+      ],
+      [
+        "@babel/preset-react",
+        {
+          "pragma": "BdApi.React.createElement"
+        }
+      ]
+    ]
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "tabWidth": 4,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 140
   }
 }

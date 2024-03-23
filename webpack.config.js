@@ -1,9 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
-const pkg = require('./package.json');
 const pluginConfig = require('./src/config.json');
 const process = require('process');
-pluginConfig.version = pkg.version;
 
 const meta = (() => {
     const lines = ['/**'];
