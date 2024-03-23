@@ -1451,11 +1451,12 @@ background-color: var(--background-primary);
               * @returns {object} - An object containing the hidden channels and the amount of hidden channels.
               */
             getHiddenChannels(guildId) {
-                if (!guildId)
-                    return {
-                        channels: [],
-                        amount: 0,
-                    };
+                if (!guildId) {
+                  return {
+                      channels: [],
+                      amount: 0,
+                  };
+                }
 
                 const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
                 const hiddenChannels = Object.values(guildChannels).filter(
