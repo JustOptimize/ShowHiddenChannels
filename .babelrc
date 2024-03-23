@@ -1,0 +1,19 @@
+{
+    "presets": [
+        [
+            "@babel/env",
+            {
+                "targets": {
+                    "node": "16.17.1",
+                    "chrome": "108"
+                }
+            }
+        ],
+        [
+            "@babel/preset-react",
+            {
+                "pragma": "BdApi.React.createElement"
+            }
+        ]
+    ]
+}

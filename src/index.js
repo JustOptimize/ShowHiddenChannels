@@ -1,12 +1,4 @@
-/**
- * @name ShowHiddenChannels
- * @displayName Show Hidden Channels (SHC)
- * @version 0.4.5
- * @author JustOptimize (Oggetto)
- * @authorId 619203349954166804
- * @source https://github.com/JustOptimize/return-ShowHiddenChannels
- * @description A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).
- */
+import styles from './styles.css';
 
 const config = {
     info: {
@@ -84,22 +76,30 @@ class MissingZeresDummy {
             type: 'info',
         });
 
-        require('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
+        eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
             if (err) return this.downloadZLibErrorPopup();
 
             // If the response is a redirect to the actual file
             if (resp.statusCode === 302) {
-                require('request').get(resp.headers.location, async (error, response, content) => {
+                eval('require')('request').get(resp.headers.location, async (error, response, content) => {
                     if (error) return this.downloadZLibErrorPopup();
                     await new Promise((r) =>
-                        require('fs').writeFile(require('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'), content, r)
+                        eval('require')('fs').writeFile(
+                            eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
+                            content,
+                            r
+                        )
                     );
                 });
 
                 // If the response is the actual file
             } else {
                 await new Promise((r) =>
-                    require('fs').writeFile(require('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'), body, r)
+                    eval('require')('fs').writeFile(
+                        eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
+                        body,
+                        r
+                    )
                 );
             }
 
@@ -128,15 +128,13 @@ class MissingZeresDummy {
             {
                 confirmText: 'Visit Download Page',
                 cancelText: 'Cancel',
-                onConfirm: () => require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9'),
+                onConfirm: () => eval('require')('electron').shell.openExternal('https://betterdiscord.app/Download?id=9'),
             }
         );
     }
 }
 
-module.exports = !global.ZeresPluginLibrary
-? MissingZeresDummy
-: (([Pl, Lib]) => {
+const MyPlugin = (([Pl, Lib]) => {
     const plugin = (Plugin, Library) => {
         const {
             WebpackModules,
@@ -281,34 +279,6 @@ module.exports = !global.ZeresPluginLibrary
         const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
         const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
-        const CSS = `
-        .shc-hidden-notice {
-          display: flex;
-          flex-direction: column;
-          text-align: center;
-          overflow-y: auto;
-          padding: 10dvh 0px;
-          margin: 0px auto;
-          width: 100%;
-        }	 
-        .shc-hidden-notice > div[class^="divider"] {
-          display: none
-        }	 
-        .shc-hidden-notice > div[class^="topic"] {
-          background-color: var(--background-secondary);
-          padding: 5px;
-          max-width: 50dvh;
-          text-overflow: ellipsis;
-          border-radius: 8px;
-          margin: 12px auto 0 auto;
-          overflow: visible;
-        }
-
-        .shc-rolePill {
-          margin-right: 0px !important;
-          background-color: var(--background-primary);
-        }`;
-
         const defaultSettings = {
             hiddenChannelIcon: 'lock',
             sort: 'native',
@@ -414,19 +384,16 @@ module.exports = !global.ZeresPluginLibrary
                 }
 
                 try {
-                    const fs = require('fs');
-                    const path = require('path');
+                    const fs = eval('require')('fs');
+                    const path = eval('require')('path');
 
                     await fs.writeFile(path.join(window.BdApi.Plugins.folder, 'ShowHiddenChannels.plugin.js'), SHCContent, (err) => {
                         if (err) return failed();
                     });
 
-                    window.BdApi.UI.showToast(
-                        'ShowHiddenChannels updated to version ' + SHCContent.match(/(?<=version: ").*(?=")/)[0],
-                        {
-                            type: 'success',
-                        }
-                    );
+                    window.BdApi.UI.showToast('ShowHiddenChannels updated to version ' + SHCContent.match(/(?<=version: ").*(?=")/)[0], {
+                        type: 'success',
+                    });
                 } catch (err) {
                     return failed();
                 }
@@ -459,7 +426,7 @@ module.exports = !global.ZeresPluginLibrary
             }
 
             doStart() {
-                DOMTools.addStyle(config.info.name, CSS);
+                DOMTools.addStyle(config.info.name, styles);
                 this.Patch();
                 this.rerenderChannels();
             }
@@ -711,12 +678,9 @@ module.exports = !global.ZeresPluginLibrary
 
                 //* Manually collapse hidden channel category
                 if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
-                    window.BdApi.UI.showToast(
-                        "(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.",
-                        {
-                            type: 'warning',
-                        }
-                    );
+                    window.BdApi.UI.showToast("(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.", {
+                        type: 'warning',
+                    });
                 }
 
                 Patcher.after(ChannelStore, 'getChannel', (_, [channelId], res) => {
@@ -831,9 +795,7 @@ module.exports = !global.ZeresPluginLibrary
                             const HiddenChannels = this.getHiddenChannelRecord(
                                 [
                                     ...specialCategories,
-                                    ...Object.values(res.guildChannels.categories).filter(
-                                        (category) => category.id !== hiddenCategoryId
-                                    ),
+                                    ...Object.values(res.guildChannels.categories).filter((category) => category.id !== hiddenCategoryId),
                                 ],
                                 guildId
                             );
@@ -846,8 +808,7 @@ module.exports = !global.ZeresPluginLibrary
                             );
 
                             HiddenCategory.isCollapsed =
-                                res.guildChannels.collapsedCategoryIds[hiddenCategoryId] ??
-                                CategoryStore.isCollapsed(hiddenCategoryId);
+                                res.guildChannels.collapsedCategoryIds[hiddenCategoryId] ?? CategoryStore.isCollapsed(hiddenCategoryId);
                             if (HiddenCategory.isCollapsed) {
                                 res.guildChannels.collapsedCategoryIds[hiddenCategoryId] = true;
                             }
@@ -1445,16 +1406,16 @@ module.exports = !global.ZeresPluginLibrary
             }
 
             /**
-              * Retrieves the hidden channels for a given guild.
-              * @param {string} guildId - The ID of the guild.
-              * @returns {object} - An object containing the hidden channels and the amount of hidden channels.
-              */
+             * Retrieves the hidden channels for a given guild.
+             * @param {string} guildId - The ID of the guild.
+             * @returns {object} - An object containing the hidden channels and the amount of hidden channels.
+             */
             getHiddenChannels(guildId) {
                 if (!guildId) {
-                  return {
-                      channels: [],
-                      amount: 0,
-                  };
+                    return {
+                        channels: [],
+                        amount: 0,
+                    };
                 }
 
                 const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
@@ -1764,3 +1725,5 @@ module.exports = !global.ZeresPluginLibrary
     };
     return plugin(Pl, Lib);
 })(global.ZeresPluginLibrary.buildPlugin(config));
+
+export default !global.ZeresPluginLibrary ? MissingZeresDummy : MyPlugin;
