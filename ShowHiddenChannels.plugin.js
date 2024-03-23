@@ -1494,7 +1494,7 @@ module.exports = !global.ZeresPluginLibrary
 							);
 						}
 
-						function ForumComponent({ props, settings }) {
+						function ForumComponent({ props }) {
 							if (props.channel.type != 15) return null;
 							if (!props.channel.availableTags && !props.channel.topic) {
 								return null;
@@ -1506,13 +1506,14 @@ module.exports = !global.ZeresPluginLibrary
 									color: TextElement.Colors.HEADER_SECONDARY,
 									size: TextElement.Sizes.SIZE_24,
 									style: {
-										margin: 16,
+										margin: '16px auto',
 										backgroundColor:
 											'var(--background-secondary)',
 										padding: 24,
 										borderRadius: 8,
 										color: 'var(--text-normal)',
-										fontWeight: 'bold'
+										fontWeight: 'bold',
+                    maxWidth: '40vw'
 									}
 								},
 								'Forum',
@@ -1788,10 +1789,7 @@ module.exports = !global.ZeresPluginLibrary
 										),
 
 									//* Forums
-									React.createElement(ForumComponent, {
-										props,
-										settings: this.settings
-									})
+									React.createElement(ForumComponent, { props })
 								)
 							);
 						});
