@@ -13,6 +13,9 @@
         "sourceType": "module"
     },
     "rules": {
+        "react/display-name": "off",
+        "react/prop-types": "off",
+        "react/react-in-jsx-scope": "off",
         "arrow-spacing": ["warn", { "before": true, "after": true }],
         "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
         "comma-dangle": [
