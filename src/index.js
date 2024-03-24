@@ -79,12 +79,13 @@ class MissingZeresDummy {
             type: 'info',
         });
 
-        BdApi.Net.fetch('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
+        //TODO: Use BdApi.Net.fetch
+        eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
             if (err) return this.downloadZLibErrorPopup();
 
             // If the response is a redirect to the actual file
             if (resp.statusCode === 302) {
-                BdApi.Net.fetch(resp.headers.location, async (error, response, content) => {
+                eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (error, response, content) => {
                     if (error) return this.downloadZLibErrorPopup();
                     await new Promise((r) =>
                         eval('require')('fs').writeFile(
