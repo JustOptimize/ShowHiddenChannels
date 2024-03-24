@@ -1,4 +1,8 @@
+import AdminRolesComponent from './components/AdminRolesComponent';
+import ChannelRolesComponent from './components/ChannelRolesComponent';
+import ForumComponent from './components/ForumComponent';
 import IconSwitchWrapper from './components/IconSwitchWrapper';
+import UserMentionsComponent from './components/UserMentionsComponent';
 import HiddenChannelIcon from './components/hiddenChannelIcon';
 import styles from './styles.css';
 
@@ -804,264 +808,6 @@ const MyPlugin = (([Pl, Lib]) => {
             }
 
             lockscreen() {
-                function UserMentionsComponent({ props, settings }) {
-                    const [userMentionComponents, setUserMentionComponents] = React.useState([]);
-
-                    const fetchMemberAndMap = async () => {
-                        if (!settings.showPerms) {
-                            return setUserMentionComponents(['None']);
-                        }
-
-                        const allUserOverwrites = Object.values(props.channel.permissionOverwrites).filter((user) =>
-                            Boolean(user && user?.type === 1)
-                        );
-
-                        for (const user of allUserOverwrites) {
-                            if (UserStore.getUser(user.id)) continue;
-
-                            await ProfileActions.fetchProfile(user.id, {
-                                guildId: props.guild.id,
-                                withMutualGuilds: false,
-                            });
-                        }
-
-                        const filteredUserOverwrites = Object.values(props.channel.permissionOverwrites).filter((user) =>
-                            Boolean(
-                                PermissionUtils.can({
-                                    permission: DiscordConstants.Permissions.VIEW_CHANNEL,
-                                    user: UserStore.getUser(user.id),
-                                    context: props.channel,
-                                }) && GuildMemberStore.isMember(props.guild.id, user.id)
-                            )
-                        );
-
-                        if (!filteredUserOverwrites?.length) {
-                            return setUserMentionComponents(['None']);
-                        }
-
-                        const mentionArray = filteredUserOverwrites.map((m) =>
-                            UserMentions.react(
-                                {
-                                    userId: m.id,
-                                    channelId: props.channel.id,
-                                },
-                                () => null,
-                                {
-                                    noStyleAndInteraction: false,
-                                }
-                            )
-                        );
-
-                        return setUserMentionComponents(mentionArray);
-                    };
-
-                    React.useEffect(() => {
-                        fetchMemberAndMap();
-                    }, [props.channel.id, props.guild.id, settings.showPerms]);
-
-                    return React.createElement(
-                        TextElement,
-                        {
-                            color: TextElement.Colors.INTERACTIVE_NORMAL,
-                            size: TextElement.Sizes.SIZE_14,
-                        },
-                        'Users that can see this channel: ',
-                        React.createElement(
-                            'div',
-                            {
-                                style: {
-                                    marginTop: 8,
-                                    marginBottom: 8,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    flexWrap: 'wrap',
-                                    gap: 8,
-                                    padding: 8,
-                                    paddingTop: 0,
-                                },
-                            },
-                            ...userMentionComponents
-                        )
-                    );
-                }
-
-                function ChannelRolesComponent({ props, settings, roles }) {
-                    return React.createElement(
-                        TextElement,
-                        {
-                            color: TextElement.Colors.INTERACTIVE_NORMAL,
-                            style: {
-                                borderTop: '1px solid var(--background-tertiary)',
-                                padding: 8,
-                            },
-                        },
-                        'Channel-specific roles: ',
-                        React.createElement(
-                            'div',
-                            {
-                                style: {
-                                    paddingTop: 8,
-                                },
-                            },
-                            ...(() => {
-                                const channelRoles = Object.values(props.channel.permissionOverwrites).filter(
-                                    (role) =>
-                                        role !== undefined &&
-                                        role?.type == 0 &&
-                                        //* 1024n = VIEW_CHANNEL permission
-                                        //* 8n = ADMINISTRATOR permission
-                                        //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
-                                        ((settings.showAdmin && (roles[role.id].permissions & BigInt(8)) == BigInt(8)) ||
-                                            //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
-                                            (role.allow & BigInt(1024)) == BigInt(1024) ||
-                                            //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
-                                            (roles[role.id].permissions & BigInt(1024) && (role.deny & BigInt(1024)) == 0))
-                                );
-
-                                if (!channelRoles?.length) {
-                                    return ['None'];
-                                }
-                                return channelRoles.map((m) =>
-                                    RolePill.render(
-                                        {
-                                            canRemove: false,
-                                            className: `${rolePill} shc-rolePill`,
-                                            disableBorderColor: true,
-                                            guildId: props.guild.id,
-                                            onRemove: DiscordConstants.NOOP,
-                                            role: roles[m.id],
-                                        },
-                                        DiscordConstants.NOOP
-                                    )
-                                );
-                            })()
-                        )
-                    );
-                }
-
-                function AdminRolesComponent({ props, settings, roles }) {
-                    return (
-                        settings['showAdmin'] &&
-                        settings['showAdmin'] != 'channel' &&
-                        React.createElement(
-                            TextElement,
-                            {
-                                color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                style: {
-                                    borderTop: '1px solid var(--background-tertiary)',
-                                    padding: 5,
-                                },
-                            },
-                            'Admin roles: ',
-                            React.createElement(
-                                'div',
-                                {
-                                    style: {
-                                        paddingTop: 5,
-                                    },
-                                },
-                                ...(() => {
-                                    const adminRoles = [];
-
-                                    Object.values(roles).forEach((role) => {
-                                        if (
-                                            (role.permissions & BigInt(8)) == BigInt(8) &&
-                                            (settings['showAdmin'] == 'include' ||
-                                                (settings['showAdmin'] == 'exclude' && !role.tags?.bot_id))
-                                        ) {
-                                            adminRoles.push(role);
-                                        }
-                                    });
-
-                                    if (!adminRoles?.length) {
-                                        return ['None'];
-                                    }
-
-                                    return adminRoles.map((m) =>
-                                        RolePill.render(
-                                            {
-                                                canRemove: false,
-                                                className: `${rolePill} shc-rolePill`,
-                                                disableBorderColor: true,
-                                                guildId: props.guild.id,
-                                                onRemove: DiscordConstants.NOOP,
-                                                role: m,
-                                            },
-                                            DiscordConstants.NOOP
-                                        )
-                                    );
-                                })()
-                            )
-                        )
-                    );
-                }
-
-                function ForumComponent({ props }) {
-                    if (props.channel.type != 15) return null;
-                    if (!props.channel.availableTags && !props.channel.topic) {
-                        return null;
-                    }
-
-                    return React.createElement(
-                        TextElement,
-                        {
-                            color: TextElement.Colors.HEADER_SECONDARY,
-                            size: TextElement.Sizes.SIZE_24,
-                            style: {
-                                margin: '16px auto',
-                                backgroundColor: 'var(--background-secondary)',
-                                padding: 24,
-                                borderRadius: 8,
-                                color: 'var(--text-normal)',
-                                fontWeight: 'bold',
-                                maxWidth: '40vw',
-                            },
-                        },
-                        'Forum',
-
-                        //* Tags
-                        React.createElement(
-                            TextElement,
-                            {
-                                color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                size: TextElement.Sizes.SIZE_14,
-                                style: {
-                                    marginTop: 24,
-                                },
-                            },
-                            props.channel.availableTags && props.channel.availableTags.length > 0
-                                ? 'Tags: ' + props.channel.availableTags.map((tag) => tag.name).join(', ')
-                                : 'Tags: No tags avaiable'
-                        ),
-                        //* Guidelines
-                        props.channel.topic &&
-                            React.createElement(
-                                TextElement,
-                                {
-                                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                    size: TextElement.Sizes.SIZE_14,
-                                    style: {
-                                        marginTop: 16,
-                                    },
-                                },
-                                'Guidelines: ',
-                                props.channel.topic
-                            ),
-                        !props.channel.topic &&
-                            React.createElement(
-                                TextElement,
-                                {
-                                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                    size: TextElement.Sizes.SIZE_14,
-                                    style: {
-                                        marginTop: 8,
-                                    },
-                                },
-                                'Guidelines: No guidelines avaiable'
-                            )
-                    );
-                }
-
                 return React.memo((props) => {
                     const guildRoles = GuildStore.getRoles(props.guild.id);
 
@@ -1229,6 +975,13 @@ const MyPlugin = (([Pl, Lib]) => {
                                     React.createElement(UserMentionsComponent, {
                                         props,
                                         settings: this.settings,
+                                        TextElement,
+                                        UserMentions,
+                                        ProfileActions,
+                                        GuildMemberStore,
+                                        UserStore,
+                                        DiscordConstants,
+                                        PermissionUtils,
                                     }),
 
                                     //* Channel Roles
@@ -1236,6 +989,10 @@ const MyPlugin = (([Pl, Lib]) => {
                                         props,
                                         settings: this.settings,
                                         roles: guildRoles,
+                                        TextElement,
+                                        RolePill,
+                                        DiscordConstants,
+                                        rolePill,
                                     }),
 
                                     //* Admin Roles
@@ -1243,12 +1000,17 @@ const MyPlugin = (([Pl, Lib]) => {
                                         props,
                                         settings: this.settings,
                                         roles: guildRoles,
+                                        TextElement,
+                                        RolePill,
+                                        DiscordConstants,
+                                        rolePill,
                                     })
                                 ),
 
                             //* Forums
                             React.createElement(ForumComponent, {
                                 props,
+                                TextElement,
                             })
                         )
                     );

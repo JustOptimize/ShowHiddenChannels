@@ -1,4 +1,3 @@
-const React = BdApi.React;
 const Tooltip = BdApi.Components.Tooltip;
 
 export default function HiddenChannelIcon({ icon, iconItem, actionIcon }) {
