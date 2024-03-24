@@ -1,4 +1,6 @@
-export default function ForumComponent({ channel, TextElement }) {
+const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+
+export default function ForumComponent({ channel }) {
     if (channel.type != 15) return null;
     if (!channel.availableTags && !channel.topic) {
         return null;

@@ -1,4 +1,6 @@
-export default function AdminRolesComponent({ guild, settings, roles, TextElement, RolePill, DiscordConstants, rolePill }) {
+const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+
+export default function AdminRolesComponent({ guild, settings, roles, RolePill, DiscordConstants, rolePill }) {
     if (!settings['showAdmin']) return null;
     if (settings['showAdmin'] == 'channel') return null;
 

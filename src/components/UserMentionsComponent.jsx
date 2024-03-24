@@ -1,10 +1,10 @@
 const React = BdApi.React;
+const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
 
 export default function UserMentionsComponent({
     channel,
     guild,
     settings,
-    TextElement,
     UserMentions,
     ProfileActions,
     GuildMemberStore,
