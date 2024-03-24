@@ -20,7 +20,7 @@ module.exports = {
     output: {
         filename: 'ShowHiddenChannels.plugin.js',
         // eslint-disable-next-line no-undef
-        path: path.join(__dirname, 'dist'),
+        path: __dirname, //todo: use github releases instead -> path.join(__dirname, 'dist')
         libraryTarget: 'commonjs2',
         libraryExport: 'default',
         compareBeforeEmit: false,
