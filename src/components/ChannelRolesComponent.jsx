@@ -1,5 +1,5 @@
-export default function ChannelRolesComponent({ props, settings, roles, TextElement, RolePill, DiscordConstants, rolePill }) {
-    const channelRoles = Object.values(props.channel.permissionOverwrites).filter(
+export default function ChannelRolesComponent({ channel, guild, settings, roles, TextElement, RolePill, DiscordConstants, rolePill }) {
+    const channelRoles = Object.values(channel.permissionOverwrites).filter(
         (role) =>
             role !== undefined &&
             role?.type == 0 &&
@@ -37,7 +37,7 @@ export default function ChannelRolesComponent({ props, settings, roles, TextElem
                             canRemove: false,
                             className: `${rolePill} shc-rolePill`,
                             disableBorderColor: true,
-                            guildId: props.guild.id,
+                            guildId: guild.id,
                             onRemove: DiscordConstants.NOOP,
                             role: roles[m.id],
                         },

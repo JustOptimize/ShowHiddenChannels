@@ -1,4 +1,4 @@
-export default function AdminRolesComponent({ props, settings, roles, TextElement, RolePill, DiscordConstants, rolePill }) {
+export default function AdminRolesComponent({ guild, settings, roles, TextElement, RolePill, DiscordConstants, rolePill }) {
     if (!settings['showAdmin']) return null;
     if (settings['showAdmin'] == 'channel') return null;
 
@@ -36,7 +36,7 @@ export default function AdminRolesComponent({ props, settings, roles, TextElemen
                             canRemove: false,
                             className: `${rolePill} shc-rolePill`,
                             disableBorderColor: true,
-                            guildId: props.guild.id,
+                            guildId: guild.id,
                             onRemove: DiscordConstants.NOOP,
                             role: m,
                         },

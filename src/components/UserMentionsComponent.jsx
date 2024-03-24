@@ -1,7 +1,8 @@
 const React = BdApi.React;
 
 export default function UserMentionsComponent({
-    props,
+    channel,
+    guild,
     settings,
     TextElement,
     UserMentions,
@@ -18,24 +19,24 @@ export default function UserMentionsComponent({
             return setUserMentionComponents(['None']);
         }
 
-        const allUserOverwrites = Object.values(props.channel.permissionOverwrites).filter((user) => Boolean(user && user?.type === 1));
+        const allUserOverwrites = Object.values(channel.permissionOverwrites).filter((user) => Boolean(user && user?.type === 1));
 
         for (const user of allUserOverwrites) {
             if (UserStore.getUser(user.id)) continue;
 
             await ProfileActions.fetchProfile(user.id, {
-                guildId: props.guild.id,
+                guildId: guild.id,
                 withMutualGuilds: false,
             });
         }
 
-        const filteredUserOverwrites = Object.values(props.channel.permissionOverwrites).filter((user) =>
+        const filteredUserOverwrites = Object.values(channel.permissionOverwrites).filter((user) =>
             Boolean(
                 PermissionUtils.can({
                     permission: DiscordConstants.Permissions.VIEW_CHANNEL,
                     user: UserStore.getUser(user.id),
-                    context: props.channel,
-                }) && GuildMemberStore.isMember(props.guild.id, user.id)
+                    context: channel,
+                }) && GuildMemberStore.isMember(guild.id, user.id)
             )
         );
 
@@ -47,7 +48,7 @@ export default function UserMentionsComponent({
             UserMentions.react(
                 {
                     userId: m.id,
-                    channelId: props.channel.id,
+                    channelId: channel.id,
                 },
                 () => null,
                 {
@@ -61,7 +62,7 @@ export default function UserMentionsComponent({
 
     React.useEffect(() => {
         fetchMemberAndMap();
-    }, [props.channel.id, props.guild.id, settings.showPerms]);
+    }, [channel.id, guild.id, settings.showPerms]);
 
     return (
         <TextElement color={TextElement.Colors.INTERACTIVE_NORMAL} size={TextElement.Sizes.SIZE_14}>

@@ -1,8 +1,5 @@
-import AdminRolesComponent from './components/AdminRolesComponent';
-import ChannelRolesComponent from './components/ChannelRolesComponent';
-import ForumComponent from './components/ForumComponent';
 import IconSwitchWrapper from './components/IconSwitchWrapper';
-import UserMentionsComponent from './components/UserMentionsComponent';
+import Lockscreen from './components/Lockscreen';
 import HiddenChannelIcon from './components/hiddenChannelIcon';
 import styles from './styles.css';
 
@@ -529,9 +526,22 @@ const MyPlugin = (([Pl, Lib]) => {
 
                     if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
                         res.props.render = () =>
-                            React.createElement(this.lockscreen(), {
-                                channel: channel,
+                            React.createElement(Lockscreen, {
+                                GuildStore,
+                                chat,
+                                channel,
+                                TextElement,
+                                ChannelUtils,
+                                UserMentions,
+                                ProfileActions,
+                                GuildMemberStore,
+                                UserStore,
+                                DiscordConstants,
+                                PermissionUtils,
+                                RolePill,
+                                rolePill,
                                 guild: GuildStore.getGuild(guildId),
+                                settings: this.settings,
                             });
                     }
 
@@ -805,241 +815,6 @@ const MyPlugin = (([Pl, Lib]) => {
                 }
 
                 ContextMenu?.patch('guild-context', this.processContextMenu);
-            }
-
-            lockscreen() {
-                return React.memo((props) => {
-                    const guildRoles = GuildStore.getRoles(props.guild.id);
-
-                    return React.createElement(
-                        'div',
-                        {
-                            className: ['shc-hidden-chat-content', chat].filter(Boolean).join(' '),
-                            style: {
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            },
-                        },
-                        React.createElement(
-                            'div',
-                            {
-                                className: 'shc-hidden-notice',
-                            },
-                            React.createElement('img', {
-                                style: {
-                                    WebkitUserDrag: 'none',
-                                    maxHeight: 128,
-                                },
-                                src:
-                                    this.settings['hiddenChannelIcon'] == 'eye'
-                                        ? 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/assets/eye.png'
-                                        : '/assets/755d4654e19c105c3cd108610b78d01c.svg',
-                            }),
-                            React.createElement(
-                                TextElement,
-                                {
-                                    color: TextElement.Colors.HEADER_PRIMARY,
-                                    size: TextElement.Sizes.SIZE_32,
-                                    style: {
-                                        marginTop: 20,
-                                        fontWeight: 'bold',
-                                    },
-                                },
-                                // forum = 15, text = 0, voice = 2, announcement = 5, stage = 13
-                                `This is a hidden ${
-                                    props.channel.type == 15
-                                        ? 'forum'
-                                        : props.channel.type == 0
-                                        ? 'text'
-                                        : props.channel.type == 2
-                                        ? 'voice'
-                                        : props.channel.type == 5
-                                        ? 'announcement'
-                                        : props.channel.type == 13
-                                        ? 'stage'
-                                        : ''
-                                } channel`
-                            ),
-                            React.createElement(
-                                TextElement,
-                                {
-                                    color: TextElement.Colors.HEADER_SECONDARY,
-                                    size: TextElement.Sizes.SIZE_16,
-                                    style: {
-                                        marginTop: 8,
-                                    },
-                                },
-                                'You cannot see the contents of this channel. ',
-                                props.channel.topic && props.channel.type != 15 && 'However, you may see its topic.'
-                            ),
-                            //* Topic
-                            props.channel.topic &&
-                                props.channel.type != 15 &&
-                                (ChannelUtils?.renderTopic(props.channel, props.guild) ||
-                                    "ChannelUtils module is missing, topic won't be shown."),
-
-                            //* Icon Emoji
-                            props.channel?.iconEmoji &&
-                                React.createElement(
-                                    TextElement,
-                                    {
-                                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                        size: TextElement.Sizes.SIZE_14,
-                                        style: {
-                                            marginTop: 16,
-                                        },
-                                    },
-                                    'Icon emoji: ',
-                                    props.channel.iconEmoji.name ?? props.channel.iconEmoji.id
-                                ),
-
-                            //* Slowmode
-                            props.channel.rateLimitPerUser > 0 &&
-                                React.createElement(
-                                    TextElement,
-                                    {
-                                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                        size: TextElement.Sizes.SIZE_14,
-                                    },
-                                    'Slowmode: ',
-                                    this.convertToHMS(props.channel.rateLimitPerUser)
-                                ),
-
-                            //* NSFW
-                            props.channel.nsfw &&
-                                React.createElement(
-                                    TextElement,
-                                    {
-                                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                        size: TextElement.Sizes.SIZE_14,
-                                    },
-                                    'Age-Restricted Channel (NSFW) 🔞'
-                                ),
-
-                            //* Bitrate
-                            props.channel.bitrate &&
-                                props.channel.type == 2 &&
-                                React.createElement(
-                                    TextElement,
-                                    {
-                                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                        size: TextElement.Sizes.SIZE_14,
-                                    },
-                                    'Bitrate: ',
-                                    props.channel.bitrate / 1000,
-                                    'kbps'
-                                ),
-
-                            //* Creation date
-                            React.createElement(
-                                TextElement,
-                                {
-                                    color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                    size: TextElement.Sizes.SIZE_14,
-                                    style: {
-                                        marginTop: 8,
-                                    },
-                                },
-                                'Created on: ',
-                                this.getDateFromSnowflake(props.channel.id)
-                            ),
-
-                            //* Last message
-                            props.channel.lastMessageId &&
-                                React.createElement(
-                                    TextElement,
-                                    {
-                                        color: TextElement.Colors.INTERACTIVE_NORMAL,
-                                        size: TextElement.Sizes.SIZE_14,
-                                    },
-                                    'Last message sent: ',
-                                    this.getDateFromSnowflake(props.channel.lastMessageId)
-                                ),
-
-                            //* Permissions
-                            this.settings['showPerms'] &&
-                                props.channel.permissionOverwrites &&
-                                React.createElement(
-                                    'div',
-                                    {
-                                        style: {
-                                            margin: '16px auto 0 auto',
-                                            backgroundColor: 'var(--background-secondary)',
-                                            padding: 10,
-                                            borderRadius: 5,
-                                            color: 'var(--text-normal)',
-                                        },
-                                    },
-
-                                    //* Users
-                                    React.createElement(UserMentionsComponent, {
-                                        props,
-                                        settings: this.settings,
-                                        TextElement,
-                                        UserMentions,
-                                        ProfileActions,
-                                        GuildMemberStore,
-                                        UserStore,
-                                        DiscordConstants,
-                                        PermissionUtils,
-                                    }),
-
-                                    //* Channel Roles
-                                    React.createElement(ChannelRolesComponent, {
-                                        props,
-                                        settings: this.settings,
-                                        roles: guildRoles,
-                                        TextElement,
-                                        RolePill,
-                                        DiscordConstants,
-                                        rolePill,
-                                    }),
-
-                                    //* Admin Roles
-                                    React.createElement(AdminRolesComponent, {
-                                        props,
-                                        settings: this.settings,
-                                        roles: guildRoles,
-                                        TextElement,
-                                        RolePill,
-                                        DiscordConstants,
-                                        rolePill,
-                                    })
-                                ),
-
-                            //* Forums
-                            React.createElement(ForumComponent, {
-                                props,
-                                TextElement,
-                            })
-                        )
-                    );
-                });
-            }
-
-            convertToHMS(timeInSeconds) {
-                timeInSeconds = Number(timeInSeconds);
-
-                const hours = Math.floor(timeInSeconds / 3600);
-                const minutes = Math.floor((timeInSeconds % 3600) / 60);
-                const seconds = Math.floor((timeInSeconds % 3600) % 60);
-
-                const formatTime = (value, unit) => (value > 0 ? `${value} ${unit}${value > 1 ? 's' : ''}` : '');
-
-                return [formatTime(hours, 'hour'), formatTime(minutes, 'minute'), formatTime(seconds, 'second')].join(' ');
-            }
-
-            getDateFromSnowflake(snowflake) {
-                try {
-                    const DISCORD_EPOCH = 1420070400000n;
-                    const id = BigInt(snowflake);
-                    const unix = (id >> 22n) + DISCORD_EPOCH;
-
-                    return new Date(Number(unix)).toLocaleString(LocaleManager._chosenLocale);
-                } catch (err) {
-                    Logger.err(err);
-                    return '(Failed to get date)';
-                }
             }
 
             processContextMenu(menu, { guild }) {

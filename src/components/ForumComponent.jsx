@@ -1,6 +1,6 @@
-export default function ForumComponent({ props, TextElement }) {
-    if (props.channel.type != 15) return null;
-    if (!props.channel.availableTags && !props.channel.topic) {
+export default function ForumComponent({ channel, TextElement }) {
+    if (channel.type != 15) return null;
+    if (!channel.availableTags && !channel.topic) {
         return null;
     }
 
@@ -27,12 +27,12 @@ export default function ForumComponent({ props, TextElement }) {
                     marginTop: 24,
                 }}
             >
-                {props.channel.availableTags && props.channel.availableTags.length > 0
-                    ? 'Tags: ' + props.channel.availableTags.map((tag) => tag.name).join(', ')
+                {channel.availableTags && channel.availableTags.length > 0
+                    ? 'Tags: ' + channel.availableTags.map((tag) => tag.name).join(', ')
                     : 'Tags: No tags avaiable'}
             </TextElement>
             {/* Guidelines */}
-            {props.channel.topic && (
+            {channel.topic && (
                 <TextElement
                     color={TextElement.Colors.INTERACTIVE_NORMAL}
                     size={TextElement.Sizes.SIZE_14}
@@ -40,10 +40,10 @@ export default function ForumComponent({ props, TextElement }) {
                         marginTop: 16,
                     }}
                 >
-                    Guidelines: {props.channel.topic}
+                    Guidelines: {channel.topic}
                 </TextElement>
             )}
-            {!props.channel.topic && (
+            {!channel.topic && (
                 <TextElement
                     color={TextElement.Colors.INTERACTIVE_NORMAL}
                     size={TextElement.Sizes.SIZE_14}
