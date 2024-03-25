@@ -841,7 +841,7 @@ export default !global.ZeresPluginLibrary
                   }
 
                   onStop() {
-                      Patcher.unpatchAll(config.info.name);
+                      Patcher.unpatchAll();
                       DOMTools.removeStyle(config.info.name);
                       ContextMenu.unpatch('guild-context', this.processContextMenu);
                       this.rerenderChannels();

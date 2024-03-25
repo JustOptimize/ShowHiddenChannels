@@ -6,19 +6,7 @@ import AdminRolesComponent from './AdminRolesComponent';
 import ForumComponent from './ForumComponent';
 import { convertToHMS, getDateFromSnowflake } from '../utils/date';
 
-const {
-    TextElement,
-    GuildStore,
-    ChannelUtils,
-    UserMentions,
-    ProfileActions,
-    GuildMemberStore,
-    UserStore,
-    DiscordConstants,
-    PermissionUtils,
-    RolePill,
-    rolePill,
-} = require('../utils/modules').ModuleStore;
+const { TextElement, GuildStore, ChannelUtils } = require('../utils/modules').ModuleStore;
 
 export default React.memo(
     ({
@@ -196,13 +184,6 @@ export default React.memo(
                             channel,
                             guild,
                             settings: settings,
-                            TextElement,
-                            UserMentions,
-                            ProfileActions,
-                            GuildMemberStore,
-                            UserStore,
-                            DiscordConstants,
-                            PermissionUtils,
                         }),
 
                         //* Channel Roles
@@ -211,10 +192,6 @@ export default React.memo(
                             guild,
                             settings: settings,
                             roles: guildRoles,
-                            TextElement,
-                            RolePill,
-                            DiscordConstants,
-                            rolePill,
                         }),
 
                         //* Admin Roles
@@ -222,17 +199,12 @@ export default React.memo(
                             guild,
                             settings: settings,
                             roles: guildRoles,
-                            TextElement,
-                            RolePill,
-                            DiscordConstants,
-                            rolePill,
                         })
                     ),
 
                 //* Forums
                 React.createElement(ForumComponent, {
                     channel,
-                    TextElement,
                 })
             )
         );

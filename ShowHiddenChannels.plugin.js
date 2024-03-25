@@ -21,14 +21,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ AdminRolesComponent)
 /* harmony export */ });
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
-function AdminRolesComponent({
-  guild,
-  settings,
-  roles,
+const {
+  TextElement,
   RolePill,
   DiscordConstants,
   rolePill
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+function AdminRolesComponent({
+  guild,
+  settings,
+  roles
 }) {
   if (!settings['showAdmin']) return null;
   if (settings['showAdmin'] == 'channel') return null;
@@ -73,15 +75,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ ChannelRolesComponent)
 /* harmony export */ });
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+const {
+  TextElement,
+  RolePill,
+  DiscordConstants,
+  rolePill
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
 function ChannelRolesComponent({
   channel,
   guild,
   settings,
-  roles,
-  RolePill,
-  DiscordConstants,
-  rolePill
+  roles
 }) {
   const channelRoles = Object.values(channel.permissionOverwrites).filter(role => role !== undefined && role?.type == 0 && (
   //* 1024n = VIEW_CHANNEL permission
@@ -303,15 +307,7 @@ const React = BdApi.React;
 const {
   TextElement,
   GuildStore,
-  ChannelUtils,
-  UserMentions,
-  ProfileActions,
-  GuildMemberStore,
-  UserStore,
-  DiscordConstants,
-  PermissionUtils,
-  RolePill,
-  rolePill
+  ChannelUtils
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(({
   chat,
@@ -405,40 +401,24 @@ const {
   React.createElement(_UserMentionsComponent__WEBPACK_IMPORTED_MODULE_0__["default"], {
     channel,
     guild,
-    settings: settings,
-    TextElement,
-    UserMentions,
-    ProfileActions,
-    GuildMemberStore,
-    UserStore,
-    DiscordConstants,
-    PermissionUtils
+    settings: settings
   }),
   //* Channel Roles
   React.createElement(_ChannelRolesComponent__WEBPACK_IMPORTED_MODULE_1__["default"], {
     channel,
     guild,
     settings: settings,
-    roles: guildRoles,
-    TextElement,
-    RolePill,
-    DiscordConstants,
-    rolePill
+    roles: guildRoles
   }),
   //* Admin Roles
   React.createElement(_AdminRolesComponent__WEBPACK_IMPORTED_MODULE_2__["default"], {
     guild,
     settings: settings,
-    roles: guildRoles,
-    TextElement,
-    RolePill,
-    DiscordConstants,
-    rolePill
+    roles: guildRoles
   })),
   //* Forums
   React.createElement(_ForumComponent__WEBPACK_IMPORTED_MODULE_3__["default"], {
-    channel,
-    TextElement
+    channel
   })));
 }));
 
@@ -455,17 +435,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ UserMentionsComponent)
 /* harmony export */ });
 const React = BdApi.React;
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
-function UserMentionsComponent({
-  channel,
-  guild,
-  settings,
+const {
+  TextElement,
   UserMentions,
   ProfileActions,
   GuildMemberStore,
   UserStore,
   DiscordConstants,
   PermissionUtils
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+function UserMentionsComponent({
+  channel,
+  guild,
+  settings
 }) {
   const [userMentionComponents, setUserMentionComponents] = React.useState([]);
   const fetchMemberAndMap = async () => {
@@ -1652,7 +1634,7 @@ class MissingZeresDummy {
                   }
 
                   onStop() {
-                      Patcher.unpatchAll(config.info.name);
+                      Patcher.unpatchAll();
                       DOMTools.removeStyle(config.info.name);
                       ContextMenu.unpatch('guild-context', this.processContextMenu);
                       this.rerenderChannels();

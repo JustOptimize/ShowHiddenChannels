@@ -1,17 +1,9 @@
 const React = BdApi.React;
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
 
-export default function UserMentionsComponent({
-    channel,
-    guild,
-    settings,
-    UserMentions,
-    ProfileActions,
-    GuildMemberStore,
-    UserStore,
-    DiscordConstants,
-    PermissionUtils,
-}) {
+const { TextElement, UserMentions, ProfileActions, GuildMemberStore, UserStore, DiscordConstants, PermissionUtils } =
+    require('../utils/modules').ModuleStore;
+
+export default function UserMentionsComponent({ channel, guild, settings }) {
     const [userMentionComponents, setUserMentionComponents] = React.useState([]);
 
     const fetchMemberAndMap = async () => {

@@ -1,6 +1,6 @@
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+const { TextElement, RolePill, DiscordConstants, rolePill } = require('../utils/modules').ModuleStore;
 
-export default function ChannelRolesComponent({ channel, guild, settings, roles, RolePill, DiscordConstants, rolePill }) {
+export default function ChannelRolesComponent({ channel, guild, settings, roles }) {
     const channelRoles = Object.values(channel.permissionOverwrites).filter(
         (role) =>
             role !== undefined &&
