@@ -1,6 +1,6 @@
 import IconSwitchWrapper from './components/IconSwitchWrapper';
 import Lockscreen from './components/Lockscreen';
-import HiddenChannelIcon from './components/hiddenChannelIcon';
+import HiddenChannelIcon from './components/HiddenChannelIcon';
 import styles from './styles.css';
 
 const config = {
@@ -79,7 +79,7 @@ class MissingZeresDummy {
             type: 'info',
         });
 
-        //TODO: Use BdApi.Net.fetch
+        // TODO: Use BdApi.Net.fetch
         eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
             if (err) return this.downloadZLibErrorPopup();
 
@@ -142,84 +142,9 @@ export default !global.ZeresPluginLibrary
     ? MissingZeresDummy
     : (([Pl, Lib]) => {
           const plugin = (Plugin, Library) => {
+              const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
+
               const {
-                  WebpackModules,
-                  Patcher,
-                  Utilities,
-                  DOMTools,
-                  Logger,
-                  ReactTools,
-                  Modals,
-
-                  Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
-
-                  DiscordModules: {
-                      ChannelStore,
-                      MessageActions,
-                      TextElement,
-                      React,
-                      ReactDOM,
-                      GuildChannelsStore,
-                      GuildMemberStore,
-                      LocaleManager,
-                      NavigationUtils,
-                      ImageResolver,
-                      UserStore,
-                      Dispatcher,
-                  },
-              } = Library;
-
-              const Tooltip = window.BdApi?.Components?.Tooltip;
-              const ContextMenu = window.BdApi?.ContextMenu;
-              const Utils = window.BdApi?.Utils;
-              const BetterWebpackModules = window.BdApi.Webpack;
-
-              const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
-              const DiscordConstants = WebpackModules.getByProps('Permissions', 'ChannelTypes');
-              const chat = WebpackModules.getByProps('chat', 'chatContent')?.chat;
-
-              const Route = WebpackModules.getModule((m) => m?.default?.toString().includes('.Route,{...'));
-
-              const ChannelItem = WebpackModules.getByProps('ChannelItemIcon');
-              const ChannelItemUtils = WebpackModules.getByProps(
-                  'getChannelIconComponent',
-                  'getChannelIconTooltipText',
-                  'getSimpleChannelIconComponent'
-              );
-
-              const rolePill = WebpackModules.getByProps('rolePill', 'rolePillBorder')?.rolePill;
-              const ChannelPermissionStore = WebpackModules.getByProps('getChannelPermissions');
-
-              const PermissionStoreActionHandler = Utils?.findInTree(
-                  Dispatcher,
-                  (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
-              )?.actionHandler;
-              const ChannelListStoreActionHandler = Utils?.findInTree(
-                  Dispatcher,
-                  (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
-              )?.actionHandler;
-
-              const container = WebpackModules.getByProps('container', 'hubContainer')?.container;
-              const Channel = WebpackModules.getByProps('ChannelRecordBase')?.ChannelRecordBase;
-
-              const ChannelListStore = WebpackModules.getByProps('getGuildWithoutChangingCommunityRows');
-              const DEFAULT_AVATARS = WebpackModules.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
-
-              const Icon = WebpackModules.getByProps('iconItem');
-              const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
-
-              const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
-              const Voice = WebpackModules.getByProps('getVoiceStateStats');
-              const RolePill = WebpackModules.getByProps('MemberRole')?.MemberRole;
-              const UserMentions = WebpackModules.getByProps('handleUserContextMenu');
-              const ChannelUtils = WebpackModules.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
-
-              const ProfileActions = WebpackModules.getByProps('fetchProfile', 'getUser');
-              const PermissionUtils = WebpackModules.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
-
-              const CategoryStore = WebpackModules.getByProps('isCollapsed', 'getCollapsedCategories');
-
-              const UsedModules = {
                   /* Library */
                   Utilities,
                   DOMTools,
@@ -237,21 +162,14 @@ export default !global.ZeresPluginLibrary
                   /* Discord Modules (From lib) */
                   ChannelStore,
                   MessageActions,
-                  TextElement,
                   React,
                   ReactDOM,
                   GuildChannelsStore,
-                  GuildMemberStore,
-                  LocaleManager,
                   NavigationUtils,
                   ImageResolver,
-                  UserStore,
-                  Dispatcher,
 
                   /* BdApi */
-                  Tooltip,
                   ContextMenu,
-                  Utils,
 
                   /* Manually found modules */
                   GuildStore,
@@ -260,7 +178,6 @@ export default !global.ZeresPluginLibrary
                   Route,
                   ChannelItem,
                   ChannelItemUtils,
-                  rolePill,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
@@ -272,15 +189,10 @@ export default !global.ZeresPluginLibrary
                   actionIcon,
                   ReadStateStore,
                   Voice,
-                  RolePill,
-                  UserMentions,
-                  ChannelUtils,
-                  ProfileActions,
-                  PermissionUtils,
                   CategoryStore,
-              };
+              } = require('./utils/modules').ModuleStore;
 
-              const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
+              const Patcher = Library.Patcher;
 
               const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
               const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
@@ -307,23 +219,6 @@ export default !global.ZeresPluginLibrary
 
                   blacklistedGuilds: {},
               };
-
-              function checkVariables() {
-                  for (const variable in UsedModules) {
-                      if (!UsedModules[variable]) {
-                          Logger.error('Variable not found: ' + variable);
-                      }
-                  }
-
-                  if (Object.values(UsedModules).includes(undefined)) {
-                      return false;
-                  }
-
-                  Logger.info('All variables found.');
-                  return true;
-              }
-
-              const loaded_successfully = checkVariables();
 
               return class ShowHiddenChannels extends Plugin {
                   constructor() {
@@ -410,6 +305,8 @@ export default !global.ZeresPluginLibrary
 
                   onStart() {
                       this.checkForUpdates();
+
+                      const { loaded_successfully } = require('./utils/modules');
 
                       if (loaded_successfully) {
                           this.doStart();
@@ -533,20 +430,8 @@ export default !global.ZeresPluginLibrary
                           if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
                               res.props.render = () =>
                                   React.createElement(Lockscreen, {
-                                      GuildStore,
                                       chat,
                                       channel,
-                                      TextElement,
-                                      ChannelUtils,
-                                      UserMentions,
-                                      ProfileActions,
-                                      GuildMemberStore,
-                                      UserStore,
-                                      DiscordConstants,
-                                      PermissionUtils,
-                                      RolePill,
-                                      rolePill,
-                                      guild: GuildStore.getGuild(guildId),
                                       settings: this.settings,
                                   });
                           }
@@ -956,7 +841,7 @@ export default !global.ZeresPluginLibrary
                   }
 
                   onStop() {
-                      Patcher.unpatchAll();
+                      Patcher.unpatchAll(config.info.name);
                       DOMTools.removeStyle(config.info.name);
                       ContextMenu.unpatch('guild-context', this.processContextMenu);
                       this.rerenderChannels();

@@ -6,27 +6,28 @@ import AdminRolesComponent from './AdminRolesComponent';
 import ForumComponent from './ForumComponent';
 import { convertToHMS, getDateFromSnowflake } from '../utils/date';
 
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+const {
+    TextElement,
+    GuildStore,
+    ChannelUtils,
+    UserMentions,
+    ProfileActions,
+    GuildMemberStore,
+    UserStore,
+    DiscordConstants,
+    PermissionUtils,
+    RolePill,
+    rolePill,
+} = require('../utils/modules').ModuleStore;
 
 export default React.memo(
     ({
-        GuildStore,
         chat,
-        ChannelUtils,
-        UserMentions,
-        ProfileActions,
-        GuildMemberStore,
-        UserStore,
-        DiscordConstants,
-        PermissionUtils,
-        RolePill,
-        rolePill,
-
         channel,
-        guild,
 
         settings,
     }) => {
+        const guild = GuildStore.getGuild(channel.guild_id);
         const guildRoles = GuildStore.getRoles(guild.id);
 
         // TODO: Use tags instead of create element

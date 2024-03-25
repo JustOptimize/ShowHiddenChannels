@@ -170,6 +170,53 @@ function ForumComponent({
 
 /***/ }),
 
+/***/ "./src/components/HiddenChannelIcon.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/HiddenChannelIcon.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ HiddenChannelIcon)
+/* harmony export */ });
+function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+const Tooltip = BdApi.Components.Tooltip;
+function HiddenChannelIcon({
+  icon,
+  iconItem,
+  actionIcon
+}) {
+  return BdApi.React.createElement(Tooltip, {
+    text: "Hidden Channel"
+  }, props => BdApi.React.createElement("div", _extends({
+    className: iconItem,
+    style: {
+      display: 'block'
+    }
+  }, props), icon == 'lock' && BdApi.React.createElement("svg", {
+    className: actionIcon,
+    viewBox: "0 0 24 24"
+  }, BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z"
+  })), icon == 'eye' && BdApi.React.createElement("svg", {
+    className: actionIcon,
+    viewBox: "0 0 24 24"
+  }, BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z"
+  }), BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z"
+  }), BdApi.React.createElement("polygon", {
+    fill: "currentColor",
+    points: "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 "
+  }))));
+}
+
+/***/ }),
+
 /***/ "./src/components/IconSwitchWrapper.jsx":
 /*!**********************************************!*\
   !*** ./src/components/IconSwitchWrapper.jsx ***!
@@ -253,10 +300,9 @@ const React = BdApi.React;
 
 
 
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(({
+const {
+  TextElement,
   GuildStore,
-  chat,
   ChannelUtils,
   UserMentions,
   ProfileActions,
@@ -265,11 +311,14 @@ const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
   DiscordConstants,
   PermissionUtils,
   RolePill,
-  rolePill,
+  rolePill
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(({
+  chat,
   channel,
-  guild,
   settings
 }) => {
+  const guild = GuildStore.getGuild(channel.guild_id);
   const guildRoles = GuildStore.getRoles(guild.id);
 
   // TODO: Use tags instead of create element
@@ -469,53 +518,6 @@ function UserMentionsComponent({
 
 /***/ }),
 
-/***/ "./src/components/hiddenChannelIcon.jsx":
-/*!**********************************************!*\
-  !*** ./src/components/hiddenChannelIcon.jsx ***!
-  \**********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ HiddenChannelIcon)
-/* harmony export */ });
-function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-const Tooltip = BdApi.Components.Tooltip;
-function HiddenChannelIcon({
-  icon,
-  iconItem,
-  actionIcon
-}) {
-  return BdApi.React.createElement(Tooltip, {
-    text: "Hidden Channel"
-  }, props => BdApi.React.createElement("div", _extends({
-    className: iconItem,
-    style: {
-      display: 'block'
-    }
-  }, props), icon == 'lock' && BdApi.React.createElement("svg", {
-    className: actionIcon,
-    viewBox: "0 0 24 24"
-  }, BdApi.React.createElement("path", {
-    fill: "currentColor",
-    d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z"
-  })), icon == 'eye' && BdApi.React.createElement("svg", {
-    className: actionIcon,
-    viewBox: "0 0 24 24"
-  }, BdApi.React.createElement("path", {
-    fill: "currentColor",
-    d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z"
-  }), BdApi.React.createElement("path", {
-    fill: "currentColor",
-    d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z"
-  }), BdApi.React.createElement("polygon", {
-    fill: "currentColor",
-    points: "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 "
-  }))));
-}
-
-/***/ }),
-
 /***/ "./src/styles.css":
 /*!************************!*\
   !*** ./src/styles.css ***!
@@ -568,6 +570,171 @@ function getDateFromSnowflake(snowflake) {
         return '(Failed to get date)';
     }
 }
+
+
+/***/ }),
+
+/***/ "./src/utils/modules.js":
+/*!******************************!*\
+  !*** ./src/utils/modules.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ModuleStore: () => (/* binding */ ModuleStore),
+/* harmony export */   loaded_successfully: () => (/* binding */ loaded_successfully)
+/* harmony export */ });
+const {
+    WebpackModules,
+    Utilities,
+    DOMTools,
+    Logger,
+    ReactTools,
+    Modals,
+
+    Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
+
+    DiscordModules: {
+        ChannelStore,
+        MessageActions,
+        TextElement,
+        React,
+        ReactDOM,
+        GuildChannelsStore,
+        GuildMemberStore,
+        LocaleManager,
+        NavigationUtils,
+        ImageResolver,
+        UserStore,
+        Dispatcher,
+    },
+} = global.ZeresPluginLibrary;
+
+const Tooltip = window.BdApi?.Components?.Tooltip;
+const ContextMenu = window.BdApi?.ContextMenu;
+const Utils = window.BdApi?.Utils;
+const BetterWebpackModules = window.BdApi.Webpack;
+
+const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
+const DiscordConstants = WebpackModules.getByProps('Permissions', 'ChannelTypes');
+const chat = WebpackModules.getByProps('chat', 'chatContent')?.chat;
+
+const Route = WebpackModules.getModule((m) => m?.default?.toString().includes('.Route,{...'));
+
+const ChannelItem = WebpackModules.getByProps('ChannelItemIcon');
+const ChannelItemUtils = WebpackModules.getByProps('getChannelIconComponent', 'getChannelIconTooltipText', 'getSimpleChannelIconComponent');
+
+const rolePill = WebpackModules.getByProps('rolePill', 'rolePillBorder')?.rolePill;
+const ChannelPermissionStore = WebpackModules.getByProps('getChannelPermissions');
+
+const PermissionStoreActionHandler = Utils?.findInTree(
+    Dispatcher,
+    (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+)?.actionHandler;
+const ChannelListStoreActionHandler = Utils?.findInTree(
+    Dispatcher,
+    (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+)?.actionHandler;
+
+const container = WebpackModules.getByProps('container', 'hubContainer')?.container;
+const Channel = WebpackModules.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+
+const ChannelListStore = WebpackModules.getByProps('getGuildWithoutChangingCommunityRows');
+const DEFAULT_AVATARS = WebpackModules.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
+
+const Icon = WebpackModules.getByProps('iconItem');
+const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
+
+const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
+const Voice = WebpackModules.getByProps('getVoiceStateStats');
+const RolePill = WebpackModules.getByProps('MemberRole')?.MemberRole;
+const UserMentions = WebpackModules.getByProps('handleUserContextMenu');
+const ChannelUtils = WebpackModules.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
+
+const ProfileActions = WebpackModules.getByProps('fetchProfile', 'getUser');
+const PermissionUtils = WebpackModules.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
+
+const CategoryStore = WebpackModules.getByProps('isCollapsed', 'getCollapsedCategories');
+
+const UsedModules = {
+    /* Library */
+    Utilities,
+    DOMTools,
+    Logger,
+    ReactTools,
+    Modals,
+
+    /* Settings */
+    SettingField,
+    SettingPanel,
+    SettingGroup,
+    Switch,
+    RadioGroup,
+
+    /* Discord Modules (From lib) */
+    ChannelStore,
+    MessageActions,
+    TextElement,
+    React,
+    ReactDOM,
+    GuildChannelsStore,
+    GuildMemberStore,
+    LocaleManager,
+    NavigationUtils,
+    ImageResolver,
+    UserStore,
+    Dispatcher,
+
+    /* BdApi */
+    Tooltip,
+    ContextMenu,
+    Utils,
+
+    /* Manually found modules */
+    GuildStore,
+    DiscordConstants,
+    chat,
+    Route,
+    ChannelItem,
+    ChannelItemUtils,
+    rolePill,
+    ChannelPermissionStore,
+    PermissionStoreActionHandler,
+    ChannelListStoreActionHandler,
+    container,
+    Channel,
+    ChannelListStore,
+    DEFAULT_AVATARS,
+    iconItem,
+    actionIcon,
+    ReadStateStore,
+    Voice,
+    RolePill,
+    UserMentions,
+    ChannelUtils,
+    ProfileActions,
+    PermissionUtils,
+    CategoryStore,
+};
+
+function checkVariables() {
+    for (const variable in UsedModules) {
+        if (!UsedModules[variable]) {
+            Logger.error('Variable not found: ' + variable);
+        }
+    }
+
+    if (Object.values(UsedModules).includes(undefined)) {
+        return false;
+    }
+
+    Logger.info('All variables found.');
+    return true;
+}
+
+const loaded_successfully = checkVariables();
+const ModuleStore = UsedModules;
 
 
 /***/ })
@@ -640,7 +807,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _components_IconSwitchWrapper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
 /* harmony import */ var _components_Lockscreen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/Lockscreen */ "./src/components/Lockscreen.jsx");
-/* harmony import */ var _components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/hiddenChannelIcon */ "./src/components/hiddenChannelIcon.jsx");
+/* harmony import */ var _components_HiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/HiddenChannelIcon */ "./src/components/HiddenChannelIcon.jsx");
 /* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
 
 
@@ -723,7 +890,7 @@ class MissingZeresDummy {
             type: 'info',
         });
 
-        //TODO: Use BdApi.Net.fetch
+        // TODO: Use BdApi.Net.fetch
         eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
             if (err) return this.downloadZLibErrorPopup();
 
@@ -786,84 +953,9 @@ class MissingZeresDummy {
     ? MissingZeresDummy
     : (([Pl, Lib]) => {
           const plugin = (Plugin, Library) => {
+              const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
+
               const {
-                  WebpackModules,
-                  Patcher,
-                  Utilities,
-                  DOMTools,
-                  Logger,
-                  ReactTools,
-                  Modals,
-
-                  Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
-
-                  DiscordModules: {
-                      ChannelStore,
-                      MessageActions,
-                      TextElement,
-                      React,
-                      ReactDOM,
-                      GuildChannelsStore,
-                      GuildMemberStore,
-                      LocaleManager,
-                      NavigationUtils,
-                      ImageResolver,
-                      UserStore,
-                      Dispatcher,
-                  },
-              } = Library;
-
-              const Tooltip = window.BdApi?.Components?.Tooltip;
-              const ContextMenu = window.BdApi?.ContextMenu;
-              const Utils = window.BdApi?.Utils;
-              const BetterWebpackModules = window.BdApi.Webpack;
-
-              const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
-              const DiscordConstants = WebpackModules.getByProps('Permissions', 'ChannelTypes');
-              const chat = WebpackModules.getByProps('chat', 'chatContent')?.chat;
-
-              const Route = WebpackModules.getModule((m) => m?.default?.toString().includes('.Route,{...'));
-
-              const ChannelItem = WebpackModules.getByProps('ChannelItemIcon');
-              const ChannelItemUtils = WebpackModules.getByProps(
-                  'getChannelIconComponent',
-                  'getChannelIconTooltipText',
-                  'getSimpleChannelIconComponent'
-              );
-
-              const rolePill = WebpackModules.getByProps('rolePill', 'rolePillBorder')?.rolePill;
-              const ChannelPermissionStore = WebpackModules.getByProps('getChannelPermissions');
-
-              const PermissionStoreActionHandler = Utils?.findInTree(
-                  Dispatcher,
-                  (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
-              )?.actionHandler;
-              const ChannelListStoreActionHandler = Utils?.findInTree(
-                  Dispatcher,
-                  (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
-              )?.actionHandler;
-
-              const container = WebpackModules.getByProps('container', 'hubContainer')?.container;
-              const Channel = WebpackModules.getByProps('ChannelRecordBase')?.ChannelRecordBase;
-
-              const ChannelListStore = WebpackModules.getByProps('getGuildWithoutChangingCommunityRows');
-              const DEFAULT_AVATARS = WebpackModules.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
-
-              const Icon = WebpackModules.getByProps('iconItem');
-              const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
-
-              const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
-              const Voice = WebpackModules.getByProps('getVoiceStateStats');
-              const RolePill = WebpackModules.getByProps('MemberRole')?.MemberRole;
-              const UserMentions = WebpackModules.getByProps('handleUserContextMenu');
-              const ChannelUtils = WebpackModules.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
-
-              const ProfileActions = WebpackModules.getByProps('fetchProfile', 'getUser');
-              const PermissionUtils = WebpackModules.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
-
-              const CategoryStore = WebpackModules.getByProps('isCollapsed', 'getCollapsedCategories');
-
-              const UsedModules = {
                   /* Library */
                   Utilities,
                   DOMTools,
@@ -881,21 +973,14 @@ class MissingZeresDummy {
                   /* Discord Modules (From lib) */
                   ChannelStore,
                   MessageActions,
-                  TextElement,
                   React,
                   ReactDOM,
                   GuildChannelsStore,
-                  GuildMemberStore,
-                  LocaleManager,
                   NavigationUtils,
                   ImageResolver,
-                  UserStore,
-                  Dispatcher,
 
                   /* BdApi */
-                  Tooltip,
                   ContextMenu,
-                  Utils,
 
                   /* Manually found modules */
                   GuildStore,
@@ -904,7 +989,6 @@ class MissingZeresDummy {
                   Route,
                   ChannelItem,
                   ChannelItemUtils,
-                  rolePill,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
@@ -916,15 +1000,10 @@ class MissingZeresDummy {
                   actionIcon,
                   ReadStateStore,
                   Voice,
-                  RolePill,
-                  UserMentions,
-                  ChannelUtils,
-                  ProfileActions,
-                  PermissionUtils,
                   CategoryStore,
-              };
+              } = (__webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js").ModuleStore);
 
-              const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
+              const Patcher = Library.Patcher;
 
               const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
               const randomNo = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
@@ -951,23 +1030,6 @@ class MissingZeresDummy {
 
                   blacklistedGuilds: {},
               };
-
-              function checkVariables() {
-                  for (const variable in UsedModules) {
-                      if (!UsedModules[variable]) {
-                          Logger.error('Variable not found: ' + variable);
-                      }
-                  }
-
-                  if (Object.values(UsedModules).includes(undefined)) {
-                      return false;
-                  }
-
-                  Logger.info('All variables found.');
-                  return true;
-              }
-
-              const loaded_successfully = checkVariables();
 
               return class ShowHiddenChannels extends Plugin {
                   constructor() {
@@ -1054,6 +1116,8 @@ class MissingZeresDummy {
 
                   onStart() {
                       this.checkForUpdates();
+
+                      const { loaded_successfully } = __webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js");
 
                       if (loaded_successfully) {
                           this.doStart();
@@ -1177,20 +1241,8 @@ class MissingZeresDummy {
                           if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
                               res.props.render = () =>
                                   React.createElement(_components_Lockscreen__WEBPACK_IMPORTED_MODULE_1__["default"], {
-                                      GuildStore,
                                       chat,
                                       channel,
-                                      TextElement,
-                                      ChannelUtils,
-                                      UserMentions,
-                                      ProfileActions,
-                                      GuildMemberStore,
-                                      UserStore,
-                                      DiscordConstants,
-                                      PermissionUtils,
-                                      RolePill,
-                                      rolePill,
-                                      guild: GuildStore.getGuild(guildId),
                                       settings: this.settings,
                                   });
                           }
@@ -1240,7 +1292,7 @@ class MissingZeresDummy {
 
                               if (children.props?.children) {
                                   children.props.children = [
-                                      React.createElement(_components_hiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__["default"], {
+                                      React.createElement(_components_HiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__["default"], {
                                           icon: this.settings['hiddenChannelIcon'],
                                           iconItem: iconItem,
                                           actionIcon: actionIcon,
@@ -1600,7 +1652,7 @@ class MissingZeresDummy {
                   }
 
                   onStop() {
-                      Patcher.unpatchAll();
+                      Patcher.unpatchAll(config.info.name);
                       DOMTools.removeStyle(config.info.name);
                       ContextMenu.unpatch('guild-context', this.processContextMenu);
                       this.rerenderChannels();
