@@ -1,4 +1,5 @@
 const FallbackLibrary = {
+    Logger: console,
     Settings: {},
     DiscordModules: {},
 };
@@ -7,7 +8,7 @@ const {
     WebpackModules,
     Utilities,
     DOMTools,
-    Logger = console,
+    Logger,
     ReactTools,
     Modals,
 

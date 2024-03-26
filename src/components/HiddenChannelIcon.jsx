@@ -1,6 +1,6 @@
 const Tooltip = BdApi.Components.Tooltip;
 
-export default function HiddenChannelIcon({ icon, iconItem, actionIcon }) {
+export function HiddenChannelIcon({ icon, iconItem, actionIcon }) {
     return (
         <Tooltip text="Hidden Channel">
             {(props) => (

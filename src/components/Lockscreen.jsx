@@ -8,7 +8,7 @@ import { convertToHMS, getDateFromSnowflake } from '../utils/date';
 
 const { TextElement, GuildStore, ChannelUtils } = require('../utils/modules').ModuleStore;
 
-export default React.memo(({ chat, channel, settings }) => {
+export const Lockscreen = React.memo(({ chat, channel, settings }) => {
     const guild = GuildStore.getGuild(channel.guild_id);
     const guildRoles = GuildStore.getRoles(guild.id);
 

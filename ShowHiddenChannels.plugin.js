@@ -182,7 +182,7 @@ function ForumComponent({
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ HiddenChannelIcon)
+/* harmony export */   HiddenChannelIcon: () => (/* binding */ HiddenChannelIcon)
 /* harmony export */ });
 function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 const Tooltip = BdApi.Components.Tooltip;
@@ -291,7 +291,7 @@ function IconSwitchWrapper({
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   Lockscreen: () => (/* binding */ Lockscreen)
 /* harmony export */ });
 /* harmony import */ var _UserMentionsComponent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./UserMentionsComponent */ "./src/components/UserMentionsComponent.jsx");
 /* harmony import */ var _ChannelRolesComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ChannelRolesComponent */ "./src/components/ChannelRolesComponent.jsx");
@@ -309,7 +309,7 @@ const {
   GuildStore,
   ChannelUtils
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(({
+const Lockscreen = React.memo(({
   chat,
   channel,
   settings
@@ -399,7 +399,7 @@ const {
   })), BdApi.React.createElement(_ForumComponent__WEBPACK_IMPORTED_MODULE_3__["default"], {
     channel: channel
   })));
-}));
+});
 
 /***/ }),
 
@@ -546,6 +546,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   loaded_successfully: () => (/* binding */ loaded_successfully)
 /* harmony export */ });
 const FallbackLibrary = {
+    Logger: console,
     Settings: {},
     DiscordModules: {},
 };
@@ -554,7 +555,7 @@ const {
     WebpackModules,
     Utilities,
     DOMTools,
-    Logger = console,
+    Logger,
     ReactTools,
     Modals,
 
@@ -779,13 +780,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _components_IconSwitchWrapper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
-/* harmony import */ var _components_Lockscreen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/Lockscreen */ "./src/components/Lockscreen.jsx");
-/* harmony import */ var _components_HiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/HiddenChannelIcon */ "./src/components/HiddenChannelIcon.jsx");
-/* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
-
-
-
+/* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
 
 
 const config = {
@@ -926,6 +921,9 @@ class MissingZeresDummy {
           const plugin = (Plugin, Library) => {
               const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
 
+              const { Lockscreen } = __webpack_require__(/*! ./components/Lockscreen */ "./src/components/Lockscreen.jsx");
+              const { HiddenChannelIcon } = __webpack_require__(/*! ./components/HiddenChannelIcon */ "./src/components/HiddenChannelIcon.jsx");
+
               const {
                   /* Library */
                   Utilities,
@@ -974,6 +972,7 @@ class MissingZeresDummy {
                   CategoryStore,
               } = (__webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js").ModuleStore);
 
+              // Patcher from the library variable is different from the one in the global scope
               const Patcher = Library.Patcher;
 
               const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
@@ -1114,7 +1113,7 @@ class MissingZeresDummy {
                   }
 
                   doStart() {
-                      DOMTools.addStyle(config.info.name, _styles_css__WEBPACK_IMPORTED_MODULE_3__["default"]);
+                      DOMTools.addStyle(config.info.name, _styles_css__WEBPACK_IMPORTED_MODULE_0__["default"]);
                       this.Patch();
                       this.rerenderChannels();
                   }
@@ -1211,7 +1210,7 @@ class MissingZeresDummy {
 
                           if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
                               res.props.render = () =>
-                                  React.createElement(_components_Lockscreen__WEBPACK_IMPORTED_MODULE_1__["default"], {
+                                  React.createElement(Lockscreen, {
                                       chat,
                                       channel,
                                       settings: this.settings,
@@ -1263,7 +1262,7 @@ class MissingZeresDummy {
 
                               if (children.props?.children) {
                                   children.props.children = [
-                                      React.createElement(_components_HiddenChannelIcon__WEBPACK_IMPORTED_MODULE_2__["default"], {
+                                      React.createElement(HiddenChannelIcon, {
                                           icon: this.settings['hiddenChannelIcon'],
                                           iconItem: iconItem,
                                           actionIcon: actionIcon,
@@ -1630,6 +1629,8 @@ class MissingZeresDummy {
                   }
 
                   getSettingsPanel() {
+                      const IconSwitchWrapper = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
+
                       class IconSwitch extends SettingField {
                           constructor(name, note, isChecked, onChange, options = {}) {
                               super(name, note, onChange);
@@ -1640,7 +1641,7 @@ class MissingZeresDummy {
                           onAdded() {
                               ReactDOM.createRoot(this.getElement()).render(
                                   React.createElement(
-                                      _components_IconSwitchWrapper__WEBPACK_IMPORTED_MODULE_0__["default"],
+                                      IconSwitchWrapper,
                                       {
                                           icon: this.icon,
                                           note: this.note,

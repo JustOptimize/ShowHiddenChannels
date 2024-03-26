@@ -1,6 +1,3 @@
-import IconSwitchWrapper from './components/IconSwitchWrapper';
-import Lockscreen from './components/Lockscreen';
-import HiddenChannelIcon from './components/HiddenChannelIcon';
 import styles from './styles.css';
 
 const config = {
@@ -141,6 +138,9 @@ export default !global.ZeresPluginLibrary
           const plugin = (Plugin, Library) => {
               const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
 
+              const { Lockscreen } = require('./components/Lockscreen');
+              const { HiddenChannelIcon } = require('./components/HiddenChannelIcon');
+
               const {
                   /* Library */
                   Utilities,
@@ -189,6 +189,7 @@ export default !global.ZeresPluginLibrary
                   CategoryStore,
               } = require('./utils/modules').ModuleStore;
 
+              // Patcher from the library variable is different from the one in the global scope
               const Patcher = Library.Patcher;
 
               const capitalizeFirst = (string) => `${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
@@ -845,6 +846,8 @@ export default !global.ZeresPluginLibrary
                   }
 
                   getSettingsPanel() {
+                      const IconSwitchWrapper = require('./components/IconSwitchWrapper');
+
                       class IconSwitch extends SettingField {
                           constructor(name, note, isChecked, onChange, options = {}) {
                               super(name, note, onChange);
