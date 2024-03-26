@@ -545,11 +545,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   ModuleStore: () => (/* binding */ ModuleStore),
 /* harmony export */   loaded_successfully: () => (/* binding */ loaded_successfully)
 /* harmony export */ });
+const FallbackLibrary = {
+    Settings: {},
+    DiscordModules: {},
+};
+
 const {
     WebpackModules,
     Utilities,
     DOMTools,
-    Logger,
+    Logger = console,
     ReactTools,
     Modals,
 
@@ -569,24 +574,28 @@ const {
         UserStore,
         Dispatcher,
     },
-} = global.ZeresPluginLibrary;
+} = global.ZeresPluginLibrary ?? FallbackLibrary;
 
 const Tooltip = window.BdApi?.Components?.Tooltip;
 const ContextMenu = window.BdApi?.ContextMenu;
 const Utils = window.BdApi?.Utils;
 const BetterWebpackModules = window.BdApi.Webpack;
 
-const GuildStore = WebpackModules.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
-const DiscordConstants = WebpackModules.getByProps('Permissions', 'ChannelTypes');
-const chat = WebpackModules.getByProps('chat', 'chatContent')?.chat;
+const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
+const DiscordConstants = WebpackModules?.getByProps('Permissions', 'ChannelTypes');
+const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route = WebpackModules.getModule((m) => m?.default?.toString().includes('.Route,{...'));
+const Route = WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...'));
 
-const ChannelItem = WebpackModules.getByProps('ChannelItemIcon');
-const ChannelItemUtils = WebpackModules.getByProps('getChannelIconComponent', 'getChannelIconTooltipText', 'getSimpleChannelIconComponent');
+const ChannelItem = WebpackModules?.getByProps('ChannelItemIcon');
+const ChannelItemUtils = WebpackModules?.getByProps(
+    'getChannelIconComponent',
+    'getChannelIconTooltipText',
+    'getSimpleChannelIconComponent'
+);
 
-const rolePill = WebpackModules.getByProps('rolePill', 'rolePillBorder')?.rolePill;
-const ChannelPermissionStore = WebpackModules.getByProps('getChannelPermissions');
+const rolePill = WebpackModules?.getByProps('rolePill', 'rolePillBorder')?.rolePill;
+const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
 
 const PermissionStoreActionHandler = Utils?.findInTree(
     Dispatcher,
@@ -597,25 +606,25 @@ const ChannelListStoreActionHandler = Utils?.findInTree(
     (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
 )?.actionHandler;
 
-const container = WebpackModules.getByProps('container', 'hubContainer')?.container;
-const Channel = WebpackModules.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
+const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
 
-const ChannelListStore = WebpackModules.getByProps('getGuildWithoutChangingCommunityRows');
-const DEFAULT_AVATARS = WebpackModules.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
+const ChannelListStore = WebpackModules?.getByProps('getGuildWithoutChangingCommunityRows');
+const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
 
-const Icon = WebpackModules.getByProps('iconItem');
+const Icon = WebpackModules?.getByProps('iconItem');
 const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
 
 const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
-const Voice = WebpackModules.getByProps('getVoiceStateStats');
-const RolePill = WebpackModules.getByProps('MemberRole')?.MemberRole;
-const UserMentions = WebpackModules.getByProps('handleUserContextMenu');
-const ChannelUtils = WebpackModules.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
+const Voice = WebpackModules?.getByProps('getVoiceStateStats');
+const RolePill = WebpackModules?.getByProps('MemberRole')?.MemberRole;
+const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
+const ChannelUtils = WebpackModules?.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
 
-const ProfileActions = WebpackModules.getByProps('fetchProfile', 'getUser');
-const PermissionUtils = WebpackModules.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
+const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
+const PermissionUtils = WebpackModules?.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
 
-const CategoryStore = WebpackModules.getByProps('isCollapsed', 'getCollapsedCategories');
+const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
 
 const UsedModules = {
     /* Library */
@@ -679,6 +688,11 @@ const UsedModules = {
 };
 
 function checkVariables() {
+    if (!global.ZeresPluginLibrary) {
+        Logger.error('ZeresPluginLibrary not found.');
+        return false;
+    }
+
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
             Logger.error('Variable not found: ' + variable);
@@ -852,35 +866,32 @@ class MissingZeresDummy {
 
         // TODO: Use BdApi.Net.fetch
         eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
-            if (err) return this.downloadZLibErrorPopup();
+            if (err || !body) return this.downloadZLibErrorPopup();
 
-            // If the response is a redirect to the actual file
-            if (resp.statusCode === 302) {
-                eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (error, response, content) => {
-                    if (error) return this.downloadZLibErrorPopup();
-                    await new Promise((r) =>
-                        eval('require')('fs').writeFile(
-                            eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
-                            content,
-                            r
-                        )
-                    );
-                });
-
-                // If the response is the actual file
-            } else {
-                await new Promise((r) =>
-                    eval('require')('fs').writeFile(
-                        eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
-                        body,
-                        r
-                    )
-                );
+            if (!body.match(/(?<=version: ").*(?=")/)) {
+                console.error('Failed to download ZeresPluginLibrary, this is not the correct content.');
+                return this.downloadZLibErrorPopup();
             }
 
-            window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
-                type: 'success',
-            });
+            await this.manageFile(body);
+        });
+    }
+
+    manageFile(content) {
+        this.downloadSuccefulToast();
+
+        new Promise((cb) => {
+            eval('require')('fs').writeFile(
+                eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
+                content,
+                cb
+            );
+        });
+    }
+
+    downloadSuccefulToast() {
+        window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
+            type: 'success',
         });
     }
 

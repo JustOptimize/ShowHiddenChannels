@@ -81,35 +81,32 @@ class MissingZeresDummy {
 
         // TODO: Use BdApi.Net.fetch
         eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
-            if (err) return this.downloadZLibErrorPopup();
+            if (err || !body) return this.downloadZLibErrorPopup();
 
-            // If the response is a redirect to the actual file
-            if (resp.statusCode === 302) {
-                eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (error, response, content) => {
-                    if (error) return this.downloadZLibErrorPopup();
-                    await new Promise((r) =>
-                        eval('require')('fs').writeFile(
-                            eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
-                            content,
-                            r
-                        )
-                    );
-                });
-
-                // If the response is the actual file
-            } else {
-                await new Promise((r) =>
-                    eval('require')('fs').writeFile(
-                        eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
-                        body,
-                        r
-                    )
-                );
+            if (!body.match(/(?<=version: ").*(?=")/)) {
+                console.error('Failed to download ZeresPluginLibrary, this is not the correct content.');
+                return this.downloadZLibErrorPopup();
             }
 
-            window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
-                type: 'success',
-            });
+            await this.manageFile(body);
+        });
+    }
+
+    manageFile(content) {
+        this.downloadSuccefulToast();
+
+        new Promise((cb) => {
+            eval('require')('fs').writeFile(
+                eval('require')('path').join(window.BdApi.Plugins.folder, '0PluginLibrary.plugin.js'),
+                content,
+                cb
+            );
+        });
+    }
+
+    downloadSuccefulToast() {
+        window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
+            type: 'success',
         });
     }
 
