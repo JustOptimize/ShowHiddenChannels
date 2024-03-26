@@ -1,5 +1,4 @@
-const Logger = !global.ZeresPluginLibrary?.Logger ? console : global.ZeresPluginLibrary?.Logger;
-const LocaleManager = global.ZeresPluginLibrary?.DiscordModules?.LocaleManager || { _chosenLocale: 'en-US' };
+const { Logger, LocaleManager } = require('./modules').ModuleStore;
 
 export function convertToHMS(timeInSeconds) {
     timeInSeconds = Number(timeInSeconds);
