@@ -109,14 +109,15 @@ function ChannelRolesComponent({
     style: {
       paddingTop: 8
     }
-  }, channelRoles.map(m => RolePill.render({
+  }, channelRoles.map(m => BdApi.React.createElement(RolePill, {
+    key: m.id,
     canRemove: false,
     className: `${rolePill} shc-rolePill`,
     disableBorderColor: true,
     guildId: guild.id,
-    onRemove: DiscordConstants.NOOP,
+    onRemove: () => null,
     role: roles[m.id]
-  }, DiscordConstants.NOOP))));
+  }))));
 }
 
 /***/ }),

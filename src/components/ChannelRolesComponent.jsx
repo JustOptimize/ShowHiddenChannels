@@ -33,19 +33,17 @@ export default function ChannelRolesComponent({ channel, guild, settings, roles 
                     paddingTop: 8,
                 }}
             >
-                {channelRoles.map((m) =>
-                    RolePill.render(
-                        {
-                            canRemove: false,
-                            className: `${rolePill} shc-rolePill`,
-                            disableBorderColor: true,
-                            guildId: guild.id,
-                            onRemove: DiscordConstants.NOOP,
-                            role: roles[m.id],
-                        },
-                        DiscordConstants.NOOP
-                    )
-                )}
+                {channelRoles.map((m) => (
+                    <RolePill
+                        key={m.id}
+                        canRemove={false}
+                        className={`${rolePill} shc-rolePill`}
+                        disableBorderColor={true}
+                        guildId={guild.id}
+                        onRemove={() => null}
+                        role={roles[m.id]}
+                    />
+                ))}
             </div>
         </TextElement>
     );
