@@ -1027,22 +1027,27 @@ class MissingZeresDummy {
                       }
                       const SHCContent = await SHC_U.text();
 
-                      if (SHCContent.match(/(?<=version: ").*(?=")/)[0] <= config.info.version) {
+                      if (!SHCContent.match(/(?<=version: ").*(?=")/)) {
+                          BdApi.alert('Failed to check for updates, version not found.');
+                          return Logger.error('Failed to check for updates, version not found.');
+                      }
+
+                      const version = SHCContent.match(/(?<=version: ").*(?=")/)[0];
+
+                      if (version <= config.info.version) {
                           return Logger.info('No updates found.');
                       }
 
                       window.BdApi.UI.showConfirmationModal(
                           'Update available',
-                          `ShowHiddenChannels has an update available. Would you like to update to version ${
-                              SHCContent.match(/(?<=version: ").*(?=")/)[0]
-                          }?`,
+                          `ShowHiddenChannels has an update available. Would you like to update to version ${version}?`,
                           {
                               confirmText: 'Update',
                               cancelText: 'Cancel',
                               danger: false,
 
                               onConfirm: () => {
-                                  this.proceedWithUpdate(SHCContent);
+                                  this.proceedWithUpdate(SHCContent, version);
                               },
 
                               onCancel: () => {
@@ -1054,9 +1059,9 @@ class MissingZeresDummy {
                       );
                   }
 
-                  async proceedWithUpdate(SHCContent) {
+                  async proceedWithUpdate(SHCContent, version) {
                       if (this.settings.debugMode) {
-                          Logger.info('Update confirmed by the user, updating to version ' + SHCContent.match(/(?<=version: ").*(?=")/)[0]);
+                          Logger.info(`Update confirmed by the user, updating to version ${version}`);
                       }
 
                       function failed() {
@@ -1073,12 +1078,9 @@ class MissingZeresDummy {
                               if (err) return failed();
                           });
 
-                          window.BdApi.UI.showToast(
-                              'ShowHiddenChannels updated to version ' + SHCContent.match(/(?<=version: ").*(?=")/)[0],
-                              {
-                                  type: 'success',
-                              }
-                          );
+                          window.BdApi.UI.showToast(`ShowHiddenChannels updated to version ${version}`, {
+                              type: 'success',
+                          });
                       } catch (err) {
                           return failed();
                       }
