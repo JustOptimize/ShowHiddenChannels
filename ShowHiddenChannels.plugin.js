@@ -19,7 +19,7 @@
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ AdminRolesComponent)
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 const {
   TextElement,
@@ -27,11 +27,12 @@ const {
   DiscordConstants,
   rolePill
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
-function AdminRolesComponent({
+const React = BdApi.React;
+const AdminRolesElement = ({
   guild,
   settings,
   roles
-}) {
+}) => {
   if (!settings['showAdmin']) return null;
   if (settings['showAdmin'] == 'channel') return null;
   const adminRoles = [];
@@ -53,15 +54,17 @@ function AdminRolesComponent({
     style: {
       paddingTop: 5
     }
-  }, adminRoles.map(m => RolePill.render({
+  }, adminRoles.map(m => BdApi.React.createElement(RolePill, {
+    key: m.id,
     canRemove: false,
     className: `${rolePill} shc-rolePill`,
     disableBorderColor: true,
     guildId: guild.id,
     onRemove: DiscordConstants.NOOP,
     role: m
-  }, DiscordConstants.NOOP))));
-}
+  }))));
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(AdminRolesElement));
 
 /***/ }),
 
@@ -96,9 +99,6 @@ function ChannelRolesComponent({
   (role.allow & BigInt(1024)) == BigInt(1024) ||
   //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
   roles[role.id].permissions & BigInt(1024) && (role.deny & BigInt(1024)) == 0));
-  if (!channelRoles?.length) {
-    return null;
-  }
   return BdApi.React.createElement(TextElement, {
     color: TextElement.Colors.INTERACTIVE_NORMAL,
     style: {
@@ -109,13 +109,13 @@ function ChannelRolesComponent({
     style: {
       paddingTop: 8
     }
-  }, channelRoles.map(m => BdApi.React.createElement(RolePill, {
+  }, !channelRoles?.length && BdApi.React.createElement("span", null, "None"), channelRoles?.length > 0 && channelRoles.map(m => BdApi.React.createElement(RolePill, {
     key: m.id,
     canRemove: false,
     className: `${rolePill} shc-rolePill`,
     disableBorderColor: true,
     guildId: guild.id,
-    onRemove: () => null,
+    onRemove: DiscordConstants.NOOP,
     role: roles[m.id]
   }))));
 }
@@ -187,7 +187,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 const Tooltip = BdApi.Components.Tooltip;
-function HiddenChannelIcon({
+const React = BdApi.React;
+function HiddenChannelComponent({
   icon,
   iconItem,
   actionIcon
@@ -219,6 +220,7 @@ function HiddenChannelIcon({
     points: "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 "
   }))));
 }
+const HiddenChannelIcon = React.memo(HiddenChannelComponent);
 
 /***/ }),
 

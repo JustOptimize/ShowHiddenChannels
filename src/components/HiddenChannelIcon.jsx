@@ -1,6 +1,7 @@
 const Tooltip = BdApi.Components.Tooltip;
+const React = BdApi.React;
 
-export function HiddenChannelIcon({ icon, iconItem, actionIcon }) {
+function HiddenChannelComponent({ icon, iconItem, actionIcon }) {
     return (
         <Tooltip text="Hidden Channel">
             {(props) => (
@@ -41,3 +42,5 @@ export function HiddenChannelIcon({ icon, iconItem, actionIcon }) {
         </Tooltip>
     );
 }
+
+export const HiddenChannelIcon = React.memo(HiddenChannelComponent);

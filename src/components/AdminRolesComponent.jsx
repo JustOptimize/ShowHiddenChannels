@@ -1,6 +1,7 @@
 const { TextElement, RolePill, DiscordConstants, rolePill } = require('../utils/modules').ModuleStore;
+const React = BdApi.React;
 
-export default function AdminRolesComponent({ guild, settings, roles }) {
+const AdminRolesElement = ({ guild, settings, roles }) => {
     if (!settings['showAdmin']) return null;
     if (settings['showAdmin'] == 'channel') return null;
 
@@ -32,20 +33,20 @@ export default function AdminRolesComponent({ guild, settings, roles }) {
                     paddingTop: 5,
                 }}
             >
-                {adminRoles.map((m) =>
-                    RolePill.render(
-                        {
-                            canRemove: false,
-                            className: `${rolePill} shc-rolePill`,
-                            disableBorderColor: true,
-                            guildId: guild.id,
-                            onRemove: DiscordConstants.NOOP,
-                            role: m,
-                        },
-                        DiscordConstants.NOOP
-                    )
-                )}
+                {adminRoles.map((m) => (
+                    <RolePill
+                        key={m.id}
+                        canRemove={false}
+                        className={`${rolePill} shc-rolePill`}
+                        disableBorderColor={true}
+                        guildId={guild.id}
+                        onRemove={DiscordConstants.NOOP}
+                        role={m}
+                    />
+                ))}
             </div>
         </TextElement>
     );
-}
+};
+
+export default React.memo(AdminRolesElement);

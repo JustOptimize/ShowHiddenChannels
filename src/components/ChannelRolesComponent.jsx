@@ -15,10 +15,6 @@ export default function ChannelRolesComponent({ channel, guild, settings, roles 
                 (roles[role.id].permissions & BigInt(1024) && (role.deny & BigInt(1024)) == 0))
     );
 
-    if (!channelRoles?.length) {
-        return null;
-    }
-
     return (
         <TextElement
             color={TextElement.Colors.INTERACTIVE_NORMAL}
@@ -33,17 +29,19 @@ export default function ChannelRolesComponent({ channel, guild, settings, roles 
                     paddingTop: 8,
                 }}
             >
-                {channelRoles.map((m) => (
-                    <RolePill
-                        key={m.id}
-                        canRemove={false}
-                        className={`${rolePill} shc-rolePill`}
-                        disableBorderColor={true}
-                        guildId={guild.id}
-                        onRemove={() => null}
-                        role={roles[m.id]}
-                    />
-                ))}
+                {!channelRoles?.length && <span>None</span>}
+                {channelRoles?.length > 0 &&
+                    channelRoles.map((m) => (
+                        <RolePill
+                            key={m.id}
+                            canRemove={false}
+                            className={`${rolePill} shc-rolePill`}
+                            disableBorderColor={true}
+                            guildId={guild.id}
+                            onRemove={DiscordConstants.NOOP}
+                            role={roles[m.id]}
+                        />
+                    ))}
             </div>
         </TextElement>
     );
