@@ -492,7 +492,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".shc-hidden-notice {\n\tdisplay: flex;\n\tflex-direction: column;\n\ttext-align: center;\n\toverflow-y: auto;\n\tpadding: 10dvh 0px;\n\tmargin: 0px auto;\n\twidth: 100%;\n  }\t \n  .shc-hidden-notice > div[class^=\"divider\"] {\n\tdisplay: none\n  }\t \n  .shc-hidden-notice > div[class^=\"topic\"] {\n\tbackground-color: var(--background-secondary);\n\tpadding: 5px;\n\tmax-width: 50dvh;\n\ttext-overflow: ellipsis;\n\tborder-radius: 8px;\n\tmargin: 12px auto 0 auto;\n\toverflow: visible;\n  }\n\n  .shc-rolePill {\n\tmargin-right: 0px !important;\n\tbackground-color: var(--background-primary);\n  }\n");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".shc-hidden-notice {\n    display: flex;\n    flex-direction: column;\n    text-align: center;\n    overflow-y: auto;\n    padding: 10dvh 0px;\n    margin: 0px auto;\n    width: 100%;\n}\n\n.shc-hidden-notice > div[class^='divider'] {\n    display: none;\n}\n\n.shc-hidden-notice > div[class^='topic'] {\n    background-color: var(--background-secondary);\n    padding: 5px;\n    max-width: 50dvh;\n    text-overflow: ellipsis;\n    border-radius: 8px;\n    margin: 12px auto 0 auto;\n    overflow: visible;\n}\n\n.shc-rolePill {\n    margin-right: 0px !important;\n    background-color: var(--background-primary) !important;\n    padding: 12px !important;\n}\n");
 
 /***/ }),
 
