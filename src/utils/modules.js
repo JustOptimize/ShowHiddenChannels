@@ -43,7 +43,9 @@ const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getG
 const DiscordConstants = WebpackModules?.getByProps('Permissions', 'ChannelTypes');
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route = WebpackModules?.getModule((m) => m?.default?.toString().includes('"impressionName","impressionProperties","disableTrack"'));
+const Route =
+    WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...')) ??
+    WebpackModules?.getModule((m) => m?.default?.toString().includes('"impressionName","impressionProperties","disableTrack"'));
 
 const ChannelItem = WebpackModules?.getByProps('ChannelItemIcon');
 const ChannelItemUtils = WebpackModules?.getByProps(
