@@ -1,5 +1,9 @@
 const FallbackLibrary = {
-    Logger: console,
+    Logger: {
+        info: console.info,
+        warn: console.warn,
+        err: console.error,
+    },
     Settings: {},
     DiscordModules: {},
 };
@@ -143,13 +147,13 @@ const UsedModules = {
 
 function checkVariables() {
     if (!global.ZeresPluginLibrary) {
-        Logger.error('ZeresPluginLibrary not found.');
+        Logger.err('ZeresPluginLibrary not found.');
         return false;
     }
 
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-            Logger.error('Variable not found: ' + variable);
+            Logger.err('Variable not found: ' + variable);
         }
     }
 
