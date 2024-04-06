@@ -980,6 +980,14 @@ export default !global.ZeresPluginLibrary
                                   }
                               ),
                               new Switch(
+                                  'Check for Updates',
+                                  'Automatically check for updates at startup.',
+                                  this.settings['checkForUpdates'],
+                                  (i) => {
+                                      this.settings['checkForUpdates'] = i;
+                                  }
+                              ),
+                              new Switch(
                                   'Enable Debug Mode',
                                   'Enables debug mode, which will log more information to the console.',
                                   this.settings['debugMode'],
