@@ -1,5 +1,9 @@
 const FallbackLibrary = {
-    Logger: console,
+    Logger: {
+        info: console.info,
+        warn: console.warn,
+        err: console.error,
+    },
     Settings: {},
     DiscordModules: {},
 };
@@ -71,6 +75,7 @@ const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
 
 const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
 const Voice = WebpackModules?.getByProps('getVoiceStateStats');
+
 const RolePill = WebpackModules?.getByProps('MemberRole')?.MemberRole;
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
 const ChannelUtils = WebpackModules?.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
@@ -143,13 +148,13 @@ const UsedModules = {
 
 function checkVariables() {
     if (!global.ZeresPluginLibrary) {
-        Logger.error('ZeresPluginLibrary not found.');
+        Logger.err('ZeresPluginLibrary not found.');
         return false;
     }
 
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-            Logger.error('Variable not found: ' + variable);
+            Logger.err('Variable not found: ' + variable);
         }
     }
 

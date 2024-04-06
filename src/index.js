@@ -202,6 +202,8 @@ export default !global.ZeresPluginLibrary
                   showAdmin: 'channel',
                   MarkUnread: false,
 
+                  checkForUpdates: true,
+
                   // alwaysCollapse: false,
                   shouldShowEmptyCategory: false,
                   debugMode: false,
@@ -242,14 +244,14 @@ export default !global.ZeresPluginLibrary
                               type: 'error',
                           });
                       }
-                      const SHCContent = await SHC_U.text();
 
-                      if (!SHCContent.match(/(?<=version: ").*(?=")/)) {
+                      const SHCContent = await SHC_U.text();
+                      const version = SHCContent.match(/(?<=version: ").*(?=")/)?.[0];
+
+                      if (!version) {
                           BdApi.alert('Failed to check for updates, version not found.');
                           return Logger.error('Failed to check for updates, version not found.');
                       }
-
-                      const version = SHCContent.match(/(?<=version: ").*(?=")/)[0];
 
                       if (version <= config.info.version) {
                           return Logger.info('No updates found.');
@@ -304,7 +306,9 @@ export default !global.ZeresPluginLibrary
                   }
 
                   onStart() {
-                      this.checkForUpdates();
+                      if (this.settings.checkForUpdates) {
+                          this.checkForUpdates();
+                      }
 
                       const { loaded_successfully } = require('./utils/modules');
 

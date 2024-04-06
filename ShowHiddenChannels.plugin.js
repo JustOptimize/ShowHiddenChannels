@@ -549,7 +549,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   loaded_successfully: () => (/* binding */ loaded_successfully)
 /* harmony export */ });
 const FallbackLibrary = {
-    Logger: console,
+    Logger: {
+        info: console.info,
+        warn: console.warn,
+        err: console.error,
+    },
     Settings: {},
     DiscordModules: {},
 };
@@ -621,6 +625,7 @@ const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
 
 const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
 const Voice = WebpackModules?.getByProps('getVoiceStateStats');
+
 const RolePill = WebpackModules?.getByProps('MemberRole')?.MemberRole;
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
 const ChannelUtils = WebpackModules?.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
@@ -693,13 +698,13 @@ const UsedModules = {
 
 function checkVariables() {
     if (!global.ZeresPluginLibrary) {
-        Logger.error('ZeresPluginLibrary not found.');
+        Logger.err('ZeresPluginLibrary not found.');
         return false;
     }
 
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-            Logger.error('Variable not found: ' + variable);
+            Logger.err('Variable not found: ' + variable);
         }
     }
 
@@ -988,6 +993,8 @@ class MissingZeresDummy {
                   showAdmin: 'channel',
                   MarkUnread: false,
 
+                  checkForUpdates: true,
+
                   // alwaysCollapse: false,
                   shouldShowEmptyCategory: false,
                   debugMode: false,
@@ -1028,14 +1035,14 @@ class MissingZeresDummy {
                               type: 'error',
                           });
                       }
-                      const SHCContent = await SHC_U.text();
 
-                      if (!SHCContent.match(/(?<=version: ").*(?=")/)) {
+                      const SHCContent = await SHC_U.text();
+                      const version = SHCContent.match(/(?<=version: ").*(?=")/)?.[0];
+
+                      if (!version) {
                           BdApi.alert('Failed to check for updates, version not found.');
                           return Logger.error('Failed to check for updates, version not found.');
                       }
-
-                      const version = SHCContent.match(/(?<=version: ").*(?=")/)[0];
 
                       if (version <= config.info.version) {
                           return Logger.info('No updates found.');
@@ -1090,7 +1097,9 @@ class MissingZeresDummy {
                   }
 
                   onStart() {
-                      this.checkForUpdates();
+                      if (this.settings.checkForUpdates) {
+                          this.checkForUpdates();
+                      }
 
                       const { loaded_successfully } = __webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js");
 
