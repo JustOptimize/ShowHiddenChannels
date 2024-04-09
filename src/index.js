@@ -250,7 +250,7 @@ export default !global.ZeresPluginLibrary
 
                       if (!version) {
                           BdApi.alert('Failed to check for updates, version not found.');
-                          return Logger.error('Failed to check for updates, version not found.');
+                          return Logger.err('Failed to check for updates, version not found.');
                       }
 
                       if (version <= config.info.version) {

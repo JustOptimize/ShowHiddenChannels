@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.4
+ * @version 0.4.5
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -593,7 +593,9 @@ const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getG
 const DiscordConstants = WebpackModules?.getByProps('Permissions', 'ChannelTypes');
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route = WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...'));
+const Route =
+    WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...')) ??
+    WebpackModules?.getModule((m) => m?.default?.toString().includes('"impressionName","impressionProperties","disableTrack"'));
 
 const ChannelItem = WebpackModules?.getByProps('ChannelItemIcon');
 const ChannelItemUtils = WebpackModules?.getByProps(
@@ -1041,7 +1043,7 @@ class MissingZeresDummy {
 
                       if (!version) {
                           BdApi.alert('Failed to check for updates, version not found.');
-                          return Logger.error('Failed to check for updates, version not found.');
+                          return Logger.err('Failed to check for updates, version not found.');
                       }
 
                       if (version <= config.info.version) {
