@@ -10,12 +10,16 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: '0.4.5',
+        version: '0.4.6',
         github: 'https://github.com/JustOptimize/return-ShowHiddenChannels',
         github_raw: 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.4.6 - Temp fix guild settings',
+            items: ['Temporarily fixed guild blacklist settings not showing.'],
+        },
         {
             title: 'v0.4.5 - Styling',
             items: [
@@ -28,10 +32,6 @@ const config = {
         {
             title: 'v0.4.4 - Fix Show Permissions',
             items: ["Fixed Show Permissions feature, it's now working again."],
-        },
-        {
-            title: 'v0.4.3 - Prevent Crashing (Limited Features)',
-            items: ["Disabled Show Permissions feature, it's broken and causes crashes."],
         },
     ],
 
@@ -1023,7 +1023,7 @@ export default !global.ZeresPluginLibrary
                           }).append(
                               ...Object.values(GuildStore.getGuilds()).map(
                                   (guild) =>
-                                      new IconSwitch(
+                                      new Switch(
                                           guild.name,
                                           guild.description,
                                           this.settings['blacklistedGuilds'][guild.id] ?? false,
