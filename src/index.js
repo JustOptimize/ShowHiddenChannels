@@ -10,12 +10,16 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: '0.4.6',
+        version: __VERSION__,
         github: 'https://github.com/JustOptimize/return-ShowHiddenChannels',
         github_raw: 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.4.7 - Bugfixes',
+            items: ['Fixed the update checker not working properly.'],
+        },
         {
             title: 'v0.4.6 - Temp fix guild settings',
             items: ['Temporarily fixed guild blacklist settings not showing.'],
@@ -28,10 +32,6 @@ const config = {
                 'Formatted code for better readability',
                 'Created a couple of react components for better readability',
             ],
-        },
-        {
-            title: 'v0.4.4 - Fix Show Permissions',
-            items: ["Fixed Show Permissions feature, it's now working again."],
         },
     ],
 
@@ -247,6 +247,10 @@ export default !global.ZeresPluginLibrary
 
                       const SHCContent = await SHC_U.text();
                       const version = SHCContent.match(/(?<=version: ").*(?=")/)?.[0];
+
+                      if (this.settings.debugMode) {
+                          Logger.info(`Latest version: ${version}`);
+                      }
 
                       if (!version) {
                           BdApi.alert('Failed to check for updates, version not found.');
