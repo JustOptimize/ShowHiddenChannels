@@ -1,6 +1,6 @@
 const React = BdApi.React;
 
-export default function IconSwitchWrapper({ icon, value, onChange, children, note }) {
+export function IconSwitchWrapper({ icon, value, onChange, children, note }) {
     const [enabled, setEnabled] = React.useState(value);
     return (
         <div>

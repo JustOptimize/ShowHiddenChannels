@@ -232,7 +232,7 @@ const HiddenChannelIcon = React.memo(HiddenChannelComponent);
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ IconSwitchWrapper)
+/* harmony export */   IconSwitchWrapper: () => (/* binding */ IconSwitchWrapper)
 /* harmony export */ });
 const React = BdApi.React;
 function IconSwitchWrapper({
@@ -1649,7 +1649,7 @@ class MissingZeresDummy {
                   }
 
                   getSettingsPanel() {
-                      const IconSwitchWrapper = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
+                      const { IconSwitchWrapper } = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
 
                       class IconSwitch extends SettingField {
                           constructor(name, note, isChecked, onChange, options = {}) {
@@ -1820,7 +1820,7 @@ class MissingZeresDummy {
                           }).append(
                               ...Object.values(GuildStore.getGuilds()).map(
                                   (guild) =>
-                                      new Switch(
+                                      new IconSwitch(
                                           guild.name,
                                           guild.description,
                                           this.settings['blacklistedGuilds'][guild.id] ?? false,

@@ -18,7 +18,7 @@ const config = {
     changelog: [
         {
             title: 'v0.4.7 - Bugfixes',
-            items: ['Fixed the update checker not working properly.'],
+            items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
         {
             title: 'v0.4.6 - Temp fix guild settings',
@@ -856,7 +856,7 @@ export default !global.ZeresPluginLibrary
                   }
 
                   getSettingsPanel() {
-                      const IconSwitchWrapper = require('./components/IconSwitchWrapper');
+                      const { IconSwitchWrapper } = require('./components/IconSwitchWrapper');
 
                       class IconSwitch extends SettingField {
                           constructor(name, note, isChecked, onChange, options = {}) {
@@ -1027,7 +1027,7 @@ export default !global.ZeresPluginLibrary
                           }).append(
                               ...Object.values(GuildStore.getGuilds()).map(
                                   (guild) =>
-                                      new Switch(
+                                      new IconSwitch(
                                           guild.name,
                                           guild.description,
                                           this.settings['blacklistedGuilds'][guild.id] ?? false,

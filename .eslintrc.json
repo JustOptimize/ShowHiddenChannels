@@ -1,6 +1,7 @@
 {
     "globals": {
-        "BdApi": true
+        "BdApi": true,
+        "__VERSION__": true
     },
     "extends": ["eslint:recommended", "plugin:react/recommended"],
     "env": {
