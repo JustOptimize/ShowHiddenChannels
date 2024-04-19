@@ -17,21 +17,16 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.4.8 - Icon fix',
+            items: ['Fixed the eye icon not showing properly.'],
+        },
+        {
             title: 'v0.4.7 - Bugfixes',
             items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
         {
             title: 'v0.4.6 - Temp fix guild settings',
             items: ['Temporarily fixed guild blacklist settings not showing.'],
-        },
-        {
-            title: 'v0.4.5 - Styling',
-            items: [
-                'Fixed some styling issues with channel with many users (you can now scroll the page if needed)',
-                'Reworked the hidden channel page styling',
-                'Formatted code for better readability',
-                'Created a couple of react components for better readability',
-            ],
         },
     ],
 
