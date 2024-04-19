@@ -338,7 +338,8 @@ const Lockscreen = React.memo(({
   }, BdApi.React.createElement("img", {
     style: {
       WebkitUserDrag: 'none',
-      maxHeight: 128
+      maxHeight: 128,
+      margin: '0 auto'
     },
     src: settings['hiddenChannelIcon'] == 'eye' ? 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/assets/eye.png' : '/assets/755d4654e19c105c3cd108610b78d01c.svg'
   }), BdApi.React.createElement(TextElement, {

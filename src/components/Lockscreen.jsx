@@ -34,6 +34,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                     style={{
                         WebkitUserDrag: 'none',
                         maxHeight: 128,
+                        margin: '0 auto',
                     }}
                     src={
                         settings['hiddenChannelIcon'] == 'eye'
