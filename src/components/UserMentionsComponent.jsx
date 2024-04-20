@@ -7,6 +7,8 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
     const [userMentionComponents, setUserMentionComponents] = React.useState([]);
 
     const fetchMemberAndMap = async () => {
+        setUserMentionComponents([]);
+
         if (!settings.showPerms) {
             return setUserMentionComponents(['None']);
         }
