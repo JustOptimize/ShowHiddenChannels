@@ -1,0 +1,4 @@
+{
+    "editor.formatOnSave": true,
+    "conventionalCommits.scopes": ["Settings", "Lockscreen"]
+}

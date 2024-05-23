@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.8
+ * @version 0.4.9
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -312,6 +312,14 @@ const {
   GuildStore,
   ChannelUtils
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+const CHANNEL_TYPES = {
+  0: 'text',
+  2: 'voice',
+  4: 'category',
+  5: 'news',
+  6: 'store',
+  13: 'stage'
+};
 const Lockscreen = React.memo(({
   chat,
   channel,
@@ -319,14 +327,6 @@ const Lockscreen = React.memo(({
 }) => {
   const guild = GuildStore.getGuild(channel.guild_id);
   const guildRoles = GuildStore.getRoles(guild.id);
-  const CHANNEL_TYPES = {
-    0: 'text',
-    2: 'voice',
-    4: 'category',
-    5: 'news',
-    6: 'store',
-    13: 'stage'
-  };
   return BdApi.React.createElement("div", {
     className: ['shc-hidden-chat-content', chat].filter(Boolean).join(' '),
     style: {
@@ -434,6 +434,7 @@ function UserMentionsComponent({
 }) {
   const [userMentionComponents, setUserMentionComponents] = React.useState([]);
   const fetchMemberAndMap = async () => {
+    setUserMentionComponents('Loading...');
     if (!settings.showPerms) {
       return setUserMentionComponents(['None']);
     }
@@ -444,6 +445,10 @@ function UserMentionsComponent({
         guildId: guild.id,
         withMutualGuilds: false
       });
+      if (allUserOverwrites.indexOf(user) !== allUserOverwrites.length - 1) {
+        // Wait between 500ms and 2000ms
+        await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1500) + 500));
+      }
     }
     const filteredUserOverwrites = Object.values(channel.permissionOverwrites).filter(user => Boolean(PermissionUtils.can({
       permission: DiscordConstants.Permissions.VIEW_CHANNEL,
@@ -463,7 +468,7 @@ function UserMentionsComponent({
   };
   React.useEffect(() => {
     fetchMemberAndMap();
-  }, [channel.id, guild.id, settings.showPerms]);
+  }, [channel.id, guild.id, settings.showPerms, channel.permissionOverwrites]);
   return BdApi.React.createElement(TextElement, {
     color: TextElement.Colors.INTERACTIVE_NORMAL,
     size: TextElement.Sizes.SIZE_14
@@ -804,12 +809,16 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.4.8",
+        version: "0.4.9",
         github: 'https://github.com/JustOptimize/return-ShowHiddenChannels',
         github_raw: 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.4.9 - Users Mentions',
+            items: ['Added a "Loading..." message when fetching user mentions.'],
+        },
         {
             title: 'v0.4.8 - Icon fix',
             items: ['Fixed the eye icon not showing properly.'],
@@ -817,10 +826,6 @@ const config = {
         {
             title: 'v0.4.7 - Bugfixes',
             items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
-        },
-        {
-            title: 'v0.4.6 - Temp fix guild settings',
-            items: ['Temporarily fixed guild blacklist settings not showing.'],
         },
     ],
 

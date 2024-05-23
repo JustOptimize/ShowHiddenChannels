@@ -7,7 +7,7 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
     const [userMentionComponents, setUserMentionComponents] = React.useState([]);
 
     const fetchMemberAndMap = async () => {
-        setUserMentionComponents([]);
+        setUserMentionComponents('Loading...');
 
         if (!settings.showPerms) {
             return setUserMentionComponents(['None']);
@@ -22,6 +22,11 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
                 guildId: guild.id,
                 withMutualGuilds: false,
             });
+
+            if (allUserOverwrites.indexOf(user) !== allUserOverwrites.length - 1) {
+                // Wait between 500ms and 2000ms
+                await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 1500) + 500));
+            }
         }
 
         const filteredUserOverwrites = Object.values(channel.permissionOverwrites).filter((user) =>
@@ -56,7 +61,7 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
 
     React.useEffect(() => {
         fetchMemberAndMap();
-    }, [channel.id, guild.id, settings.showPerms]);
+    }, [channel.id, guild.id, settings.showPerms, channel.permissionOverwrites]);
 
     return (
         <TextElement color={TextElement.Colors.INTERACTIVE_NORMAL} size={TextElement.Sizes.SIZE_14}>
