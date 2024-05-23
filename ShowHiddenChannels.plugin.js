@@ -817,7 +817,10 @@ const config = {
     changelog: [
         {
             title: 'v0.4.9 - Users Mentions',
-            items: ['Added a "Loading..." message when fetching user mentions.'],
+            items: [
+                'Added a "Loading..." message when fetching user mentions.',
+                "Added a delay between fetching user's profile to prevent rate limiting and plugin detection.",
+            ],
         },
         {
             title: 'v0.4.8 - Icon fix',
