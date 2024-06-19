@@ -173,12 +173,13 @@ export default !global.ZeresPluginLibrary
                   Route,
                   RouteKey,
                   ChannelItem,
+                  ChannelItemKey,
                   ChannelItemUtils,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
                   container,
-                  Channel,
+                  ChannelRecordBase,
                   ChannelListStore,
                   DEFAULT_AVATARS,
                   iconItem,
@@ -347,7 +348,7 @@ export default !global.ZeresPluginLibrary
                   Patch() {
                       // Check for needed modules
                       if (
-                          !Channel ||
+                          !ChannelRecordBase ||
                           !DiscordConstants ||
                           !ChannelStore ||
                           !ChannelPermissionStore?.can ||
@@ -359,7 +360,7 @@ export default !global.ZeresPluginLibrary
                           });
                       }
 
-                      Patcher.instead(Channel.prototype, 'isHidden', (channel) => {
+                      Patcher.instead(ChannelRecordBase.prototype, 'isHidden', (channel) => {
                           return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                       });
 
@@ -472,13 +473,13 @@ export default !global.ZeresPluginLibrary
                       });
 
                       if (this.settings['hiddenChannelIcon']) {
-                          if (!ChannelItem) {
+                          if (!ChannelItem || !ChannelItemKey) {
                               window.BdApi.UI.showToast("(SHC) ChannelItem module is missing, channel lock icon won't be shown.", {
                                   type: 'warning',
                               });
                           }
 
-                          Patcher.after(ChannelItem, 'default', (_, [instance], res) => {
+                          Patcher.after(ChannelItem, ChannelItemKey ?? 'default', (_, [instance], res) => {
                               if (!instance?.channel?.isHidden()) {
                                   return res;
                               }
@@ -570,7 +571,7 @@ export default !global.ZeresPluginLibrary
                               return res;
                           }
 
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guild_id,
                               id: channelId,
                               name: 'Hidden Channels',
@@ -588,7 +589,7 @@ export default !global.ZeresPluginLibrary
                           }
 
                           const hiddenCategoryId = `${guildId}_hidden`;
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guildId,
                               id: hiddenCategoryId,
                               name: 'Hidden Channels',

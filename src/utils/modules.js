@@ -65,9 +65,15 @@ Object.keys(Route).find((k) => {
 });
 const RouteKey = key;
 
+key = undefined;
 const ChannelItem = WebpackModules.getModule((m) =>
     Object.values(m).some((c) => c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
 );
+Object.keys(ChannelItem).find((k) => {
+    key = k;
+    return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
+});
+const ChannelItemKey = key;
 
 // const ChannelItemUtils = filterBySource(WebpackModules, '.Messages.CHANNEL_TOOLTIP_RULES');
 const ChannelItemUtils = WebpackModules?.getModule((m) =>
@@ -98,7 +104,7 @@ const ChannelListStoreActionHandler = Utils?.findInTree(
 const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
 
 // const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
-const Channel = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
+const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
 const ChannelListStore = WebpackModules?.getByProps('getGuildWithoutChangingCommunityRows');
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
@@ -132,11 +138,14 @@ const ProfileActions = {
 const PermissionUtilsModule = WebpackModules?.getModule((m) =>
     Object.values(m).some((c) => c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
 );
+
+Object.keys(PermissionUtilsModule).find((k) => {
+    key = k;
+    console.log(k, PermissionUtilsModule[k]?.toString());
+    return PermissionUtilsModule[k]?.toString()?.includes('excludeGuildPermissions:');
+});
 const PermissionUtils = {
-    can: Object.keys(PermissionUtilsModule).some((c) => {
-        key = c;
-        return PermissionUtilsModule[c]?.toString()?.includes('excludeguildpermissions:');
-    })?.[key],
+    can: PermissionUtilsModule?.[key],
 };
 
 console.log(PermissionUtils);
@@ -184,13 +193,14 @@ const UsedModules = {
     Route,
     RouteKey,
     ChannelItem,
+    ChannelItemKey,
     ChannelItemUtils,
     rolePill,
     ChannelPermissionStore,
     PermissionStoreActionHandler,
     ChannelListStoreActionHandler,
     container,
-    Channel,
+    ChannelRecordBase,
     ChannelListStore,
     DEFAULT_AVATARS,
     iconItem,
