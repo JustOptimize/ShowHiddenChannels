@@ -599,10 +599,6 @@ const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
 
-// const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
-// DiscordConstants.Permissions = DiscordConstants.Permissions || DiscordConstants.Plq;
-// DiscordConstants.ChannelTypes = DiscordConstants.ChannelTypes || DiscordConstants.d4z;
-
 const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
 
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
@@ -612,43 +608,38 @@ const Route = WebpackModules.getModule((m) =>
     Object.values(m).some((c) => c?.toString?.()?.includes('ImpressionTypes.PAGE'))
 );
 
-key = undefined;
-Object.keys(Route).find((k) => {
+const RouteKey = Object.keys(Route).find((k) => {
     if (Route[k]?.toString?.().includes('ImpressionTypes.PAGE')) {
-        key = k;
         return true;
     }
 });
-const RouteKey = key;
 
-key = undefined;
 const ChannelItem = WebpackModules.getModule((m) =>
     Object.values(m).some((c) => c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
 );
-Object.keys(ChannelItem).find((k) => {
-    key = k;
+const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
     return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
 });
-const ChannelItemKey = key;
 
-// const ChannelItemUtils = filterBySource(WebpackModules, '.Messages.CHANNEL_TOOLTIP_RULES');
 const ChannelItemUtils = WebpackModules?.getModule((m) =>
     Object.keys(m).find((k) => {
         key = k;
+
+        if (!m[k] || typeof m[k] !== 'object') return false;
+
         return m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES');
+        // return Object.values(m[k]).some((c) => c?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'));
     })
 )?.[key];
 
-key = undefined;
-Object.keys(ChannelItemUtils).find((k) => {
+const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
     key = k;
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
-const ChannelItemUtilsKey = key;
 
 const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
 const rolePill = RolePillClasses?.rolePill;
-// const RolePill = filterBySource(WebpackModules, '.Messages.USER_PROFILE_REMOVE_ROLE,');
+
 const RolePill = WebpackModules?.getModule((m) =>
     Object.values(m).some((c) => c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
 );
@@ -1306,9 +1297,7 @@ class MissingZeresDummy {
                               type: 'warning',
                           });
                       } else {
-                          console.error('Rout', Route, RouteKey);
                           Patcher.after(Route, RouteKey, (_, args, res) => {
-                              console.log('Route', args, res);
                               if (!Voice || !Route || !RouteKey) return res;
 
                               const channelId = res.props?.computedMatch?.params?.channelId;
