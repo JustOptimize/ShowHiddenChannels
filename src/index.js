@@ -175,6 +175,7 @@ export default !global.ZeresPluginLibrary
                   ChannelItem,
                   ChannelItemKey,
                   ChannelItemUtils,
+                  ChannelItemUtilsKey,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
@@ -539,13 +540,13 @@ export default !global.ZeresPluginLibrary
                       }
 
                       //* Remove lock icon from hidden voice channels
-                      if (!ChannelItemUtils?.getChannelIconComponent) {
+                      if (!ChannelItemUtils) {
                           window.BdApi.UI.showToast("(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.", {
                               type: 'warning',
                           });
                       }
 
-                      Patcher.before(ChannelItemUtils, 'getChannelIconComponent', (_, args) => {
+                      Patcher.before(ChannelItemUtils, ChannelItemUtilsKey ?? 'getChannelIconComponent', (_, args) => {
                           if (!args[2]) return;
 
                           if (args[0]?.isHidden?.() && args[2].locked) {

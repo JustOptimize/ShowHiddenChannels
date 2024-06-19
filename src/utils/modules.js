@@ -83,6 +83,13 @@ const ChannelItemUtils = WebpackModules?.getModule((m) =>
     })
 )?.[key];
 
+key = undefined;
+Object.keys(ChannelItemUtils).find((k) => {
+    key = k;
+    return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
+});
+const ChannelItemUtilsKey = key;
+
 const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
 const rolePill = RolePillClasses?.rolePill;
 // const RolePill = filterBySource(WebpackModules, '.Messages.USER_PROFILE_REMOVE_ROLE,');
@@ -141,14 +148,11 @@ const PermissionUtilsModule = WebpackModules?.getModule((m) =>
 
 Object.keys(PermissionUtilsModule).find((k) => {
     key = k;
-    console.log(k, PermissionUtilsModule[k]?.toString());
     return PermissionUtilsModule[k]?.toString()?.includes('excludeGuildPermissions:');
 });
 const PermissionUtils = {
     can: PermissionUtilsModule?.[key],
 };
-
-console.log(PermissionUtils);
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
 
@@ -195,6 +199,7 @@ const UsedModules = {
     ChannelItem,
     ChannelItemKey,
     ChannelItemUtils,
+    ChannelItemUtilsKey,
     rolePill,
     ChannelPermissionStore,
     PermissionStoreActionHandler,
