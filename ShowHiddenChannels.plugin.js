@@ -564,6 +564,20 @@ const FallbackLibrary = {
     DiscordModules: {},
 };
 
+const filterBySource = (WebpackModules, source) => {
+    return WebpackModules.getModule(
+        (m) =>
+            (typeof m === 'object' && m?.toString?.()?.includes(source)) ||
+            Object.values(m).some(
+                (c) =>
+                    c &&
+                    ((typeof c === 'object' &&
+                        (c?.toString?.()?.includes(source) || Object.values(c).some((v) => v?.toString?.()?.includes(source)))) ||
+                        c?.toString?.()?.includes(source))
+            )
+    );
+};
+
 const {
     WebpackModules,
     Utilities,
@@ -596,21 +610,32 @@ const Utils = window.BdApi?.Utils;
 const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
-const DiscordConstants = WebpackModules?.getByProps('Permissions', 'ChannelTypes');
+
+const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
+DiscordConstants.Permissions = DiscordConstants.Permissions || DiscordConstants.Plq;
+DiscordConstants.ChannelTypes = DiscordConstants.ChannelTypes || DiscordConstants.d4z;
+
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route =
-    WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...')) ??
-    WebpackModules?.getModule((m) => m?.default?.toString().includes('"impressionName","impressionProperties","disableTrack"'));
-
-const ChannelItem = WebpackModules?.getByProps('ChannelItemIcon');
-const ChannelItemUtils = WebpackModules?.getByProps(
-    'getChannelIconComponent',
-    'getChannelIconTooltipText',
-    'getSimpleChannelIconComponent'
+const Route = WebpackModules.getModule((m) =>
+    Object.values(m).some((c) => ['impressionName', 'impressionProperties', 'disableTrack'].every((s) => c?.toString().includes(s)))
 );
 
-const rolePill = WebpackModules?.getByProps('rolePill', 'rolePillBorder')?.rolePill;
+const ChannelItem = WebpackModules.getModule((m) =>
+    Object.values(m).some((c) => c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
+);
+
+// const ChannelItemUtils = WebpackModules?.getByProps(
+//     'getChannelIconComponent',
+//     'getChannelIconTooltipText',
+//     'getSimpleChannelIconComponent'
+// );
+const ChannelItemUtils = filterBySource(WebpackModules, '.Messages.CHANNEL_TOOLTIP_RULES');
+
+const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
+const rolePill = RolePillClasses?.rolePill;
+const RolePill = filterBySource(WebpackModules, '.Messages.USER_PROFILE_REMOVE_ROLE,');
+
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
 
 const PermissionStoreActionHandler = Utils?.findInTree(
@@ -623,7 +648,9 @@ const ChannelListStoreActionHandler = Utils?.findInTree(
 )?.actionHandler;
 
 const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
-const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+
+// const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+const Channel = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
 const ChannelListStore = WebpackModules?.getByProps('getGuildWithoutChangingCommunityRows');
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
@@ -634,12 +661,13 @@ const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
 const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
 const Voice = WebpackModules?.getByProps('getVoiceStateStats');
 
-const RolePill = WebpackModules?.getByProps('MemberRole')?.MemberRole;
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
-const ChannelUtils = WebpackModules?.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
+const ChannelUtils = filterBySource(WebpackModules, '.guildBreadcrumbIcon,');
 
-const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
-const PermissionUtils = WebpackModules?.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
+// const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
+const ProfileActions = filterBySource(WebpackModules, 'UserProfileModalActionCreators');
+// const PermissionUtils = WebpackModules?.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
+const PermissionUtils = filterBySource(WebpackModules, '.computeLurkerPermissionsAllowList()');
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
 
@@ -1144,7 +1172,14 @@ class MissingZeresDummy {
 
                   Patch() {
                       // Check for needed modules
-                      if (!Channel || !DiscordConstants || !ChannelStore || !ChannelPermissionStore?.can || !ChannelListStore?.getGuild) {
+                      if (
+                          !Channel ||
+                          !DiscordConstants ||
+                          !ChannelStore ||
+                          !ChannelPermissionStore?.can ||
+                          !ChannelListStore?.getGuild ||
+                          !DiscordConstants?.ChannelTypes
+                      ) {
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });

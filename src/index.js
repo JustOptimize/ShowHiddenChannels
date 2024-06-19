@@ -345,7 +345,14 @@ export default !global.ZeresPluginLibrary
 
                   Patch() {
                       // Check for needed modules
-                      if (!Channel || !DiscordConstants || !ChannelStore || !ChannelPermissionStore?.can || !ChannelListStore?.getGuild) {
+                      if (
+                          !Channel ||
+                          !DiscordConstants ||
+                          !ChannelStore ||
+                          !ChannelPermissionStore?.can ||
+                          !ChannelListStore?.getGuild ||
+                          !DiscordConstants?.ChannelTypes
+                      ) {
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
