@@ -564,20 +564,6 @@ const FallbackLibrary = {
     DiscordModules: {},
 };
 
-const filterBySource = (WebpackModules, source) => {
-    return WebpackModules.getModule(
-        (m) =>
-            (typeof m === 'object' && m?.toString?.()?.includes(source)) ||
-            Object.values(m).some(
-                (c) =>
-                    c &&
-                    ((typeof c === 'object' &&
-                        (c?.toString?.()?.includes(source) || Object.values(c).some((v) => v?.toString?.()?.includes(source)))) ||
-                        c?.toString?.()?.includes(source))
-            )
-    );
-};
-
 const {
     WebpackModules,
     Utilities,
@@ -604,6 +590,8 @@ const {
     },
 } = global.ZeresPluginLibrary ?? FallbackLibrary;
 
+let key = null;
+
 const Tooltip = window.BdApi?.Components?.Tooltip;
 const ContextMenu = window.BdApi?.ContextMenu;
 const Utils = window.BdApi?.Utils;
@@ -611,30 +599,46 @@ const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
 
+// const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
+// DiscordConstants.Permissions = DiscordConstants.Permissions || DiscordConstants.Plq;
+// DiscordConstants.ChannelTypes = DiscordConstants.ChannelTypes || DiscordConstants.d4z;
+
 const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
-DiscordConstants.Permissions = DiscordConstants.Permissions || DiscordConstants.Plq;
-DiscordConstants.ChannelTypes = DiscordConstants.ChannelTypes || DiscordConstants.d4z;
 
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
 const Route = WebpackModules.getModule((m) =>
-    Object.values(m).some((c) => ['impressionName', 'impressionProperties', 'disableTrack'].every((s) => c?.toString().includes(s)))
+    // /.ImpressionTypes.PAGE,name:\w+,/
+    Object.values(m).some((c) => c?.toString?.()?.includes('ImpressionTypes.PAGE'))
 );
+
+key = undefined;
+Object.keys(Route).find((k) => {
+    if (Route[k]?.toString?.().includes('ImpressionTypes.PAGE')) {
+        key = k;
+        return true;
+    }
+});
+const RouteKey = key;
 
 const ChannelItem = WebpackModules.getModule((m) =>
     Object.values(m).some((c) => c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
 );
 
-// const ChannelItemUtils = WebpackModules?.getByProps(
-//     'getChannelIconComponent',
-//     'getChannelIconTooltipText',
-//     'getSimpleChannelIconComponent'
-// );
-const ChannelItemUtils = filterBySource(WebpackModules, '.Messages.CHANNEL_TOOLTIP_RULES');
+// const ChannelItemUtils = filterBySource(WebpackModules, '.Messages.CHANNEL_TOOLTIP_RULES');
+const ChannelItemUtils = WebpackModules?.getModule((m) =>
+    Object.keys(m).find((k) => {
+        key = k;
+        return m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES');
+    })
+)?.[key];
 
 const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
 const rolePill = RolePillClasses?.rolePill;
-const RolePill = filterBySource(WebpackModules, '.Messages.USER_PROFILE_REMOVE_ROLE,');
+// const RolePill = filterBySource(WebpackModules, '.Messages.USER_PROFILE_REMOVE_ROLE,');
+const RolePill = WebpackModules?.getModule((m) =>
+    Object.values(m).some((c) => c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
+);
 
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
 
@@ -662,12 +666,36 @@ const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
 const Voice = WebpackModules?.getByProps('getVoiceStateStats');
 
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
-const ChannelUtils = filterBySource(WebpackModules, '.guildBreadcrumbIcon,');
+const ChannelUtils = {
+    renderTopic: WebpackModules?.getModule((m) =>
+        Object.keys(m).find((k) => {
+            key = k;
+            return m[k]?.toString()?.includes('.guildBreadcrumbIcon,');
+        })
+    )?.[key],
+};
 
 // const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
-const ProfileActions = filterBySource(WebpackModules, 'UserProfileModalActionCreators');
-// const PermissionUtils = WebpackModules?.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
-const PermissionUtils = filterBySource(WebpackModules, '.computeLurkerPermissionsAllowList()');
+const ProfileActions = {
+    fetchProfile: WebpackModules?.getModule((m) =>
+        Object.keys(m).find((k) => {
+            key = k;
+            return m[k]?.toString()?.includes('USER_PROFILE_FETCH_START');
+        })
+    )?.[key],
+};
+
+const PermissionUtilsModule = WebpackModules?.getModule((m) =>
+    Object.values(m).some((c) => c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
+);
+const PermissionUtils = {
+    can: Object.keys(PermissionUtilsModule).some((c) => {
+        key = c;
+        return PermissionUtilsModule[c]?.toString()?.includes('excludeguildpermissions:');
+    })?.[key],
+};
+
+console.log(PermissionUtils);
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
 
@@ -710,6 +738,7 @@ const UsedModules = {
     DiscordConstants,
     chat,
     Route,
+    RouteKey,
     ChannelItem,
     ChannelItemUtils,
     rolePill,
@@ -998,6 +1027,7 @@ class MissingZeresDummy {
                   DiscordConstants,
                   chat,
                   Route,
+                  RouteKey,
                   ChannelItem,
                   ChannelItemUtils,
                   ChannelPermissionStore,
@@ -1254,30 +1284,30 @@ class MissingZeresDummy {
                           return res;
                       });
 
-                      if (!Voice || !Route) {
+                      if (!Voice || !Route || !RouteKey) {
                           window.BdApi.UI.showToast("(SHC) Voice or Route modules are missing, channel lockscreen won't work.", {
                               type: 'warning',
                           });
+                      } else {
+                          Patcher.after(Route, RouteKey, (_, args, res) => {
+                              if (!Voice || !Route || !RouteKey) return res;
+
+                              const channelId = res.props?.computedMatch?.params?.channelId;
+                              const guildId = res.props?.computedMatch?.params?.guildId;
+                              const channel = ChannelStore?.getChannel(channelId);
+
+                              if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
+                                  res.props.render = () =>
+                                      React.createElement(Lockscreen, {
+                                          chat,
+                                          channel,
+                                          settings: this.settings,
+                                      });
+                              }
+
+                              return res;
+                          });
                       }
-
-                      Patcher.after(Route, 'default', (_, args, res) => {
-                          if (!Voice || !Route) return res;
-
-                          const channelId = res.props?.computedMatch?.params?.channelId;
-                          const guildId = res.props?.computedMatch?.params?.guildId;
-                          const channel = ChannelStore?.getChannel(channelId);
-
-                          if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
-                              res.props.render = () =>
-                                  React.createElement(Lockscreen, {
-                                      chat,
-                                      channel,
-                                      settings: this.settings,
-                                  });
-                          }
-
-                          return res;
-                      });
 
                       //* Stop fetching messages if the channel is hidden
                       if (!MessageActions?.fetchMessages) {

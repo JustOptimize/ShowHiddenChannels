@@ -171,6 +171,7 @@ export default !global.ZeresPluginLibrary
                   DiscordConstants,
                   chat,
                   Route,
+                  RouteKey,
                   ChannelItem,
                   ChannelItemUtils,
                   ChannelPermissionStore,
@@ -427,30 +428,30 @@ export default !global.ZeresPluginLibrary
                           return res;
                       });
 
-                      if (!Voice || !Route) {
+                      if (!Voice || !Route || !RouteKey) {
                           window.BdApi.UI.showToast("(SHC) Voice or Route modules are missing, channel lockscreen won't work.", {
                               type: 'warning',
                           });
+                      } else {
+                          Patcher.after(Route, RouteKey, (_, args, res) => {
+                              if (!Voice || !Route || !RouteKey) return res;
+
+                              const channelId = res.props?.computedMatch?.params?.channelId;
+                              const guildId = res.props?.computedMatch?.params?.guildId;
+                              const channel = ChannelStore?.getChannel(channelId);
+
+                              if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
+                                  res.props.render = () =>
+                                      React.createElement(Lockscreen, {
+                                          chat,
+                                          channel,
+                                          settings: this.settings,
+                                      });
+                              }
+
+                              return res;
+                          });
                       }
-
-                      Patcher.after(Route, 'default', (_, args, res) => {
-                          if (!Voice || !Route) return res;
-
-                          const channelId = res.props?.computedMatch?.params?.channelId;
-                          const guildId = res.props?.computedMatch?.params?.guildId;
-                          const channel = ChannelStore?.getChannel(channelId);
-
-                          if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
-                              res.props.render = () =>
-                                  React.createElement(Lockscreen, {
-                                      chat,
-                                      channel,
-                                      settings: this.settings,
-                                  });
-                          }
-
-                          return res;
-                      });
 
                       //* Stop fetching messages if the channel is hidden
                       if (!MessageActions?.fetchMessages) {
