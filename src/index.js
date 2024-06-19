@@ -356,6 +356,14 @@ export default !global.ZeresPluginLibrary
                           !ChannelListStore?.getGuild ||
                           !DiscordConstants?.ChannelTypes
                       ) {
+                          console.log(
+                              ChannelRecordBase,
+                              DiscordConstants,
+                              ChannelStore,
+                              ChannelPermissionStore,
+                              ChannelListStore,
+                              DiscordConstants.ChannelTypes
+                          );
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });

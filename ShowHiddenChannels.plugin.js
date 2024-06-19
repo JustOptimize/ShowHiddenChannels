@@ -599,7 +599,43 @@ const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
 
-const DiscordConstants = WebpackModules?.getModule((m) => m?.Plq?.ADMINISTRATOR && m?.Plq?.VIEW_CHANNEL && m?.Plq?.SEND_MESSAGES);
+const DiscordConstants = WebpackModules?.getModule((m) =>
+    Object.values(m).some((c) => {
+        key = Object.keys(m).find((k) => m[k] === c);
+        return c.ADMINISTRATOR && c.VIEW_CHANNEL && c.SEND_MESSAGES;
+    })
+);
+
+console.log(DiscordConstants, key);
+
+DiscordConstants.Permissions = DiscordConstants[key];
+
+// Search for channeltypes key
+key = undefined;
+Object.keys(DiscordConstants).find((k) => {
+    key = k;
+    return DiscordConstants[k]?.toString()?.includes('GUILD_TEXT');
+});
+
+DiscordConstants.ChannelTypes = {
+    GUILD_TEXT: 0,
+    DM: 1,
+    GUILD_VOICE: 2,
+    GROUP_DM: 3,
+    GUILD_CATEGORY: 4,
+    GUILD_ANNOUNCEMENT: 5,
+    ANNOUNCEMENT_THREAD: 10,
+    PUBLIC_THREAD: 11,
+    PRIVATE_THREAD: 12,
+    GUILD_STAGE_VOICE: 13,
+    GUILD_DIRECTORY: 14,
+    GUILD_FORUM: 15,
+    GUILD_MEDIA: 16,
+};
+
+console.log('asda', DiscordConstants);
+
+// const DiscordConstants = {
 
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
@@ -622,18 +658,17 @@ const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
 });
 
 const ChannelItemUtils = WebpackModules?.getModule((m) =>
-    Object.keys(m).find((k) => {
-        key = k;
-
-        if (!m[k] || typeof m[k] !== 'object') return false;
+    Object.keys(m).some((k) => {
+        if (!m[k]) return false;
 
         return m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES');
         // return Object.values(m[k]).some((c) => c?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'));
     })
-)?.[key];
+);
+
+console.log(ChannelItemUtils);
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
-    key = k;
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
 
@@ -1218,6 +1253,14 @@ class MissingZeresDummy {
                           !ChannelListStore?.getGuild ||
                           !DiscordConstants?.ChannelTypes
                       ) {
+                          console.log(
+                              ChannelRecordBase,
+                              DiscordConstants,
+                              ChannelStore,
+                              ChannelPermissionStore,
+                              ChannelListStore,
+                              DiscordConstants.ChannelTypes
+                          );
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
