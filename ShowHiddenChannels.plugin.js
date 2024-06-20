@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.9
+ * @version 0.5.0
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -907,12 +907,16 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.4.9",
+        version: "0.5.0",
         github: 'https://github.com/JustOptimize/return-ShowHiddenChannels',
         github_raw: 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.5.0 - Fully Working',
+            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
+        },
         {
             title: 'v0.4.9 - Users Mentions',
             items: [
@@ -923,10 +927,6 @@ const config = {
         {
             title: 'v0.4.8 - Icon fix',
             items: ['Fixed the eye icon not showing properly.'],
-        },
-        {
-            title: 'v0.4.7 - Bugfixes',
-            items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
     ],
 

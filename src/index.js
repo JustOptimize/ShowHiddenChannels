@@ -17,6 +17,10 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.0 - Fully Working',
+            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
+        },
+        {
             title: 'v0.4.9 - Users Mentions',
             items: [
                 'Added a "Loading..." message when fetching user mentions.',
@@ -26,10 +30,6 @@ const config = {
         {
             title: 'v0.4.8 - Icon fix',
             items: ['Fixed the eye icon not showing properly.'],
-        },
-        {
-            title: 'v0.4.7 - Bugfixes',
-            items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
     ],
 
