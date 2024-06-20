@@ -171,7 +171,6 @@ export default !global.ZeresPluginLibrary
                   DiscordConstants,
                   chat,
                   Route,
-                  RouteKey,
                   ChannelItem,
                   ChannelItemKey,
                   ChannelItemUtils,
@@ -356,14 +355,6 @@ export default !global.ZeresPluginLibrary
                           !ChannelListStore?.getGuild ||
                           !DiscordConstants?.ChannelTypes
                       ) {
-                          console.log(
-                              ChannelRecordBase,
-                              DiscordConstants,
-                              ChannelStore,
-                              ChannelPermissionStore,
-                              ChannelListStore,
-                              DiscordConstants.ChannelTypes
-                          );
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
@@ -438,30 +429,30 @@ export default !global.ZeresPluginLibrary
                           return res;
                       });
 
-                      if (!Voice || !Route || !RouteKey) {
+                      if (!Voice || !Route) {
                           window.BdApi.UI.showToast("(SHC) Voice or Route modules are missing, channel lockscreen won't work.", {
                               type: 'warning',
                           });
-                      } else {
-                          Patcher.after(Route, RouteKey, (_, args, res) => {
-                              if (!Voice || !Route || !RouteKey) return res;
-
-                              const channelId = res.props?.computedMatch?.params?.channelId;
-                              const guildId = res.props?.computedMatch?.params?.guildId;
-                              const channel = ChannelStore?.getChannel(channelId);
-
-                              if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
-                                  res.props.render = () =>
-                                      React.createElement(Lockscreen, {
-                                          chat,
-                                          channel,
-                                          settings: this.settings,
-                                      });
-                              }
-
-                              return res;
-                          });
                       }
+
+                      Patcher.after(Route, 'Z', (_, args, res) => {
+                          if (!Voice || !Route) return res;
+
+                          const channelId = res.props?.computedMatch?.params?.channelId;
+                          const guildId = res.props?.computedMatch?.params?.guildId;
+                          const channel = ChannelStore?.getChannel(channelId);
+
+                          if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
+                              res.props.render = () =>
+                                  React.createElement(Lockscreen, {
+                                      chat,
+                                      channel,
+                                      settings: this.settings,
+                                  });
+                          }
+
+                          return res;
+                      });
 
                       //* Stop fetching messages if the channel is hidden
                       if (!MessageActions?.fetchMessages) {

@@ -587,10 +587,12 @@ const {
         ImageResolver,
         UserStore,
         Dispatcher,
+        DiscordPermissions,
     },
 } = global.ZeresPluginLibrary ?? FallbackLibrary;
 
 let key = null;
+let loaded_successfully_internal = true;
 
 const Tooltip = window.BdApi?.Components?.Tooltip;
 const ContextMenu = window.BdApi?.ContextMenu;
@@ -599,74 +601,48 @@ const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
 
-const DiscordConstants = WebpackModules?.getModule((m) =>
-    Object.values(m).some((c) => {
-        key = Object.keys(m).find((k) => m[k] === c);
-        return c.ADMINISTRATOR && c.VIEW_CHANNEL && c.SEND_MESSAGES;
-    })
-);
+const DiscordConstants = {};
 
-console.log(DiscordConstants, key);
+DiscordConstants.Permissions = DiscordPermissions;
 
-DiscordConstants.Permissions = DiscordConstants[key];
+DiscordConstants.ChannelTypes = Object.values(
+    WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            !Array.isArray(m) &&
+            Object.values(m).some((v) => v?.ADMINISTRATOR) &&
+            Object.values(m).some((v) => v?.GUILD_VOICE)
+    )
+).find((c) => c.GUILD_VOICE);
 
-// Search for channeltypes key
-key = undefined;
-Object.keys(DiscordConstants).find((k) => {
-    key = k;
-    return DiscordConstants[k]?.toString()?.includes('GUILD_TEXT');
-});
+DiscordConstants.NOOP = () => {};
 
-DiscordConstants.ChannelTypes = {
-    GUILD_TEXT: 0,
-    DM: 1,
-    GUILD_VOICE: 2,
-    GROUP_DM: 3,
-    GUILD_CATEGORY: 4,
-    GUILD_ANNOUNCEMENT: 5,
-    ANNOUNCEMENT_THREAD: 10,
-    PUBLIC_THREAD: 11,
-    PRIVATE_THREAD: 12,
-    GUILD_STAGE_VOICE: 13,
-    GUILD_DIRECTORY: 14,
-    GUILD_FORUM: 15,
-    GUILD_MEDIA: 16,
-};
-
-console.log('asda', DiscordConstants);
-
-// const DiscordConstants = {
+if (!DiscordConstants.Permissions || !DiscordConstants.ChannelTypes || !DiscordConstants.NOOP) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load DiscordConstants', DiscordConstants);
+}
 
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route = WebpackModules.getModule((m) =>
-    // /.ImpressionTypes.PAGE,name:\w+,/
-    Object.values(m).some((c) => c?.toString?.()?.includes('ImpressionTypes.PAGE'))
-);
+const Route = WebpackModules.getModule((m) => /.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()));
 
-const RouteKey = Object.keys(Route).find((k) => {
-    if (Route[k]?.toString?.().includes('ImpressionTypes.PAGE')) {
-        return true;
-    }
-});
-
-const ChannelItem = WebpackModules.getModule((m) =>
-    Object.values(m).some((c) => c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
+const ChannelItem = WebpackModules.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
 );
 const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
     return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
 });
 
-const ChannelItemUtils = WebpackModules?.getModule((m) =>
-    Object.keys(m).some((k) => {
-        if (!m[k]) return false;
-
-        return m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES');
-        // return Object.values(m[k]).some((c) => c?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'));
-    })
+const ChannelItemUtils = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
-
-console.log(ChannelItemUtils);
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
@@ -675,11 +651,18 @@ const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
 const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
 const rolePill = RolePillClasses?.rolePill;
 
-const RolePill = WebpackModules?.getModule((m) =>
-    Object.values(m).some((c) => c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
+const RolePill = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
 );
 
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
+if (!ChannelPermissionStore?.can) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelPermissionStore', ChannelPermissionStore);
+}
 
 const PermissionStoreActionHandler = Utils?.findInTree(
     Dispatcher,
@@ -706,26 +689,39 @@ const Voice = WebpackModules?.getByProps('getVoiceStateStats');
 
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
 const ChannelUtils = {
-    renderTopic: WebpackModules?.getModule((m) =>
-        Object.keys(m).find((k) => {
-            key = k;
-            return m[k]?.toString()?.includes('.guildBreadcrumbIcon,');
-        })
+    renderTopic: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.GROUP_DM:return null');
+            })
     )?.[key],
 };
+if (!ChannelUtils.renderTopic) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelUtils', ChannelUtils);
+}
 
-// const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
 const ProfileActions = {
-    fetchProfile: WebpackModules?.getModule((m) =>
-        Object.keys(m).find((k) => {
-            key = k;
-            return m[k]?.toString()?.includes('USER_PROFILE_FETCH_START');
-        })
+    fetchProfile: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('USER_PROFILE_FETCH_START');
+            })
     )?.[key],
 };
+if (!ProfileActions.fetchProfile) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ProfileActions', ProfileActions);
+}
 
 const PermissionUtilsModule = WebpackModules?.getModule((m) =>
-    Object.values(m).some((c) => c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
+    Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
 );
 
 Object.keys(PermissionUtilsModule).find((k) => {
@@ -777,7 +773,6 @@ const UsedModules = {
     DiscordConstants,
     chat,
     Route,
-    RouteKey,
     ChannelItem,
     ChannelItemKey,
     ChannelItemUtils,
@@ -812,6 +807,11 @@ function checkVariables() {
         if (!UsedModules[variable]) {
             Logger.err('Variable not found: ' + variable);
         }
+    }
+
+    if (!loaded_successfully_internal) {
+        Logger.err('Failed to load internal modules.');
+        return false;
     }
 
     if (Object.values(UsedModules).includes(undefined)) {
@@ -1068,7 +1068,6 @@ class MissingZeresDummy {
                   DiscordConstants,
                   chat,
                   Route,
-                  RouteKey,
                   ChannelItem,
                   ChannelItemKey,
                   ChannelItemUtils,
@@ -1253,14 +1252,6 @@ class MissingZeresDummy {
                           !ChannelListStore?.getGuild ||
                           !DiscordConstants?.ChannelTypes
                       ) {
-                          console.log(
-                              ChannelRecordBase,
-                              DiscordConstants,
-                              ChannelStore,
-                              ChannelPermissionStore,
-                              ChannelListStore,
-                              DiscordConstants.ChannelTypes
-                          );
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
@@ -1335,30 +1326,30 @@ class MissingZeresDummy {
                           return res;
                       });
 
-                      if (!Voice || !Route || !RouteKey) {
+                      if (!Voice || !Route) {
                           window.BdApi.UI.showToast("(SHC) Voice or Route modules are missing, channel lockscreen won't work.", {
                               type: 'warning',
                           });
-                      } else {
-                          Patcher.after(Route, RouteKey, (_, args, res) => {
-                              if (!Voice || !Route || !RouteKey) return res;
-
-                              const channelId = res.props?.computedMatch?.params?.channelId;
-                              const guildId = res.props?.computedMatch?.params?.guildId;
-                              const channel = ChannelStore?.getChannel(channelId);
-
-                              if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
-                                  res.props.render = () =>
-                                      React.createElement(Lockscreen, {
-                                          chat,
-                                          channel,
-                                          settings: this.settings,
-                                      });
-                              }
-
-                              return res;
-                          });
                       }
+
+                      Patcher.after(Route, 'Z', (_, args, res) => {
+                          if (!Voice || !Route) return res;
+
+                          const channelId = res.props?.computedMatch?.params?.channelId;
+                          const guildId = res.props?.computedMatch?.params?.guildId;
+                          const channel = ChannelStore?.getChannel(channelId);
+
+                          if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
+                              res.props.render = () =>
+                                  React.createElement(Lockscreen, {
+                                      chat,
+                                      channel,
+                                      settings: this.settings,
+                                  });
+                          }
+
+                          return res;
+                      });
 
                       //* Stop fetching messages if the channel is hidden
                       if (!MessageActions?.fetchMessages) {
