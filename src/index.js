@@ -17,6 +17,10 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.0 - Fully Working',
+            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
+        },
+        {
             title: 'v0.4.9 - Users Mentions',
             items: [
                 'Added a "Loading..." message when fetching user mentions.',
@@ -26,10 +30,6 @@ const config = {
         {
             title: 'v0.4.8 - Icon fix',
             items: ['Fixed the eye icon not showing properly.'],
-        },
-        {
-            title: 'v0.4.7 - Bugfixes',
-            items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
     ],
 
@@ -172,12 +172,14 @@ export default !global.ZeresPluginLibrary
                   chat,
                   Route,
                   ChannelItem,
+                  ChannelItemKey,
                   ChannelItemUtils,
+                  ChannelItemUtilsKey,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
                   container,
-                  Channel,
+                  ChannelRecordBase,
                   ChannelListStore,
                   DEFAULT_AVATARS,
                   iconItem,
@@ -345,13 +347,20 @@ export default !global.ZeresPluginLibrary
 
                   Patch() {
                       // Check for needed modules
-                      if (!Channel || !DiscordConstants || !ChannelStore || !ChannelPermissionStore?.can || !ChannelListStore?.getGuild) {
+                      if (
+                          !ChannelRecordBase ||
+                          !DiscordConstants ||
+                          !ChannelStore ||
+                          !ChannelPermissionStore?.can ||
+                          !ChannelListStore?.getGuild ||
+                          !DiscordConstants?.ChannelTypes
+                      ) {
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
                       }
 
-                      Patcher.instead(Channel.prototype, 'isHidden', (channel) => {
+                      Patcher.instead(ChannelRecordBase.prototype, 'isHidden', (channel) => {
                           return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                       });
 
@@ -426,7 +435,7 @@ export default !global.ZeresPluginLibrary
                           });
                       }
 
-                      Patcher.after(Route, 'default', (_, args, res) => {
+                      Patcher.after(Route, 'Z', (_, args, res) => {
                           if (!Voice || !Route) return res;
 
                           const channelId = res.props?.computedMatch?.params?.channelId;
@@ -464,13 +473,13 @@ export default !global.ZeresPluginLibrary
                       });
 
                       if (this.settings['hiddenChannelIcon']) {
-                          if (!ChannelItem) {
+                          if (!ChannelItem || !ChannelItemKey) {
                               window.BdApi.UI.showToast("(SHC) ChannelItem module is missing, channel lock icon won't be shown.", {
                                   type: 'warning',
                               });
                           }
 
-                          Patcher.after(ChannelItem, 'default', (_, [instance], res) => {
+                          Patcher.after(ChannelItem, ChannelItemKey ?? 'default', (_, [instance], res) => {
                               if (!instance?.channel?.isHidden()) {
                                   return res;
                               }
@@ -530,13 +539,13 @@ export default !global.ZeresPluginLibrary
                       }
 
                       //* Remove lock icon from hidden voice channels
-                      if (!ChannelItemUtils?.getChannelIconComponent) {
+                      if (!ChannelItemUtils) {
                           window.BdApi.UI.showToast("(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.", {
                               type: 'warning',
                           });
                       }
 
-                      Patcher.before(ChannelItemUtils, 'getChannelIconComponent', (_, args) => {
+                      Patcher.before(ChannelItemUtils, ChannelItemUtilsKey ?? 'getChannelIconComponent', (_, args) => {
                           if (!args[2]) return;
 
                           if (args[0]?.isHidden?.() && args[2].locked) {
@@ -562,7 +571,7 @@ export default !global.ZeresPluginLibrary
                               return res;
                           }
 
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guild_id,
                               id: channelId,
                               name: 'Hidden Channels',
@@ -580,7 +589,7 @@ export default !global.ZeresPluginLibrary
                           }
 
                           const hiddenCategoryId = `${guildId}_hidden`;
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guildId,
                               id: hiddenCategoryId,
                               name: 'Hidden Channels',

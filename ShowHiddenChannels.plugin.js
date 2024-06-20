@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.4.9
+ * @version 0.5.0
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/return-ShowHiddenChannels
@@ -587,8 +587,12 @@ const {
         ImageResolver,
         UserStore,
         Dispatcher,
+        DiscordPermissions,
     },
 } = global.ZeresPluginLibrary ?? FallbackLibrary;
+
+let key = null;
+let loaded_successfully_internal = true;
 
 const Tooltip = window.BdApi?.Components?.Tooltip;
 const ContextMenu = window.BdApi?.ContextMenu;
@@ -596,22 +600,69 @@ const Utils = window.BdApi?.Utils;
 const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
-const DiscordConstants = WebpackModules?.getByProps('Permissions', 'ChannelTypes');
+
+const DiscordConstants = {};
+
+DiscordConstants.Permissions = DiscordPermissions;
+
+DiscordConstants.ChannelTypes = Object.values(
+    WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            !Array.isArray(m) &&
+            Object.values(m).some((v) => v?.ADMINISTRATOR) &&
+            Object.values(m).some((v) => v?.GUILD_VOICE)
+    )
+).find((c) => c.GUILD_VOICE);
+
+DiscordConstants.NOOP = () => {};
+
+if (!DiscordConstants.Permissions || !DiscordConstants.ChannelTypes || !DiscordConstants.NOOP) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load DiscordConstants', DiscordConstants);
+}
+
 const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
-const Route =
-    WebpackModules?.getModule((m) => m?.default?.toString().includes('.Route,{...')) ??
-    WebpackModules?.getModule((m) => m?.default?.toString().includes('"impressionName","impressionProperties","disableTrack"'));
+const Route = WebpackModules.getModule((m) => /.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()));
 
-const ChannelItem = WebpackModules?.getByProps('ChannelItemIcon');
-const ChannelItemUtils = WebpackModules?.getByProps(
-    'getChannelIconComponent',
-    'getChannelIconTooltipText',
-    'getSimpleChannelIconComponent'
+const ChannelItem = WebpackModules.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
+);
+const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
+    return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
+});
+
+const ChannelItemUtils = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
 
-const rolePill = WebpackModules?.getByProps('rolePill', 'rolePillBorder')?.rolePill;
+const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
+    return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
+});
+
+const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
+const rolePill = RolePillClasses?.rolePill;
+
+const RolePill = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
+);
+
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
+if (!ChannelPermissionStore?.can) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelPermissionStore', ChannelPermissionStore);
+}
 
 const PermissionStoreActionHandler = Utils?.findInTree(
     Dispatcher,
@@ -623,7 +674,9 @@ const ChannelListStoreActionHandler = Utils?.findInTree(
 )?.actionHandler;
 
 const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
-const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+
+// const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
 const ChannelListStore = WebpackModules?.getByProps('getGuildWithoutChangingCommunityRows');
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
@@ -634,12 +687,50 @@ const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
 const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
 const Voice = WebpackModules?.getByProps('getVoiceStateStats');
 
-const RolePill = WebpackModules?.getByProps('MemberRole')?.MemberRole;
 const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
-const ChannelUtils = WebpackModules?.getByProps('renderTopic', 'HeaderGuildBreadcrumb', 'renderTitle');
+const ChannelUtils = {
+    renderTopic: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.GROUP_DM:return null');
+            })
+    )?.[key],
+};
+if (!ChannelUtils.renderTopic) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelUtils', ChannelUtils);
+}
 
-const ProfileActions = WebpackModules?.getByProps('fetchProfile', 'getUser');
-const PermissionUtils = WebpackModules?.getByProps('isRoleHigher', 'makeEveryoneOverwrite');
+const ProfileActions = {
+    fetchProfile: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('USER_PROFILE_FETCH_START');
+            })
+    )?.[key],
+};
+if (!ProfileActions.fetchProfile) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ProfileActions', ProfileActions);
+}
+
+const PermissionUtilsModule = WebpackModules?.getModule((m) =>
+    Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
+);
+
+Object.keys(PermissionUtilsModule).find((k) => {
+    key = k;
+    return PermissionUtilsModule[k]?.toString()?.includes('excludeGuildPermissions:');
+});
+const PermissionUtils = {
+    can: PermissionUtilsModule?.[key],
+};
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
 
@@ -683,13 +774,15 @@ const UsedModules = {
     chat,
     Route,
     ChannelItem,
+    ChannelItemKey,
     ChannelItemUtils,
+    ChannelItemUtilsKey,
     rolePill,
     ChannelPermissionStore,
     PermissionStoreActionHandler,
     ChannelListStoreActionHandler,
     container,
-    Channel,
+    ChannelRecordBase,
     ChannelListStore,
     DEFAULT_AVATARS,
     iconItem,
@@ -714,6 +807,11 @@ function checkVariables() {
         if (!UsedModules[variable]) {
             Logger.err('Variable not found: ' + variable);
         }
+    }
+
+    if (!loaded_successfully_internal) {
+        Logger.err('Failed to load internal modules.');
+        return false;
     }
 
     if (Object.values(UsedModules).includes(undefined)) {
@@ -809,12 +907,16 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.4.9",
+        version: "0.5.0",
         github: 'https://github.com/JustOptimize/return-ShowHiddenChannels',
         github_raw: 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.5.0 - Fully Working',
+            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
+        },
         {
             title: 'v0.4.9 - Users Mentions',
             items: [
@@ -825,10 +927,6 @@ const config = {
         {
             title: 'v0.4.8 - Icon fix',
             items: ['Fixed the eye icon not showing properly.'],
-        },
-        {
-            title: 'v0.4.7 - Bugfixes',
-            items: ['Fixed the update checker not working properly.', 'Fixed guild blacklist settings not showing properly.'],
         },
     ],
 
@@ -971,12 +1069,14 @@ class MissingZeresDummy {
                   chat,
                   Route,
                   ChannelItem,
+                  ChannelItemKey,
                   ChannelItemUtils,
+                  ChannelItemUtilsKey,
                   ChannelPermissionStore,
                   PermissionStoreActionHandler,
                   ChannelListStoreActionHandler,
                   container,
-                  Channel,
+                  ChannelRecordBase,
                   ChannelListStore,
                   DEFAULT_AVATARS,
                   iconItem,
@@ -1144,13 +1244,20 @@ class MissingZeresDummy {
 
                   Patch() {
                       // Check for needed modules
-                      if (!Channel || !DiscordConstants || !ChannelStore || !ChannelPermissionStore?.can || !ChannelListStore?.getGuild) {
+                      if (
+                          !ChannelRecordBase ||
+                          !DiscordConstants ||
+                          !ChannelStore ||
+                          !ChannelPermissionStore?.can ||
+                          !ChannelListStore?.getGuild ||
+                          !DiscordConstants?.ChannelTypes
+                      ) {
                           return window.BdApi.UI.showToast('(SHC) Some crucial modules are missing, aborting. (Wait for an update)', {
                               type: 'error',
                           });
                       }
 
-                      Patcher.instead(Channel.prototype, 'isHidden', (channel) => {
+                      Patcher.instead(ChannelRecordBase.prototype, 'isHidden', (channel) => {
                           return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                       });
 
@@ -1225,7 +1332,7 @@ class MissingZeresDummy {
                           });
                       }
 
-                      Patcher.after(Route, 'default', (_, args, res) => {
+                      Patcher.after(Route, 'Z', (_, args, res) => {
                           if (!Voice || !Route) return res;
 
                           const channelId = res.props?.computedMatch?.params?.channelId;
@@ -1263,13 +1370,13 @@ class MissingZeresDummy {
                       });
 
                       if (this.settings['hiddenChannelIcon']) {
-                          if (!ChannelItem) {
+                          if (!ChannelItem || !ChannelItemKey) {
                               window.BdApi.UI.showToast("(SHC) ChannelItem module is missing, channel lock icon won't be shown.", {
                                   type: 'warning',
                               });
                           }
 
-                          Patcher.after(ChannelItem, 'default', (_, [instance], res) => {
+                          Patcher.after(ChannelItem, ChannelItemKey ?? 'default', (_, [instance], res) => {
                               if (!instance?.channel?.isHidden()) {
                                   return res;
                               }
@@ -1329,13 +1436,13 @@ class MissingZeresDummy {
                       }
 
                       //* Remove lock icon from hidden voice channels
-                      if (!ChannelItemUtils?.getChannelIconComponent) {
+                      if (!ChannelItemUtils) {
                           window.BdApi.UI.showToast("(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.", {
                               type: 'warning',
                           });
                       }
 
-                      Patcher.before(ChannelItemUtils, 'getChannelIconComponent', (_, args) => {
+                      Patcher.before(ChannelItemUtils, ChannelItemUtilsKey ?? 'getChannelIconComponent', (_, args) => {
                           if (!args[2]) return;
 
                           if (args[0]?.isHidden?.() && args[2].locked) {
@@ -1361,7 +1468,7 @@ class MissingZeresDummy {
                               return res;
                           }
 
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guild_id,
                               id: channelId,
                               name: 'Hidden Channels',
@@ -1379,7 +1486,7 @@ class MissingZeresDummy {
                           }
 
                           const hiddenCategoryId = `${guildId}_hidden`;
-                          const HiddenCategoryChannel = new Channel({
+                          const HiddenCategoryChannel = new ChannelRecordBase({
                               guild_id: guildId,
                               id: hiddenCategoryId,
                               name: 'Hidden Channels',
