@@ -38,7 +38,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                     }}
                     src={
                         settings['hiddenChannelIcon'] == 'eye'
-                            ? 'https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/assets/eye.png'
+                            ? 'https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/assets/eye.png'
                             : '/assets/755d4654e19c105c3cd108610b78d01c.svg'
                     }
                 />
