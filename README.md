@@ -9,9 +9,8 @@ If you are searching for the [Replugged](https://replugged.dev/) version of this
 
 ## How to Install
 
--   Right-click this [link](https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/ShowHiddenChannels.plugin.js) and select "Save As...".
--   Choose a location on your computer where you want to save the plugin file and click "Save".
--   Move the saved ShowHiddenChannels.plugin.js file into your BetterDiscord plugins folder.
+-   Download this [file](https://github.com/JustOptimize/ShowHiddenChannels/releases/download/v0.5.0/ShowHiddenChannels.plugin.js).
+-   Move the downloaded ShowHiddenChannels.plugin.js file into your BetterDiscord plugins folder.
 -   If you don't have the ZeresPluginLibrary installed, the plugin will prompt you to install it.
 -   Enable both the ShowHiddenChannels plugin and the ZeresPluginLibrary.
 -   Restart Discord to complete the installation.
