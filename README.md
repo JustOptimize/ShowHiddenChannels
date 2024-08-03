@@ -1,4 +1,4 @@
-# Return ShowHiddenChannels
+# ShowHiddenChannels
 
 ShowHiddenChannels is a plugin for [BetterDiscord](https://betterdiscord.app/) that allows users to view information about hidden channels in a Discord server, such as their name, description and which roles or users have access to these hidden channels.
 **Please note that this plugin will not allow you to read the messages in these channels, it will only show you information about them.**
@@ -9,9 +9,8 @@ If you are searching for the [Replugged](https://replugged.dev/) version of this
 
 ## How to Install
 
--   Right-click this [link](https://raw.githubusercontent.com/JustOptimize/return-ShowHiddenChannels/main/ShowHiddenChannels.plugin.js) and select "Save As...".
--   Choose a location on your computer where you want to save the plugin file and click "Save".
--   Move the saved ShowHiddenChannels.plugin.js file into your BetterDiscord plugins folder.
+-   Download this [file](https://github.com/JustOptimize/ShowHiddenChannels/releases/download/v0.5.0/ShowHiddenChannels.plugin.js).
+-   Move the downloaded ShowHiddenChannels.plugin.js file into your BetterDiscord plugins folder.
 -   If you don't have the ZeresPluginLibrary installed, the plugin will prompt you to install it.
 -   Enable both the ShowHiddenChannels plugin and the ZeresPluginLibrary.
 -   Restart Discord to complete the installation.
@@ -25,7 +24,7 @@ In addition, you can also use the [PermissionsViewer](https://github.com/rauenzi
 
 ## Changelog
 
-You can see all the changes made to the plugin in the [commit history](https://github.com/JustOptimize/return-ShowHiddenChannels/commits/main) of this repository.
+You can see all the changes made to the plugin in the [commit history](https://github.com/JustOptimize/ShowHiddenChannels/commits/main) of this repository.
 
 ## How can I support this project?
 
