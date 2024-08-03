@@ -12,10 +12,16 @@ const config = {
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
         version: __VERSION__,
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
-        github_raw: 'https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/ShowHiddenChannels.plugin.js',
     },
 
     changelog: [
+        {
+            title: 'v0.5.1 - Refactor & Update System',
+            items: [
+                'Now using github releases tags to check for updates.',
+                'Remove "return-" from the plugin name to avoid confusion.',
+            ],
+        },
         {
             title: 'v0.5.0 - Fully Working',
             items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
@@ -27,13 +33,10 @@ const config = {
                 "Added a delay between fetching user's profile to prevent rate limiting and plugin detection.",
             ],
         },
-        {
-            title: 'v0.4.8 - Icon fix',
-            items: ['Fixed the eye icon not showing properly.'],
-        },
     ],
 
     main: 'ShowHiddenChannels.plugin.js',
+    github_short: 'JustOptimize/ShowHiddenChannels',
 };
 
 class MissingZeresDummy {
@@ -238,39 +241,53 @@ export default !global.ZeresPluginLibrary
                         Logger.info('Checking for updates, current version: ' + config.info.version);
                     }
 
-                    const SHC_U = await fetch(config.info.github_raw);
-                    if (!SHC_U.ok) {
+                    const tags_raw = await fetch(`https://api.github.com/repos/${config.github_short}/tags`);
+                    if (!tags_raw || !tags_raw.ok) {
                         return window.BdApi.UI.showToast('(ShowHiddenChannels) Failed to check for updates.', {
                             type: 'error',
                         });
                     }
 
-                    const SHCContent = await SHC_U.text();
-                    const version = SHCContent.match(/(?<=version: ").*(?=")/)?.[0];
-
-                    if (this.settings.debugMode) {
-                        Logger.info(`Latest version: ${version}`);
+                    const tags = await tags_raw.json();
+                    if (!tags || !tags.length) {
+                        return window.BdApi.UI.showToast('(ShowHiddenChannels) Failed to check for updates.', {
+                            type: 'error',
+                        });
                     }
 
-                    if (!version) {
+                    const latestVersion = tags[0]?.name?.replace('v', '');
+
+                    if (this.settings.debugMode) {
+                        Logger.info(`Latest version: ${latestVersion}`);
+                    }
+
+                    if (!latestVersion) {
                         BdApi.alert('Failed to check for updates, version not found.');
                         return Logger.err('Failed to check for updates, version not found.');
                     }
 
-                    if (version <= config.info.version) {
+                    if (latestVersion <= config.info.version) {
                         return Logger.info('No updates found.');
                     }
 
                     window.BdApi.UI.showConfirmationModal(
                         'Update available',
-                        `ShowHiddenChannels has an update available. Would you like to update to version ${version}?`,
+                        `ShowHiddenChannels has an update available. Would you like to update to version ${latestVersion}?`,
                         {
                             confirmText: 'Update',
                             cancelText: 'Cancel',
                             danger: false,
 
-                            onConfirm: () => {
-                                this.proceedWithUpdate(SHCContent, version);
+                            onConfirm: async () => {
+                                const SHCContent = await fetch('https://raw.githubusercontent.com/' + config.github_short + '/v' + latestVersion + '/' + config.main)
+                                    .then((res) => res.text())
+                                    .catch(() => {
+                                        window.BdApi.UI.showToast('Failed to fetch the latest version.', {
+                                            type: 'error',
+                                        });
+                                    });
+
+                                this.proceedWithUpdate(SHCContent, latestVersion);
                             },
 
                             onCancel: () => {
@@ -293,11 +310,17 @@ export default !global.ZeresPluginLibrary
                         });
                     }
 
+                    if (!SHCContent) return failed();
+
+                    if (!SHCContent.match(/(?<=version: ").*(?=")/)) {
+                        return failed();
+                    }
+
                     try {
                         const fs = eval('require')('fs');
                         const path = eval('require')('path');
 
-                        await fs.writeFile(path.join(window.BdApi.Plugins.folder, 'ShowHiddenChannels.plugin.js'), SHCContent, (err) => {
+                        await fs.writeFile(path.join(window.BdApi.Plugins.folder, config.main), SHCContent, (err) => {
                             if (err) return failed();
                         });
 
