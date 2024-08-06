@@ -122,7 +122,7 @@ const container = WebpackModules?.getByProps('container', 'hubContainer')?.conta
 // const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
 const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
-const ChannelListStore = WebpackModules?.getByProps('getGuildWithoutChangingCommunityRows');
+const ChannelListStore = BetterWebpackModules.getStore("ChannelListStore");
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
 
 const Icon = WebpackModules?.getByProps('iconItem');
