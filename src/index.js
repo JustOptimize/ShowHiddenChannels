@@ -16,6 +16,12 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.2 - Module Fix',
+            items: [
+                'Fixed the plugin not working due to a module not being found.',
+            ],
+        },
+        {
             title: 'v0.5.1 - Refactor & Update System',
             items: [
                 'Now using github releases tags to check for updates.',
@@ -25,13 +31,6 @@ const config = {
         {
             title: 'v0.5.0 - Fully Working',
             items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
-        },
-        {
-            title: 'v0.4.9 - Users Mentions',
-            items: [
-                'Added a "Loading..." message when fetching user mentions.',
-                "Added a delay between fetching user's profile to prevent rate limiting and plugin detection.",
-            ],
         },
     ],
 
