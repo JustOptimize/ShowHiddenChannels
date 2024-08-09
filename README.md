@@ -7,10 +7,17 @@ The original plugin by [@rauenzi](https://github.com/rauenzi/) was discontinued 
 
 If you are searching for the [Replugged](https://replugged.dev/) version of this plugin, there is one made by ["Nanakusa"](https://github.com/YofukashiNo) you can find it [here](https://github.com/YofukashiNo/ShowHiddenChannels).
 
+## Warning, this plugin might soon stop working
+
+Discord is working on an experimental feature that should hide private channels on the server side making it impossible for plugins like this to work, so it is possible that this plugin will soon be useless.
+
+![image](https://github.com/user-attachments/assets/fbe4a5df-e8dc-4afd-a43a-510ba6831632)
+
 ## How to Install
 
--   Download this [file](https://github.com/JustOptimize/ShowHiddenChannels/releases/download/v0.5.0/ShowHiddenChannels.plugin.js).
--   Move the downloaded ShowHiddenChannels.plugin.js file into your BetterDiscord plugins folder.
+-   Got to the [releases page](https://github.com/JustOptimize/ShowHiddenChannels/releases/) of this repository.
+-   Download the latest version of the plugin by clicking on the `ShowHiddenChannels.plugin.js` file.
+-   Move the downloaded `ShowHiddenChannels.plugin.js` file into your BetterDiscord plugins folder.
 -   If you don't have the ZeresPluginLibrary installed, the plugin will prompt you to install it.
 -   Enable both the ShowHiddenChannels plugin and the ZeresPluginLibrary.
 -   Restart Discord to complete the installation.
