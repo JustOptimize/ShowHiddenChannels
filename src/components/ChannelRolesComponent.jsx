@@ -1,4 +1,4 @@
-const { TextElement, RolePill, DiscordConstants, rolePill } = require('../utils/modules').ModuleStore;
+const { TextElement, RolePill, DiscordConstants } = require('../utils/modules').ModuleStore;
 
 export default function ChannelRolesComponent({ channel, guild, settings, roles }) {
     const channelRoles = Object.values(channel.permissionOverwrites).filter(
@@ -35,7 +35,7 @@ export default function ChannelRolesComponent({ channel, guild, settings, roles 
                         <RolePill
                             key={m.id}
                             canRemove={false}
-                            className={`${rolePill} shc-rolePill`}
+                            className={`shc-rolePill`}
                             disableBorderColor={true}
                             guildId={guild.id}
                             onRemove={DiscordConstants.NOOP}

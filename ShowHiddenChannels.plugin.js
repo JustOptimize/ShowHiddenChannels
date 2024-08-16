@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.5.2
+ * @version 0.5.3
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/ShowHiddenChannels
@@ -24,8 +24,7 @@ __webpack_require__.r(__webpack_exports__);
 const {
   TextElement,
   RolePill,
-  DiscordConstants,
-  rolePill
+  DiscordConstants
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
 const React = BdApi.React;
 const AdminRolesElement = ({
@@ -57,7 +56,7 @@ const AdminRolesElement = ({
   }, adminRoles.map(m => BdApi.React.createElement(RolePill, {
     key: m.id,
     canRemove: false,
-    className: `${rolePill} shc-rolePill`,
+    className: `shc-rolePill`,
     disableBorderColor: true,
     guildId: guild.id,
     onRemove: DiscordConstants.NOOP,
@@ -81,8 +80,7 @@ __webpack_require__.r(__webpack_exports__);
 const {
   TextElement,
   RolePill,
-  DiscordConstants,
-  rolePill
+  DiscordConstants
 } = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
 function ChannelRolesComponent({
   channel,
@@ -112,7 +110,7 @@ function ChannelRolesComponent({
   }, !channelRoles?.length && BdApi.React.createElement("span", null, "None"), channelRoles?.length > 0 && channelRoles.map(m => BdApi.React.createElement(RolePill, {
     key: m.id,
     canRemove: false,
-    className: `${rolePill} shc-rolePill`,
+    className: `shc-rolePill`,
     disableBorderColor: true,
     guildId: guild.id,
     onRemove: DiscordConstants.NOOP,
@@ -498,7 +496,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".shc-hidden-notice {\n    display: flex;\n    flex-direction: column;\n    text-align: center;\n    overflow-y: auto;\n    padding: 10dvh 0px;\n    margin: 0px auto;\n    width: 100%;\n}\n\n.shc-hidden-notice > div[class^='divider'] {\n    display: none;\n}\n\n.shc-hidden-notice > div[class^='topic'] {\n    background-color: var(--background-secondary);\n    padding: 5px;\n    max-width: 50dvh;\n    text-overflow: ellipsis;\n    border-radius: 8px;\n    margin: 12px auto 0 auto;\n    overflow: visible;\n}\n\n.shc-rolePill {\n    margin-right: 0px !important;\n    background-color: var(--background-primary) !important;\n    padding: 12px !important;\n}\n");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".shc-hidden-notice {\n    display: flex;\n    flex-direction: column;\n    text-align: center;\n    overflow-y: auto;\n    padding: 10dvh 0px;\n    margin: 0px auto;\n    width: 100%;\n}\n\n.shc-hidden-notice > div[class^='divider'] {\n    display: none;\n}\n\n.shc-hidden-notice > div[class^='topic'] {\n    background-color: var(--background-secondary);\n    padding: 5px;\n    max-width: 50dvh;\n    text-overflow: ellipsis;\n    border-radius: 8px;\n    margin: 12px auto 0 auto;\n    overflow: visible;\n}\n\n.shc-rolePill {\n    background-color: var(--background-primary);\n    padding: 12px;\n    margin: 4px 0;\n}\n");
 
 /***/ }),
 
@@ -648,9 +646,6 @@ const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
 
-const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
-const rolePill = RolePillClasses?.rolePill;
-
 const RolePill = WebpackModules?.getModule(
     (m) =>
         m &&
@@ -777,7 +772,6 @@ const UsedModules = {
     ChannelItemKey,
     ChannelItemUtils,
     ChannelItemUtilsKey,
-    rolePill,
     ChannelPermissionStore,
     PermissionStoreActionHandler,
     ChannelListStoreActionHandler,
@@ -907,11 +901,17 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.5.2",
+        version: "0.5.3",
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
     },
 
     changelog: [
+        {
+            title: 'v0.5.3 - Module Fix',
+            items: [
+                'Removed deprecated rolePill module.',
+            ], 
+        },
         {
             title: 'v0.5.2 - Module Fix',
             items: [
@@ -924,10 +924,6 @@ const config = {
                 'Now using github releases tags to check for updates.',
                 'Remove "return-" from the plugin name to avoid confusion.',
             ],
-        },
-        {
-            title: 'v0.5.0 - Fully Working',
-            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
         },
     ],
 
@@ -987,7 +983,7 @@ class MissingZeresDummy {
     }
 
     manageFile(content) {
-        this.downloadSuccefulToast();
+        this.downloadSuccessfulToast();
 
         new Promise((cb) => {
             eval('require')('fs').writeFile(
@@ -998,7 +994,7 @@ class MissingZeresDummy {
         });
     }
 
-    downloadSuccefulToast() {
+    downloadSuccessfulToast() {
         window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
             type: 'success',
         });

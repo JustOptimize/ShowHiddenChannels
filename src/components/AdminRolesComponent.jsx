@@ -1,4 +1,4 @@
-const { TextElement, RolePill, DiscordConstants, rolePill } = require('../utils/modules').ModuleStore;
+const { TextElement, RolePill, DiscordConstants } = require('../utils/modules').ModuleStore;
 const React = BdApi.React;
 
 const AdminRolesElement = ({ guild, settings, roles }) => {
@@ -37,7 +37,7 @@ const AdminRolesElement = ({ guild, settings, roles }) => {
                     <RolePill
                         key={m.id}
                         canRemove={false}
-                        className={`${rolePill} shc-rolePill`}
+                        className={`shc-rolePill`}
                         disableBorderColor={true}
                         guildId={guild.id}
                         onRemove={DiscordConstants.NOOP}
