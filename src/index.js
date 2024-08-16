@@ -16,6 +16,12 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.3 - Module Fix',
+            items: [
+                'Removed deprecated rolePill module.',
+            ], 
+        },
+        {
             title: 'v0.5.2 - Module Fix',
             items: [
                 'Fixed the plugin not working due to a module not being found.',
@@ -27,10 +33,6 @@ const config = {
                 'Now using github releases tags to check for updates.',
                 'Remove "return-" from the plugin name to avoid confusion.',
             ],
-        },
-        {
-            title: 'v0.5.0 - Fully Working',
-            items: ['Fixed plugin not working after discord update.', 'Made modules more reliable.', 'Added more robust module checking.'],
         },
     ],
 
@@ -90,7 +92,7 @@ class MissingZeresDummy {
     }
 
     manageFile(content) {
-        this.downloadSuccefulToast();
+        this.downloadSuccessfulToast();
 
         new Promise((cb) => {
             eval('require')('fs').writeFile(
@@ -101,7 +103,7 @@ class MissingZeresDummy {
         });
     }
 
-    downloadSuccefulToast() {
+    downloadSuccessfulToast() {
         window.BdApi.UI.showToast('Successfully downloaded ZeresPluginLibrary!', {
             type: 'success',
         });

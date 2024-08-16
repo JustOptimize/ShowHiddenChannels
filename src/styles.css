@@ -23,7 +23,7 @@
 }
 
 .shc-rolePill {
-    margin-right: 0px !important;
-    background-color: var(--background-primary) !important;
-    padding: 12px !important;
+    background-color: var(--background-primary);
+    padding: 12px;
+    margin: 4px 0;
 }
