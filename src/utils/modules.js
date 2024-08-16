@@ -92,9 +92,6 @@ const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
 
-const RolePillClasses = WebpackModules?.getByProps('rolePill', 'rolePillBorder');
-const rolePill = RolePillClasses?.rolePill;
-
 const RolePill = WebpackModules?.getModule(
     (m) =>
         m &&
@@ -221,7 +218,6 @@ const UsedModules = {
     ChannelItemKey,
     ChannelItemUtils,
     ChannelItemUtilsKey,
-    rolePill,
     ChannelPermissionStore,
     PermissionStoreActionHandler,
     ChannelListStoreActionHandler,
