@@ -673,7 +673,7 @@ const container = WebpackModules?.getByProps('container', 'hubContainer')?.conta
 // const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
 const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
-const ChannelListStore = BetterWebpackModules.getStore("ChannelListStore");
+const ChannelListStore = BetterWebpackModules.getStore('ChannelListStore');
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
 
 const Icon = WebpackModules?.getByProps('iconItem');
@@ -728,6 +728,8 @@ const PermissionUtils = {
 };
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
+
+const GatewayConnectionStore = BetterWebpackModules.getStore('GatewayConnectionStore');
 
 const UsedModules = {
     /* Library */
@@ -789,6 +791,7 @@ const UsedModules = {
     ProfileActions,
     PermissionUtils,
     CategoryStore,
+    GatewayConnectionStore,
 };
 
 function checkVariables() {
@@ -1082,6 +1085,7 @@ class MissingZeresDummy {
                 ReadStateStore,
                 Voice,
                 CategoryStore,
+                GatewayConnectionStore,
             } = (__webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js").ModuleStore);
 
             // Patcher from the library variable is different from the one in the global scope
@@ -1279,10 +1283,25 @@ class MissingZeresDummy {
                         return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                     });
 
-                    if (!ReadStateStore) {
-                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
-                            type: 'warning',
+                    if (!GatewayConnectionStore || !GatewayConnectionStore?.getSocket) {
+                        window.BdApi.UI.showToast(
+                            '(SHC) GatewayConnectionStore is missing, you won\'t be able to see channel names.',
+                            {
+                                type: 'warning',
+                            }
+                        );
+                    } else {
+                        const socket = GatewayConnectionStore.getSocket();
+                        Patcher.before(socket, 'send', (_, args) => {
+                            if (args.length > 1 && args[0] == 2) {
+                                const intent = args[1]?.capabilities;
+                                args[1].capabilities = intent & ~(1 << 15);
+                            }
+    
+                            return args;
                         });
+    
+                        socket.close();
                     }
 
                     Patcher.after(ReadStateStore, 'getGuildChannelUnreadState', (_, args, res) => {
@@ -1295,6 +1314,12 @@ class MissingZeresDummy {
                             }
                             : res;
                     });
+
+                    if (!ReadStateStore) {
+                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
+                            type: 'warning',
+                        });
+                    }
 
                     Patcher.after(ReadStateStore, 'getMentionCount', (_, args, res) => {
                         if (this.settings.MarkUnread) return res;

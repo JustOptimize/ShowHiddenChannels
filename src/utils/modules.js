@@ -119,7 +119,7 @@ const container = WebpackModules?.getByProps('container', 'hubContainer')?.conta
 // const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
 const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
 
-const ChannelListStore = BetterWebpackModules.getStore("ChannelListStore");
+const ChannelListStore = BetterWebpackModules.getStore('ChannelListStore');
 const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
 
 const Icon = WebpackModules?.getByProps('iconItem');
@@ -174,6 +174,8 @@ const PermissionUtils = {
 };
 
 const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
+
+const GatewayConnectionStore = BetterWebpackModules.getStore('GatewayConnectionStore');
 
 const UsedModules = {
     /* Library */
@@ -235,6 +237,7 @@ const UsedModules = {
     ProfileActions,
     PermissionUtils,
     CategoryStore,
+    GatewayConnectionStore,
 };
 
 function checkVariables() {

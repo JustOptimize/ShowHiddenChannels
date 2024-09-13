@@ -191,6 +191,7 @@ export default !global.ZeresPluginLibrary
                 ReadStateStore,
                 Voice,
                 CategoryStore,
+                GatewayConnectionStore,
             } = require('./utils/modules').ModuleStore;
 
             // Patcher from the library variable is different from the one in the global scope
@@ -388,10 +389,25 @@ export default !global.ZeresPluginLibrary
                         return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                     });
 
-                    if (!ReadStateStore) {
-                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
-                            type: 'warning',
+                    if (!GatewayConnectionStore || !GatewayConnectionStore?.getSocket) {
+                        window.BdApi.UI.showToast(
+                            '(SHC) GatewayConnectionStore is missing, you won\'t be able to see channel names.',
+                            {
+                                type: 'warning',
+                            }
+                        );
+                    } else {
+                        const socket = GatewayConnectionStore.getSocket();
+                        Patcher.before(socket, 'send', (_, args) => {
+                            if (args.length > 1 && args[0] == 2) {
+                                const intent = args[1]?.capabilities;
+                                args[1].capabilities = intent & ~(1 << 15);
+                            }
+    
+                            return args;
                         });
+    
+                        socket.close();
                     }
 
                     Patcher.after(ReadStateStore, 'getGuildChannelUnreadState', (_, args, res) => {
@@ -404,6 +420,12 @@ export default !global.ZeresPluginLibrary
                             }
                             : res;
                     });
+
+                    if (!ReadStateStore) {
+                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
+                            type: 'warning',
+                        });
+                    }
 
                     Patcher.after(ReadStateStore, 'getMentionCount', (_, args, res) => {
                         if (this.settings.MarkUnread) return res;
