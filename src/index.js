@@ -16,6 +16,12 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.4 - Fix Crash',
+            items: [
+                'Fix Crash when muting/unmuting specific servers. (#214)',
+            ], 
+        },
+        {
             title: 'v0.5.3 - Module Fix',
             items: [
                 'Removed deprecated rolePill module.',
@@ -25,13 +31,6 @@ const config = {
             title: 'v0.5.2 - Module Fix',
             items: [
                 'Fixed the plugin not working due to a module not being found.',
-            ],
-        },
-        {
-            title: 'v0.5.1 - Refactor & Update System',
-            items: [
-                'Now using github releases tags to check for updates.',
-                'Remove "return-" from the plugin name to avoid confusion.',
             ],
         },
     ],
@@ -709,6 +708,7 @@ export default !global.ZeresPluginLibrary
                                 HiddenCategory.channels = Object.fromEntries(
                                     Object.entries(HiddenChannels.records).map(([id, channel]) => {
                                         channel.category = HiddenCategory;
+                                        channel.record.parent_id = hiddenCategoryId;
                                         return [id, channel];
                                     })
                                 );
@@ -810,28 +810,38 @@ export default !global.ZeresPluginLibrary
                     }
 
                     for (const category of categories) {
-                        // Get the channels that are hidden
-                        const newHiddenChannels = Object.entries(category.channels).filter(([channelId]) =>
-                            hiddenChannels.channels.some((channel) => channel.id === channelId)
-                        );
+                        const channelRecords = Object.entries(category.channels);
+                        const filteredChannelRecords = channelRecords
+                            .map(
+                                ([channelID, channelRecord]) => {
+                                if (hiddenChannels.channels.some((m) => m.id === channelID)) {
+                                    if (!this.hiddenChannelCache[guildId].some((m) => m[0] === channelID)) {
+                                        this.hiddenChannelCache[guildId].push([channelID, channelRecord]);
+                                    }
+                                    return false;
+                                }
+                                return [channelID, channelRecord];
+                                }
+                            )
+                            .filter(Boolean);
 
-                        // Add the channels to the cache and remove them from the original category
-                        for (const [channelId, channel] of newHiddenChannels) {
-                            const isCached = this.hiddenChannelCache[guildId].some(([cachedChannelId]) => cachedChannelId === channelId);
-
-                            if (!isCached) {
-                                this.hiddenChannelCache[guildId].push([channelId, channel]);
-                            }
-
-                            // Remove the channel from original category
-                            delete category.channels[channelId];
+                        category.channels = Object.fromEntries(filteredChannelRecords);
+                        if (category.hiddenChannelIds) {
+                            category.hiddenChannelIds = category.hiddenChannelIds.filter((v) =>
+                                filteredChannelRecords.some(([id]) => id == v)
+                            );
+                        }
+                      
+                        if (category.shownChannelIds) {
+                            category.shownChannelIds = category.shownChannelIds.filter((v) =>
+                                filteredChannelRecords.some(([id]) => id == v)
+                            );
                         }
                     }
 
                     return {
                         records: Object.fromEntries(this.hiddenChannelCache[guildId]),
-                        channels: hiddenChannels ? hiddenChannels.channels : [],
-                        amount: hiddenChannels ? hiddenChannels.amount : 0,
+                        ...hiddenChannels,
                     };
                 }
 
