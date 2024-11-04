@@ -85,7 +85,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
     (m) =>
         m &&
         typeof m === 'object' &&
-        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
+        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('["/7EhaW"]') || m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
@@ -96,7 +96,7 @@ const RolePill = WebpackModules?.getModule(
     (m) =>
         m &&
         typeof m === 'object' &&
-        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.u3RVsL') || c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE'))
 );
 
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
