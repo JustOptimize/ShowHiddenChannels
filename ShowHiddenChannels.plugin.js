@@ -642,7 +642,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
         Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
 
-const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
+const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
 
@@ -651,7 +651,7 @@ const RolePill = WebpackModules?.getModule(
         m &&
         typeof m === 'object' &&
         Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
-);
+) ?? {};
 
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
 if (!ChannelPermissionStore?.can) {

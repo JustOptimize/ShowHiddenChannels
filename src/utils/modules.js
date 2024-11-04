@@ -88,7 +88,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
         Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
 
-const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
+const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
     return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
 });
 
