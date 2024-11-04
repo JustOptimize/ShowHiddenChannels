@@ -1,4 +1,895 @@
-import styles from './styles.css';
+/**
+ * @name ShowHiddenChannels
+ * @displayName Show Hidden Channels (SHC)
+ * @version 0.5.3
+ * @author JustOptimize (Oggetto)
+ * @authorId 619203349954166804
+ * @source https://github.com/JustOptimize/ShowHiddenChannels
+ * @description A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).
+ */
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/components/AdminRolesComponent.jsx":
+/*!************************************************!*\
+  !*** ./src/components/AdminRolesComponent.jsx ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+const {
+  TextElement,
+  RolePill,
+  DiscordConstants
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+const React = BdApi.React;
+const AdminRolesElement = ({
+  guild,
+  settings,
+  roles
+}) => {
+  if (!settings['showAdmin']) return null;
+  if (settings['showAdmin'] == 'channel') return null;
+  const adminRoles = [];
+  Object.values(roles).forEach(role => {
+    if ((role.permissions & BigInt(8)) == BigInt(8) && (settings['showAdmin'] == 'include' || settings['showAdmin'] == 'exclude' && !role.tags?.bot_id)) {
+      adminRoles.push(role);
+    }
+  });
+  if (!adminRoles?.length) {
+    return null;
+  }
+  return BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    style: {
+      borderTop: '1px solid var(--background-tertiary)',
+      padding: 5
+    }
+  }, "Admin roles:", BdApi.React.createElement("div", {
+    style: {
+      paddingTop: 5
+    }
+  }, adminRoles.map(m => BdApi.React.createElement(RolePill, {
+    key: m.id,
+    canRemove: false,
+    className: `shc-rolePill`,
+    disableBorderColor: true,
+    guildId: guild.id,
+    onRemove: DiscordConstants.NOOP,
+    role: m
+  }))));
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (React.memo(AdminRolesElement));
+
+/***/ }),
+
+/***/ "./src/components/ChannelRolesComponent.jsx":
+/*!**************************************************!*\
+  !*** ./src/components/ChannelRolesComponent.jsx ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ChannelRolesComponent)
+/* harmony export */ });
+const {
+  TextElement,
+  RolePill,
+  DiscordConstants
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+function ChannelRolesComponent({
+  channel,
+  guild,
+  settings,
+  roles
+}) {
+  const channelRoles = Object.values(channel.permissionOverwrites).filter(role => role !== undefined && role?.type == 0 && (
+  //* 1024n = VIEW_CHANNEL permission
+  //* 8n = ADMINISTRATOR permission
+  //* If role is ADMINISTRATOR it can view channel even if overwrites deny VIEW_CHANNEL
+  settings.showAdmin && (roles[role.id].permissions & BigInt(8)) == BigInt(8) ||
+  //* If overwrites allow VIEW_CHANNEL (it will override the default role permissions)
+  (role.allow & BigInt(1024)) == BigInt(1024) ||
+  //* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
+  roles[role.id].permissions & BigInt(1024) && (role.deny & BigInt(1024)) == 0));
+  return BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    style: {
+      borderTop: '1px solid var(--background-tertiary)',
+      padding: 8
+    }
+  }, "Channel-specific roles:", BdApi.React.createElement("div", {
+    style: {
+      paddingTop: 8
+    }
+  }, !channelRoles?.length && BdApi.React.createElement("span", null, "None"), channelRoles?.length > 0 && channelRoles.map(m => BdApi.React.createElement(RolePill, {
+    key: m.id,
+    canRemove: false,
+    className: `shc-rolePill`,
+    disableBorderColor: true,
+    guildId: guild.id,
+    onRemove: DiscordConstants.NOOP,
+    role: roles[m.id]
+  }))));
+}
+
+/***/ }),
+
+/***/ "./src/components/ForumComponent.jsx":
+/*!*******************************************!*\
+  !*** ./src/components/ForumComponent.jsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ForumComponent)
+/* harmony export */ });
+const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+function ForumComponent({
+  channel
+}) {
+  if (channel.type != 15) return null;
+  if (!channel.availableTags && !channel.topic) {
+    return null;
+  }
+  return BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.HEADER_SECONDARY,
+    size: TextElement.Sizes.SIZE_24,
+    style: {
+      margin: '16px auto',
+      backgroundColor: 'var(--background-secondary)',
+      padding: 24,
+      borderRadius: 8,
+      color: 'var(--text-normal)',
+      fontWeight: 'bold',
+      maxWidth: '40vw'
+    }
+  }, "Forum", BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14,
+    style: {
+      marginTop: 24
+    }
+  }, channel.availableTags && channel.availableTags.length > 0 ? 'Tags: ' + channel.availableTags.map(tag => tag.name).join(', ') : 'Tags: No tags avaiable'), channel.topic && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14,
+    style: {
+      marginTop: 16
+    }
+  }, "Guidelines: ", channel.topic), !channel.topic && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14,
+    style: {
+      marginTop: 8
+    }
+  }, "Guidelines: No guidelines avaiable"));
+}
+
+/***/ }),
+
+/***/ "./src/components/HiddenChannelIcon.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/HiddenChannelIcon.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   HiddenChannelIcon: () => (/* binding */ HiddenChannelIcon)
+/* harmony export */ });
+function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+const Tooltip = BdApi.Components.Tooltip;
+const React = BdApi.React;
+function HiddenChannelComponent({
+  icon,
+  iconItem,
+  actionIcon
+}) {
+  return BdApi.React.createElement(Tooltip, {
+    text: "Hidden Channel"
+  }, props => BdApi.React.createElement("div", _extends({
+    className: iconItem,
+    style: {
+      display: 'block'
+    }
+  }, props), icon == 'lock' && BdApi.React.createElement("svg", {
+    className: actionIcon,
+    viewBox: "0 0 24 24"
+  }, BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M17 11V7C17 4.243 14.756 2 12 2C9.242 2 7 4.243 7 7V11C5.897 11 5 11.896 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.896 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z"
+  })), icon == 'eye' && BdApi.React.createElement("svg", {
+    className: actionIcon,
+    viewBox: "0 0 24 24"
+  }, BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M12 5C5.648 5 1 12 1 12C1 12 5.648 19 12 19C18.352 19 23 12 23 12C23 12 18.352 5 12 5ZM12 16C9.791 16 8 14.21 8 12C8 9.79 9.791 8 12 8C14.209 8 16 9.79 16 12C16 14.21 14.209 16 12 16Z"
+  }), BdApi.React.createElement("path", {
+    fill: "currentColor",
+    d: "M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z"
+  }), BdApi.React.createElement("polygon", {
+    fill: "currentColor",
+    points: "22.6,2.7 22.6,2.8 19.3,6.1 16,9.3 16,9.4 15,10.4 15,10.4 10.3,15 2.8,22.5 1.4,21.1 21.2,1.3 "
+  }))));
+}
+const HiddenChannelIcon = React.memo(HiddenChannelComponent);
+
+/***/ }),
+
+/***/ "./src/components/IconSwitchWrapper.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/IconSwitchWrapper.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   IconSwitchWrapper: () => (/* binding */ IconSwitchWrapper)
+/* harmony export */ });
+const React = BdApi.React;
+function IconSwitchWrapper({
+  icon,
+  value,
+  onChange,
+  children,
+  note
+}) {
+  const [enabled, setEnabled] = React.useState(value);
+  return BdApi.React.createElement("div", null, BdApi.React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: '16px',
+      marginTop: '16px'
+    }
+  }, BdApi.React.createElement("img", {
+    src: icon,
+    width: 48,
+    height: 48,
+    title: "Click to toggle",
+    style: {
+      borderRadius: '360px',
+      cursor: 'pointer',
+      border: enabled ? '3px solid green' : '3px solid grey',
+      marginRight: '8px'
+    },
+    onClick: () => {
+      onChange(!enabled);
+      setEnabled(!enabled);
+    }
+  }), BdApi.React.createElement("div", {
+    style: {
+      maxWidth: '89%'
+    }
+  }, BdApi.React.createElement("div", {
+    style: {
+      fontSize: '20px',
+      color: 'var(--header-primary)',
+      fontWeight: '600'
+    }
+  }, children), BdApi.React.createElement("div", {
+    style: {
+      color: 'var(--header-secondary)',
+      fontSize: '16px'
+    }
+  }, note))));
+}
+
+/***/ }),
+
+/***/ "./src/components/Lockscreen.jsx":
+/*!***************************************!*\
+  !*** ./src/components/Lockscreen.jsx ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Lockscreen: () => (/* binding */ Lockscreen)
+/* harmony export */ });
+/* harmony import */ var _UserMentionsComponent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./UserMentionsComponent */ "./src/components/UserMentionsComponent.jsx");
+/* harmony import */ var _ChannelRolesComponent__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ChannelRolesComponent */ "./src/components/ChannelRolesComponent.jsx");
+/* harmony import */ var _AdminRolesComponent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AdminRolesComponent */ "./src/components/AdminRolesComponent.jsx");
+/* harmony import */ var _ForumComponent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ForumComponent */ "./src/components/ForumComponent.jsx");
+/* harmony import */ var _utils_date__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/date */ "./src/utils/date.js");
+const React = BdApi.React;
+
+
+
+
+
+const {
+  TextElement,
+  GuildStore,
+  ChannelUtils
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+const CHANNEL_TYPES = {
+  0: 'text',
+  2: 'voice',
+  4: 'category',
+  5: 'news',
+  6: 'store',
+  13: 'stage'
+};
+const Lockscreen = React.memo(({
+  chat,
+  channel,
+  settings
+}) => {
+  const guild = GuildStore.getGuild(channel.guild_id);
+  const guildRoles = GuildStore.getRoles(guild.id);
+  return BdApi.React.createElement("div", {
+    className: ['shc-hidden-chat-content', chat].filter(Boolean).join(' '),
+    style: {
+      justifyContent: 'center',
+      alignItems: 'center'
+    }
+  }, BdApi.React.createElement("div", {
+    className: "shc-hidden-notice"
+  }, BdApi.React.createElement("img", {
+    style: {
+      WebkitUserDrag: 'none',
+      maxHeight: 128,
+      margin: '0 auto'
+    },
+    src: settings['hiddenChannelIcon'] == 'eye' ? 'https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/assets/eye.png' : '/assets/755d4654e19c105c3cd108610b78d01c.svg'
+  }), BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.HEADER_PRIMARY,
+    size: TextElement.Sizes.SIZE_32,
+    style: {
+      marginTop: 20,
+      fontWeight: 'bold'
+    }
+  }, `This is a hidden ${CHANNEL_TYPES[channel.type] ?? 'unknown'} channel`), BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.HEADER_SECONDARY,
+    size: TextElement.Sizes.SIZE_16,
+    style: {
+      marginTop: 8
+    }
+  }, "You cannot see the contents of this channel. ", channel.topic && channel.type != 15 && 'However, you may see its topic.'), channel.topic && channel.type != 15 && (ChannelUtils?.renderTopic(channel, guild) || "ChannelUtils module is missing, topic won't be shown."), channel?.iconEmoji && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14,
+    style: {
+      marginTop: 16
+    }
+  }, "Icon emoji: ", channel.iconEmoji.name ?? channel.iconEmoji.id), channel.rateLimitPerUser > 0 && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14
+  }, "Slowmode: ", (0,_utils_date__WEBPACK_IMPORTED_MODULE_4__.convertToHMS)(channel.rateLimitPerUser)), channel.nsfw && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14
+  }, "Age-Restricted Channel (NSFW) \uD83D\uDD1E"), channel.bitrate && channel.type == 2 && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14
+  }, "Bitrate: ", channel.bitrate / 1000, "kbps"), BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14,
+    style: {
+      marginTop: 8
+    }
+  }, "Created on: ", (0,_utils_date__WEBPACK_IMPORTED_MODULE_4__.getDateFromSnowflake)(channel.id)), channel.lastMessageId && BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14
+  }, "Last message sent: ", (0,_utils_date__WEBPACK_IMPORTED_MODULE_4__.getDateFromSnowflake)(channel.lastMessageId)), settings['showPerms'] && channel.permissionOverwrites && BdApi.React.createElement("div", {
+    style: {
+      margin: '16px auto 0 auto',
+      backgroundColor: 'var(--background-secondary)',
+      padding: 10,
+      borderRadius: 5,
+      color: 'var(--text-normal)'
+    }
+  }, BdApi.React.createElement(_UserMentionsComponent__WEBPACK_IMPORTED_MODULE_0__["default"], {
+    channel: channel,
+    guild: guild,
+    settings: settings
+  }), BdApi.React.createElement(_ChannelRolesComponent__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    channel: channel,
+    guild: guild,
+    settings: settings,
+    roles: guildRoles
+  }), BdApi.React.createElement(_AdminRolesComponent__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    guild: guild,
+    settings: settings,
+    roles: guildRoles
+  })), BdApi.React.createElement(_ForumComponent__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    channel: channel
+  })));
+});
+
+/***/ }),
+
+/***/ "./src/components/UserMentionsComponent.jsx":
+/*!**************************************************!*\
+  !*** ./src/components/UserMentionsComponent.jsx ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ UserMentionsComponent)
+/* harmony export */ });
+const React = BdApi.React;
+const {
+  TextElement,
+  UserMentions,
+  ProfileActions,
+  GuildMemberStore,
+  UserStore,
+  DiscordConstants,
+  PermissionUtils
+} = (__webpack_require__(/*! ../utils/modules */ "./src/utils/modules.js").ModuleStore);
+function UserMentionsComponent({
+  channel,
+  guild,
+  settings
+}) {
+  const [userMentionComponents, setUserMentionComponents] = React.useState([]);
+  const fetchMemberAndMap = async () => {
+    setUserMentionComponents('Loading...');
+    if (!settings.showPerms) {
+      return setUserMentionComponents(['None']);
+    }
+    const allUserOverwrites = Object.values(channel.permissionOverwrites).filter(user => Boolean(user && user?.type === 1));
+    for (const user of allUserOverwrites) {
+      if (UserStore.getUser(user.id)) continue;
+      await ProfileActions.fetchProfile(user.id, {
+        guildId: guild.id,
+        withMutualGuilds: false
+      });
+      if (allUserOverwrites.indexOf(user) !== allUserOverwrites.length - 1) {
+        // Wait between 500ms and 2000ms
+        await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1500) + 500));
+      }
+    }
+    const filteredUserOverwrites = Object.values(channel.permissionOverwrites).filter(user => Boolean(PermissionUtils.can({
+      permission: DiscordConstants.Permissions.VIEW_CHANNEL,
+      user: UserStore.getUser(user.id),
+      context: channel
+    }) && GuildMemberStore.isMember(guild.id, user.id)));
+    if (!filteredUserOverwrites?.length) {
+      return setUserMentionComponents(['None']);
+    }
+    const mentionArray = filteredUserOverwrites.map(m => UserMentions.react({
+      userId: m.id,
+      channelId: channel.id
+    }, () => null, {
+      noStyleAndInteraction: false
+    }));
+    return setUserMentionComponents(mentionArray);
+  };
+  React.useEffect(() => {
+    fetchMemberAndMap();
+  }, [channel.id, guild.id, settings.showPerms, channel.permissionOverwrites]);
+  return BdApi.React.createElement(TextElement, {
+    color: TextElement.Colors.INTERACTIVE_NORMAL,
+    size: TextElement.Sizes.SIZE_14
+  }, "Users that can see this channel:", BdApi.React.createElement("div", {
+    style: {
+      marginTop: 8,
+      marginBottom: 8,
+      display: 'flex',
+      flexDirection: 'column',
+      flexWrap: 'wrap',
+      gap: 8,
+      padding: 8,
+      paddingTop: 0
+    }
+  }, userMentionComponents));
+}
+
+/***/ }),
+
+/***/ "./src/styles.css":
+/*!************************!*\
+  !*** ./src/styles.css ***!
+  \************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (".shc-hidden-notice {\n    display: flex;\n    flex-direction: column;\n    text-align: center;\n    overflow-y: auto;\n    padding: 10dvh 0px;\n    margin: 0px auto;\n    width: 100%;\n}\n\n.shc-hidden-notice > div[class^='divider'] {\n    display: none;\n}\n\n.shc-hidden-notice > div[class^='topic'] {\n    background-color: var(--background-secondary);\n    padding: 5px;\n    max-width: 50dvh;\n    text-overflow: ellipsis;\n    border-radius: 8px;\n    margin: 12px auto 0 auto;\n    overflow: visible;\n}\n\n.shc-rolePill {\n    background-color: var(--background-primary);\n    padding: 12px;\n    margin: 4px 0;\n}\n");
+
+/***/ }),
+
+/***/ "./src/utils/date.js":
+/*!***************************!*\
+  !*** ./src/utils/date.js ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   convertToHMS: () => (/* binding */ convertToHMS),
+/* harmony export */   getDateFromSnowflake: () => (/* binding */ getDateFromSnowflake)
+/* harmony export */ });
+const { Logger, LocaleManager } = (__webpack_require__(/*! ./modules */ "./src/utils/modules.js").ModuleStore);
+
+function convertToHMS(timeInSeconds) {
+    timeInSeconds = Number(timeInSeconds);
+
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = Math.floor((timeInSeconds % 3600) % 60);
+
+    const formatTime = (value, unit) => (value > 0 ? `${value} ${unit}${value > 1 ? 's' : ''}` : '');
+
+    return [formatTime(hours, 'hour'), formatTime(minutes, 'minute'), formatTime(seconds, 'second')].join(' ');
+}
+
+function getDateFromSnowflake(snowflake) {
+    try {
+        const DISCORD_EPOCH = 1420070400000n;
+        const id = BigInt(snowflake);
+        const unix = (id >> 22n) + DISCORD_EPOCH;
+
+        return new Date(Number(unix)).toLocaleString(LocaleManager._chosenLocale);
+    } catch (err) {
+        Logger.err(err);
+        return '(Failed to get date)';
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/utils/modules.js":
+/*!******************************!*\
+  !*** ./src/utils/modules.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ModuleStore: () => (/* binding */ ModuleStore),
+/* harmony export */   loaded_successfully: () => (/* binding */ loaded_successfully)
+/* harmony export */ });
+const FallbackLibrary = {
+    Logger: {
+        info: console.info,
+        warn: console.warn,
+        err: console.error,
+    },
+    Settings: {},
+    DiscordModules: {},
+};
+
+const {
+    WebpackModules,
+    Utilities,
+    DOMTools,
+    Logger,
+    ReactTools,
+    Modals,
+
+    Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
+
+    DiscordModules: {
+        ChannelStore,
+        MessageActions,
+        TextElement,
+        React,
+        ReactDOM,
+        GuildChannelsStore,
+        GuildMemberStore,
+        LocaleManager,
+        NavigationUtils,
+        ImageResolver,
+        UserStore,
+        Dispatcher,
+        DiscordPermissions,
+    },
+} = global.ZeresPluginLibrary ?? FallbackLibrary;
+
+let key = null;
+let loaded_successfully_internal = true;
+
+const Tooltip = window.BdApi?.Components?.Tooltip;
+const ContextMenu = window.BdApi?.ContextMenu;
+const Utils = window.BdApi?.Utils;
+const BetterWebpackModules = window.BdApi.Webpack;
+
+const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
+
+const DiscordConstants = {};
+
+DiscordConstants.Permissions = DiscordPermissions;
+
+DiscordConstants.ChannelTypes = Object.values(
+    WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            !Array.isArray(m) &&
+            Object.values(m).some((v) => v?.ADMINISTRATOR) &&
+            Object.values(m).some((v) => v?.GUILD_VOICE)
+    )
+).find((c) => c.GUILD_VOICE);
+
+DiscordConstants.NOOP = () => {};
+
+if (!DiscordConstants.Permissions || !DiscordConstants.ChannelTypes || !DiscordConstants.NOOP) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load DiscordConstants', DiscordConstants);
+}
+
+const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
+
+const Route = WebpackModules.getModule((m) => /.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()));
+
+const ChannelItem = WebpackModules.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
+);
+const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
+    return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
+});
+
+const ChannelItemUtils = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
+);
+
+const ChannelItemUtilsKey = Object.keys(ChannelItemUtils).find((k) => {
+    return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
+});
+
+const RolePill = WebpackModules?.getModule(
+    (m) =>
+        m &&
+        typeof m === 'object' &&
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE,'))
+);
+
+const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
+if (!ChannelPermissionStore?.can) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelPermissionStore', ChannelPermissionStore);
+}
+
+const PermissionStoreActionHandler = Utils?.findInTree(
+    Dispatcher,
+    (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+)?.actionHandler;
+const ChannelListStoreActionHandler = Utils?.findInTree(
+    Dispatcher,
+    (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+)?.actionHandler;
+
+const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
+
+// const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
+const ChannelRecordBase = WebpackModules?.getModule((m) => m?.Sf?.prototype?.isManaged)?.Sf;
+
+const ChannelListStore = BetterWebpackModules.getStore("ChannelListStore");
+const DEFAULT_AVATARS = WebpackModules?.getByProps('DEFAULT_AVATARS')?.DEFAULT_AVATARS;
+
+const Icon = WebpackModules?.getByProps('iconItem');
+const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
+
+const ReadStateStore = BetterWebpackModules.getStore('ReadStateStore');
+const Voice = WebpackModules?.getByProps('getVoiceStateStats');
+
+const UserMentions = WebpackModules?.getByProps('handleUserContextMenu');
+const ChannelUtils = {
+    renderTopic: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('.GROUP_DM:return null');
+            })
+    )?.[key],
+};
+if (!ChannelUtils.renderTopic) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ChannelUtils', ChannelUtils);
+}
+
+const ProfileActions = {
+    fetchProfile: WebpackModules?.getModule(
+        (m) =>
+            m &&
+            typeof m === 'object' &&
+            Object.keys(m).find((k) => {
+                key = k;
+                return m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('USER_PROFILE_FETCH_START');
+            })
+    )?.[key],
+};
+if (!ProfileActions.fetchProfile) {
+    loaded_successfully_internal = false;
+    console.error('Failed to load ProfileActions', ProfileActions);
+}
+
+const PermissionUtilsModule = WebpackModules?.getModule((m) =>
+    Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.computeLurkerPermissionsAllowList()'))
+);
+
+Object.keys(PermissionUtilsModule).find((k) => {
+    key = k;
+    return PermissionUtilsModule[k]?.toString()?.includes('excludeGuildPermissions:');
+});
+const PermissionUtils = {
+    can: PermissionUtilsModule?.[key],
+};
+
+const CategoryStore = WebpackModules?.getByProps('isCollapsed', 'getCollapsedCategories');
+
+const UsedModules = {
+    /* Library */
+    Utilities,
+    DOMTools,
+    Logger,
+    ReactTools,
+    Modals,
+
+    /* Settings */
+    SettingField,
+    SettingPanel,
+    SettingGroup,
+    Switch,
+    RadioGroup,
+
+    /* Discord Modules (From lib) */
+    ChannelStore,
+    MessageActions,
+    TextElement,
+    React,
+    ReactDOM,
+    GuildChannelsStore,
+    GuildMemberStore,
+    LocaleManager,
+    NavigationUtils,
+    ImageResolver,
+    UserStore,
+    Dispatcher,
+
+    /* BdApi */
+    Tooltip,
+    ContextMenu,
+    Utils,
+
+    /* Manually found modules */
+    GuildStore,
+    DiscordConstants,
+    chat,
+    Route,
+    ChannelItem,
+    ChannelItemKey,
+    ChannelItemUtils,
+    ChannelItemUtilsKey,
+    ChannelPermissionStore,
+    PermissionStoreActionHandler,
+    ChannelListStoreActionHandler,
+    container,
+    ChannelRecordBase,
+    ChannelListStore,
+    DEFAULT_AVATARS,
+    iconItem,
+    actionIcon,
+    ReadStateStore,
+    Voice,
+    RolePill,
+    UserMentions,
+    ChannelUtils,
+    ProfileActions,
+    PermissionUtils,
+    CategoryStore,
+};
+
+function checkVariables() {
+    if (!global.ZeresPluginLibrary) {
+        Logger.err('ZeresPluginLibrary not found.');
+        return false;
+    }
+
+    for (const variable in UsedModules) {
+        if (!UsedModules[variable]) {
+            Logger.err('Variable not found: ' + variable);
+        }
+    }
+
+    if (!loaded_successfully_internal) {
+        Logger.err('Failed to load internal modules.');
+        return false;
+    }
+
+    if (Object.values(UsedModules).includes(undefined)) {
+        return false;
+    }
+
+    Logger.info('All variables found.');
+    return true;
+}
+
+const loaded_successfully = checkVariables();
+const ModuleStore = UsedModules;
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _styles_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./styles.css */ "./src/styles.css");
+
 
 const config = {
     info: {
@@ -10,28 +901,29 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: __VERSION__,
+        version: "0.5.3",
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
     },
 
     changelog: [
         {
-            title: 'v0.5.5 - Fix Crash',
-            items: [
-                'Fix Crash when using canary/ptb version of Discord. (#218)',
-            ],
-        },
-        {
-            title: 'v0.5.4 - Fix Crash',
-            items: [
-                'Fix Crash when muting/unmuting specific servers. (#214)',
-            ], 
-        },
-        {
             title: 'v0.5.3 - Module Fix',
             items: [
                 'Removed deprecated rolePill module.',
             ], 
+        },
+        {
+            title: 'v0.5.2 - Module Fix',
+            items: [
+                'Fixed the plugin not working due to a module not being found.',
+            ],
+        },
+        {
+            title: 'v0.5.1 - Refactor & Update System',
+            items: [
+                'Now using github releases tags to check for updates.',
+                'Remove "return-" from the plugin name to avoid confusion.',
+            ],
         },
     ],
 
@@ -133,14 +1025,14 @@ class MissingZeresDummy {
     }
 }
 
-export default !global.ZeresPluginLibrary
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (!global.ZeresPluginLibrary
     ? MissingZeresDummy
     : (([Pl, Lib]) => {
         const plugin = (Plugin, Library) => {
             const ChannelTypes = ['GUILD_TEXT', 'GUILD_VOICE', 'GUILD_ANNOUNCEMENT', 'GUILD_STORE', 'GUILD_STAGE_VOICE', 'GUILD_FORUM'];
 
-            const { Lockscreen } = require('./components/Lockscreen');
-            const { HiddenChannelIcon } = require('./components/HiddenChannelIcon');
+            const { Lockscreen } = __webpack_require__(/*! ./components/Lockscreen */ "./src/components/Lockscreen.jsx");
+            const { HiddenChannelIcon } = __webpack_require__(/*! ./components/HiddenChannelIcon */ "./src/components/HiddenChannelIcon.jsx");
 
             const {
                 /* Library */
@@ -190,8 +1082,7 @@ export default !global.ZeresPluginLibrary
                 ReadStateStore,
                 Voice,
                 CategoryStore,
-                GatewayConnectionStore,
-            } = require('./utils/modules').ModuleStore;
+            } = (__webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js").ModuleStore);
 
             // Patcher from the library variable is different from the one in the global scope
             const Patcher = Library.Patcher;
@@ -338,7 +1229,7 @@ export default !global.ZeresPluginLibrary
                         this.checkForUpdates();
                     }
 
-                    const { loaded_successfully } = require('./utils/modules');
+                    const { loaded_successfully } = __webpack_require__(/*! ./utils/modules */ "./src/utils/modules.js");
 
                     if (loaded_successfully) {
                         this.doStart();
@@ -364,7 +1255,7 @@ export default !global.ZeresPluginLibrary
                 }
 
                 doStart() {
-                    DOMTools.addStyle(config.info.name, styles);
+                    DOMTools.addStyle(config.info.name, _styles_css__WEBPACK_IMPORTED_MODULE_0__["default"]);
                     this.Patch();
                     this.rerenderChannels();
                 }
@@ -388,25 +1279,10 @@ export default !global.ZeresPluginLibrary
                         return ![1, 3].includes(channel.type) && !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
                     });
 
-                    if (!GatewayConnectionStore || !GatewayConnectionStore?.getSocket) {
-                        window.BdApi.UI.showToast(
-                            '(SHC) GatewayConnectionStore is missing, you won\'t be able to see channel names.',
-                            {
-                                type: 'warning',
-                            }
-                        );
-                    } else {
-                        const socket = GatewayConnectionStore.getSocket();
-                        Patcher.before(socket, 'send', (_, args) => {
-                            if (args.length > 1 && args[0] == 2) {
-                                const intent = args[1]?.capabilities;
-                                args[1].capabilities = intent & ~(1 << 15);
-                            }
-    
-                            return args;
+                    if (!ReadStateStore) {
+                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
+                            type: 'warning',
                         });
-    
-                        socket.close();
                     }
 
                     Patcher.after(ReadStateStore, 'getGuildChannelUnreadState', (_, args, res) => {
@@ -419,12 +1295,6 @@ export default !global.ZeresPluginLibrary
                             }
                             : res;
                     });
-
-                    if (!ReadStateStore) {
-                        window.BdApi.UI.showToast('(SHC) ReadStateStore module is missing, channels will be marked as unread.', {
-                            type: 'warning',
-                        });
-                    }
 
                     Patcher.after(ReadStateStore, 'getMentionCount', (_, args, res) => {
                         if (this.settings.MarkUnread) return res;
@@ -730,7 +1600,6 @@ export default !global.ZeresPluginLibrary
                                 HiddenCategory.channels = Object.fromEntries(
                                     Object.entries(HiddenChannels.records).map(([id, channel]) => {
                                         channel.category = HiddenCategory;
-                                        channel.record.parent_id = hiddenCategoryId;
                                         return [id, channel];
                                     })
                                 );
@@ -832,38 +1701,28 @@ export default !global.ZeresPluginLibrary
                     }
 
                     for (const category of categories) {
-                        const channelRecords = Object.entries(category.channels);
-                        const filteredChannelRecords = channelRecords
-                            .map(
-                                ([channelID, channelRecord]) => {
-                                if (hiddenChannels.channels.some((m) => m.id === channelID)) {
-                                    if (!this.hiddenChannelCache[guildId].some((m) => m[0] === channelID)) {
-                                        this.hiddenChannelCache[guildId].push([channelID, channelRecord]);
-                                    }
-                                    return false;
-                                }
-                                return [channelID, channelRecord];
-                                }
-                            )
-                            .filter(Boolean);
+                        // Get the channels that are hidden
+                        const newHiddenChannels = Object.entries(category.channels).filter(([channelId]) =>
+                            hiddenChannels.channels.some((channel) => channel.id === channelId)
+                        );
 
-                        category.channels = Object.fromEntries(filteredChannelRecords);
-                        if (category.hiddenChannelIds) {
-                            category.hiddenChannelIds = category.hiddenChannelIds.filter((v) =>
-                                filteredChannelRecords.some(([id]) => id == v)
-                            );
-                        }
-                      
-                        if (category.shownChannelIds) {
-                            category.shownChannelIds = category.shownChannelIds.filter((v) =>
-                                filteredChannelRecords.some(([id]) => id == v)
-                            );
+                        // Add the channels to the cache and remove them from the original category
+                        for (const [channelId, channel] of newHiddenChannels) {
+                            const isCached = this.hiddenChannelCache[guildId].some(([cachedChannelId]) => cachedChannelId === channelId);
+
+                            if (!isCached) {
+                                this.hiddenChannelCache[guildId].push([channelId, channel]);
+                            }
+
+                            // Remove the channel from original category
+                            delete category.channels[channelId];
                         }
                     }
 
                     return {
                         records: Object.fromEntries(this.hiddenChannelCache[guildId]),
-                        ...hiddenChannels,
+                        channels: hiddenChannels ? hiddenChannels.channels : [],
+                        amount: hiddenChannels ? hiddenChannels.amount : 0,
                     };
                 }
 
@@ -919,7 +1778,7 @@ export default !global.ZeresPluginLibrary
                 }
 
                 getSettingsPanel() {
-                    const { IconSwitchWrapper } = require('./components/IconSwitchWrapper');
+                    const { IconSwitchWrapper } = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
 
                     class IconSwitch extends SettingField {
                         constructor(name, note, isChecked, onChange, options = {}) {
@@ -1125,4 +1984,10 @@ export default !global.ZeresPluginLibrary
             };
         };
         return plugin(Pl, Lib);
-    })(global.ZeresPluginLibrary.buildPlugin(config));
+    })(global.ZeresPluginLibrary.buildPlugin(config)));
+
+})();
+
+module.exports = __webpack_exports__["default"];
+/******/ })()
+;
