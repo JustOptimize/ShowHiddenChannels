@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.5.4
+ * @version 0.5.5
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/ShowHiddenChannels
@@ -639,7 +639,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
     (m) =>
         m &&
         typeof m === 'object' &&
-        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('["/7EhaW"]')) // .Messages.CHANNEL_TOOLTIP_RULES
+        Object.keys(m).some((k) => m[k] && typeof m[k] === 'function' && m[k]?.toString()?.includes('["/7EhaW"]') || m[k]?.toString()?.includes('.Messages.CHANNEL_TOOLTIP_RULES'))
 );
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
@@ -650,7 +650,7 @@ const RolePill = WebpackModules?.getModule(
     (m) =>
         m &&
         typeof m === 'object' &&
-        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.u3RVsL')) // .Messages.USER_PROFILE_REMOVE_ROLE,
+        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString()?.includes('.u3RVsL') || c?.toString()?.includes('.Messages.USER_PROFILE_REMOVE_ROLE'))
 );
 
 const ChannelPermissionStore = WebpackModules?.getByProps('getChannelPermissions');
@@ -901,7 +901,7 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.5.4",
+        version: "0.5.5",
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
     },
 
