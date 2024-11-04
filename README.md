@@ -9,7 +9,8 @@ If you are searching for the [Replugged](https://replugged.dev/) version of this
 
 ## Warning, this plugin might soon stop working
 
-Discord is working on an experimental feature that should hide private channels on the server side making it impossible for plugins like this to work, so it is possible that this plugin will soon be useless.
+Discord is actively trying to prevent plugins like this from working, they added an experimental feature that should hide private channels on the server side making it impossible for plugins like this to work, so it is possible that this plugin will soon be useless.
+At the moment this plugin still works by overriding the user scopes but it can be disabled at any time by Discord.
 
 ![image](https://github.com/user-attachments/assets/fbe4a5df-e8dc-4afd-a43a-510ba6831632)
 
