@@ -907,6 +907,12 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.5 - Fix Crash',
+            items: [
+                'Fix Crash when using canary/ptb version of Discord. (#218)',
+            ],
+        },
+        {
             title: 'v0.5.4 - Fix Crash',
             items: [
                 'Fix Crash when muting/unmuting specific servers. (#214)',
@@ -917,12 +923,6 @@ const config = {
             items: [
                 'Removed deprecated rolePill module.',
             ], 
-        },
-        {
-            title: 'v0.5.2 - Module Fix',
-            items: [
-                'Fixed the plugin not working due to a module not being found.',
-            ],
         },
     ],
 
