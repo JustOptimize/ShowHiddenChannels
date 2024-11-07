@@ -26,7 +26,6 @@ const {
         ReactDOM,
         GuildChannelsStore,
         GuildMemberStore,
-        LocaleManager,
         NavigationUtils,
         ImageResolver,
         UserStore,
@@ -44,6 +43,7 @@ const Utils = window.BdApi?.Utils;
 const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
+const LocaleManager = WebpackModules?.getByProps('setLocale');
 
 const DiscordConstants = {};
 
@@ -107,11 +107,11 @@ if (!ChannelPermissionStore?.can) {
 
 const PermissionStoreActionHandler = Utils?.findInTree(
     Dispatcher,
-    (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+    (c) => c?.name === 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
 )?.actionHandler;
 const ChannelListStoreActionHandler = Utils?.findInTree(
     Dispatcher,
-    (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+    (c) => c?.name === 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
 )?.actionHandler;
 
 const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
@@ -245,7 +245,7 @@ function checkVariables() {
 
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-            Logger.err('Variable not found: ' + variable);
+            Logger.err(`Variable not found: ${variable}`);
         }
     }
 

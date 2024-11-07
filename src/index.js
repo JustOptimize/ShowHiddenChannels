@@ -16,6 +16,12 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.6 - Fix Missing Module',
+            items: [
+                'Fixed missing LocaleManager module.',
+            ],
+        },
+        {
             title: 'v0.5.5 - Fix Crash',
             items: [
                 'Fix Crash when using canary/ptb version of Discord. (#218)',
@@ -25,12 +31,6 @@ const config = {
             title: 'v0.5.4 - Fix Crash',
             items: [
                 'Fix Crash when muting/unmuting specific servers. (#214)',
-            ], 
-        },
-        {
-            title: 'v0.5.3 - Module Fix',
-            items: [
-                'Removed deprecated rolePill module.',
             ], 
         },
     ],
