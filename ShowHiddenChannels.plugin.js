@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.5.5
+ * @version 0.5.6
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/ShowHiddenChannels
@@ -580,7 +580,6 @@ const {
         ReactDOM,
         GuildChannelsStore,
         GuildMemberStore,
-        LocaleManager,
         NavigationUtils,
         ImageResolver,
         UserStore,
@@ -598,6 +597,7 @@ const Utils = window.BdApi?.Utils;
 const BetterWebpackModules = window.BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps('getGuild', 'getGuildCount', 'getGuildIds', 'getGuilds', 'isLoaded');
+const LocaleManager = WebpackModules?.getByProps('setLocale');
 
 const DiscordConstants = {};
 
@@ -661,11 +661,11 @@ if (!ChannelPermissionStore?.can) {
 
 const PermissionStoreActionHandler = Utils?.findInTree(
     Dispatcher,
-    (c) => c?.name == 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+    (c) => c?.name === 'PermissionStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
 )?.actionHandler;
 const ChannelListStoreActionHandler = Utils?.findInTree(
     Dispatcher,
-    (c) => c?.name == 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
+    (c) => c?.name === 'ChannelListStore' && typeof c?.actionHandler?.CONNECTION_OPEN === 'function'
 )?.actionHandler;
 
 const container = WebpackModules?.getByProps('container', 'hubContainer')?.container;
@@ -799,7 +799,7 @@ function checkVariables() {
 
     for (const variable in UsedModules) {
         if (!UsedModules[variable]) {
-            Logger.err('Variable not found: ' + variable);
+            Logger.err(`Variable not found: ${variable}`);
         }
     }
 
@@ -901,11 +901,17 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.5.5",
+        version: "0.5.6",
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
     },
 
     changelog: [
+        {
+            title: 'v0.5.6 - Fix Missing Module (LocaleManager)',
+            items: [
+                'Fixed missing LocaleManager module.',
+            ],
+        },
         {
             title: 'v0.5.5 - Fix Crash',
             items: [
@@ -916,12 +922,6 @@ const config = {
             title: 'v0.5.4 - Fix Crash',
             items: [
                 'Fix Crash when muting/unmuting specific servers. (#214)',
-            ], 
-        },
-        {
-            title: 'v0.5.3 - Module Fix',
-            items: [
-                'Removed deprecated rolePill module.',
             ], 
         },
     ],
