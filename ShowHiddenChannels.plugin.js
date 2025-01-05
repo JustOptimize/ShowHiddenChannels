@@ -4,6 +4,7 @@
  * @version 0.5.6
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
+ * @updateUrl https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/ShowHiddenChannels.plugin.js
  * @source https://github.com/JustOptimize/ShowHiddenChannels
  * @description A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).
  */
