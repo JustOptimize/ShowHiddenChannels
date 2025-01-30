@@ -78,7 +78,7 @@ class MissingZeresDummy {
         });
 
         // TODO: Use BdApi.Net.fetch
-        eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, resp, body) => {
+        eval('require')('request').get('https://betterdiscord.app/gh-redirect?id=9', async (err, _resp, body) => {
             if (err || !body) return this.downloadZLibErrorPopup();
 
             if (!body.match(/(?<=version: ").*(?=")/)) {
@@ -123,7 +123,7 @@ class MissingZeresDummy {
     downloadZLibErrorPopup() {
         window.BdApi.UI.showConfirmationModal(
             'Error Downloading',
-            `ZeresPluginLibrary download failed. Manually install plugin library from the link below.`,
+            "ZeresPluginLibrary download failed. Manually install plugin library from the link below.",
             {
                 confirmText: 'Visit Download Page',
                 cancelText: 'Cancel',
@@ -238,7 +238,7 @@ export default !global.ZeresPluginLibrary
 
                 async checkForUpdates() {
                     if (this.settings.debugMode) {
-                        Logger.info('Checking for updates, current version: ' + config.info.version);
+                        Logger.info(`Checking for updates, current version: ${config.info.version}`);
                     }
 
                     const tags_raw = await fetch(`https://api.github.com/repos/${config.github_short}/tags`);
@@ -279,7 +279,7 @@ export default !global.ZeresPluginLibrary
                             danger: false,
 
                             onConfirm: async () => {
-                                const SHCContent = await fetch('https://raw.githubusercontent.com/' + config.github_short + '/v' + latestVersion + '/' + config.main)
+                                const SHCContent = await fetch(`https://raw.githubusercontent.com/${config.github_short}/v${latestVersion}/${config.main}`)
                                     .then((res) => res.text())
                                     .catch(() => {
                                         window.BdApi.UI.showToast('Failed to fetch the latest version.', {
@@ -344,7 +344,7 @@ export default !global.ZeresPluginLibrary
                     } else {
                         window.BdApi.UI.showConfirmationModal(
                             '(SHC) Broken Modules',
-                            `ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)`,
+                            "ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)",
                             {
                                 confirmText: 'Start anyway',
                                 cancelText: 'Cancel',
@@ -438,14 +438,14 @@ export default !global.ZeresPluginLibrary
                     Patcher.after(ChannelPermissionStore, 'can', (_, [permission, channel], res) => {
                         if (!channel?.isHidden?.()) return res;
 
-                        if (permission == DiscordConstants.Permissions.VIEW_CHANNEL) {
+                        if (permission === DiscordConstants.Permissions.VIEW_CHANNEL) {
                             return (
-                                !this.settings['blacklistedGuilds'][channel.guild_id] &&
-                                this.settings['channels'][DiscordConstants.ChannelTypes[channel.type]]
+                                !this.settings.blacklistedGuilds[channel.guild_id] &&
+                                this.settings.channels[DiscordConstants.ChannelTypes[channel.type]]
                             );
                         }
 
-                        if (permission == DiscordConstants.Permissions.CONNECT) {
+                        if (permission === DiscordConstants.Permissions.CONNECT) {
                             return false;
                         }
 
@@ -458,14 +458,14 @@ export default !global.ZeresPluginLibrary
                         });
                     }
 
-                    Patcher.after(Route, 'Z', (_, args, res) => {
+                    Patcher.after(Route, 'Z', (_, _args, res) => {
                         if (!Voice || !Route) return res;
 
                         const channelId = res.props?.computedMatch?.params?.channelId;
                         const guildId = res.props?.computedMatch?.params?.guildId;
                         const channel = ChannelStore?.getChannel(channelId);
 
-                        if (guildId && channel?.isHidden?.() && channel?.id != Voice.getChannelId()) {
+                        if (guildId && channel?.isHidden?.() && channel?.id !== Voice.getChannelId()) {
                             res.props.render = () =>
                                 React.createElement(Lockscreen, {
                                     chat,
@@ -495,7 +495,7 @@ export default !global.ZeresPluginLibrary
                         return res.call(instance, fetchConfig);
                     });
 
-                    if (this.settings['hiddenChannelIcon']) {
+                    if (this.settings.hiddenChannelIcon) {
                         if (!ChannelItem || !ChannelItemKey) {
                             window.BdApi.UI.showToast("(SHC) ChannelItem module is missing, channel lock icon won't be shown.", {
                                 type: 'warning',
@@ -520,7 +520,7 @@ export default !global.ZeresPluginLibrary
                             if (children.props?.children) {
                                 children.props.children = [
                                     React.createElement(HiddenChannelIcon, {
-                                        icon: this.settings['hiddenChannelIcon'],
+                                        icon: this.settings.hiddenChannelIcon,
                                         iconItem: iconItem,
                                         actionIcon: actionIcon,
                                     }),
@@ -528,7 +528,7 @@ export default !global.ZeresPluginLibrary
                             }
 
                             const isInCallInThisChannel =
-                                instance.channel.type == DiscordConstants.ChannelTypes.GUILD_VOICE && !instance.connected;
+                                instance.channel.type === DiscordConstants.ChannelTypes.GUILD_VOICE && !instance.connected;
                             if (!isInCallInThisChannel) {
                                 return res;
                             }
@@ -563,7 +563,7 @@ export default !global.ZeresPluginLibrary
 
                     //* Remove lock icon from hidden voice channels
                     if (!ChannelItemUtils) {
-                        window.BdApi.UI.showToast("(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.", {
+                        window.BdApi.UI.showToast("(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.", {
                             type: 'warning',
                         });
                     }
@@ -590,7 +590,7 @@ export default !global.ZeresPluginLibrary
                         const guild_id = channelId?.replace('_hidden', '');
                         const isHiddenCategory = channelId?.endsWith('_hidden');
 
-                        if (this.settings['sort'] !== 'extra' || !isHiddenCategory || this.settings['blacklistedGuilds'][guild_id]) {
+                        if (this.settings.sort !== 'extra' || !isHiddenCategory || this.settings.blacklistedGuilds[guild_id]) {
                             return res;
                         }
 
@@ -607,7 +607,7 @@ export default !global.ZeresPluginLibrary
                     Patcher.after(ChannelStore, 'getMutableGuildChannelsForGuild', (_, [guildId], GuildChannels) => {
                         if (!GuildChannelsStore?.getChannels) return;
 
-                        if (this.settings['sort'] !== 'extra' || this.settings['blacklistedGuilds'][guildId]) {
+                        if (this.settings.sort !== 'extra' || this.settings.blacklistedGuilds[guildId]) {
                             return;
                         }
 
@@ -640,7 +640,7 @@ export default !global.ZeresPluginLibrary
                     Patcher.after(GuildChannelsStore, 'getChannels', (_, [guildId], res) => {
                         const GuildCategories = res[DiscordConstants.ChannelTypes.GUILD_CATEGORY];
                         const hiddenCategoryId = `${guildId}_hidden`;
-                        const hiddenCategory = GuildCategories?.find((m) => m.channel.id == hiddenCategoryId);
+                        const hiddenCategory = GuildCategories?.find((m) => m.channel.id === hiddenCategoryId);
 
                         if (!hiddenCategory) return res;
 
@@ -667,7 +667,7 @@ export default !global.ZeresPluginLibrary
 
                     //* Custom category or sorting order
                     Patcher.after(ChannelListStore, 'getGuild', (_, [guildId], res) => {
-                        if (this.settings['blacklistedGuilds'][guildId]) {
+                        if (this.settings.blacklistedGuilds[guildId]) {
                             return;
                         }
 
@@ -679,7 +679,7 @@ export default !global.ZeresPluginLibrary
                             guildChannels.voiceChannelsCategory,
                         ];
 
-                        switch (this.settings['sort']) {
+                        switch (this.settings.sort) {
                             case 'bottom': {
                                 for (const category of specialCategories) {
                                     this.sortChannels(category);
@@ -734,7 +734,7 @@ export default !global.ZeresPluginLibrary
                             }
                         }
 
-                        if (this.settings['shouldShowEmptyCategory']) {
+                        if (this.settings.shouldShowEmptyCategory) {
                             this.patchEmptyCategoryFunction([
                                 ...Object.values(res.guildChannels.categories).filter((m) => !m.id.includes('hidden')),
                             ]);
@@ -765,9 +765,9 @@ export default !global.ZeresPluginLibrary
                         ContextMenu.buildItem({
                             type: 'toggle',
                             label: 'Disable SHC',
-                            checked: this.settings['blacklistedGuilds'][guild.id],
+                            checked: this.settings.blacklistedGuilds[guild.id],
                             action: () => {
-                                this.settings['blacklistedGuilds'][guild.id] = !this.settings['blacklistedGuilds'][guild.id];
+                                this.settings.blacklistedGuilds[guild.id] = !this.settings.blacklistedGuilds[guild.id];
                                 this.saveSettings();
                             },
                         })
@@ -828,13 +828,13 @@ export default !global.ZeresPluginLibrary
                         category.channels = Object.fromEntries(filteredChannelRecords);
                         if (category.hiddenChannelIds) {
                             category.hiddenChannelIds = category.hiddenChannelIds.filter((v) =>
-                                filteredChannelRecords.some(([id]) => id == v)
+                                filteredChannelRecords.some(([id]) => id === v)
                             );
                         }
                       
                         if (category.shownChannelIds) {
                             category.shownChannelIds = category.shownChannelIds.filter((v) =>
-                                filteredChannelRecords.some(([id]) => id == v)
+                                filteredChannelRecords.some(([id]) => id === v)
                             );
                         }
                     }
@@ -860,7 +860,7 @@ export default !global.ZeresPluginLibrary
 
                     const guildChannels = ChannelStore.getMutableGuildChannelsForGuild(guildId);
                     const hiddenChannels = Object.values(guildChannels).filter(
-                        (m) => m.isHidden() && m.type != DiscordConstants.ChannelTypes.GUILD_CATEGORY
+                        (m) => m.isHidden() && m.type !== DiscordConstants.ChannelTypes.GUILD_CATEGORY
                     );
 
                     const ChannelsAndCount = {
@@ -897,7 +897,7 @@ export default !global.ZeresPluginLibrary
                 }
 
                 getSettingsPanel() {
-                    const { IconSwitchWrapper } = require('./components/IconSwitchWrapper');
+                    const { IconSwitchWrapper } = eval('require')('./components/IconSwitchWrapper');
 
                     class IconSwitch extends SettingField {
                         constructor(name, note, isChecked, onChange, options = {}) {
@@ -932,7 +932,7 @@ export default !global.ZeresPluginLibrary
                             new RadioGroup(
                                 'Hidden Channel Icon',
                                 'What icon to show as indicator for hidden channels.',
-                                this.settings['hiddenChannelIcon'],
+                                this.settings.hiddenChannelIcon,
                                 [
                                     {
                                         name: 'Lock Icon',
@@ -948,13 +948,13 @@ export default !global.ZeresPluginLibrary
                                     },
                                 ],
                                 (i) => {
-                                    this.settings['hiddenChannelIcon'] = i;
+                                    this.settings.hiddenChannelIcon = i;
                                 }
                             ),
                             new RadioGroup(
                                 'Sorting Order',
                                 'Where to display Hidden Channels.',
-                                this.settings['sort'],
+                                this.settings.sort,
                                 [
                                     {
                                         name: 'Hidden Channels in the native Discord order (default)',
@@ -970,21 +970,21 @@ export default !global.ZeresPluginLibrary
                                     },
                                 ],
                                 (i) => {
-                                    this.settings['sort'] = i;
+                                    this.settings.sort = i;
                                 }
                             ),
                             new Switch(
                                 'Show Permissions',
                                 'Show what roles/users can access the hidden channel.',
-                                this.settings['showPerms'],
+                                this.settings.showPerms,
                                 (i) => {
-                                    this.settings['showPerms'] = i;
+                                    this.settings.showPerms = i;
                                 }
                             ),
                             new RadioGroup(
                                 'Show Admin Roles',
                                 "Show roles that have ADMINISTRATOR permission in the hidden channel page (requires 'Shows Permission' enabled).",
-                                this.settings['showAdmin'],
+                                this.settings.showAdmin,
                                 [
                                     {
                                         name: 'Show only channel specific roles',
@@ -1004,40 +1004,40 @@ export default !global.ZeresPluginLibrary
                                     },
                                 ],
                                 (i) => {
-                                    this.settings['showAdmin'] = i;
+                                    this.settings.showAdmin = i;
                                 }
                             ),
                             new Switch(
                                 'Stop marking hidden channels as read',
                                 'Stops the plugin from marking hidden channels as read.',
 
-                                this.settings['MarkUnread'],
+                                this.settings.MarkUnread,
                                 (i) => {
-                                    this.settings['MarkUnread'] = i;
+                                    this.settings.MarkUnread = i;
                                 }
                             ),
                             new Switch(
                                 'Show Empty Category',
                                 "Show category even if it's empty",
-                                this.settings['shouldShowEmptyCategory'],
+                                this.settings.shouldShowEmptyCategory,
                                 (i) => {
-                                    this.settings['shouldShowEmptyCategory'] = i;
+                                    this.settings.shouldShowEmptyCategory = i;
                                 }
                             ),
                             new Switch(
                                 'Check for Updates',
                                 'Automatically check for updates at startup.',
-                                this.settings['checkForUpdates'],
+                                this.settings.checkForUpdates,
                                 (i) => {
-                                    this.settings['checkForUpdates'] = i;
+                                    this.settings.checkForUpdates = i;
                                 }
                             ),
                             new Switch(
                                 'Enable Debug Mode',
                                 'Enables debug mode, which will log more information to the console.',
-                                this.settings['debugMode'],
+                                this.settings.debugMode,
                                 (i) => {
-                                    this.settings['debugMode'] = i;
+                                    this.settings.debugMode = i;
                                 }
                             )
                         ),
@@ -1055,8 +1055,8 @@ export default !global.ZeresPluginLibrary
                                 // [STAGE, VOICE] => Stage Voice
                                 formattedType = formattedType.map((word) => capitalizeFirst(word)).join(' ');
 
-                                return new Switch(`Show ${formattedType} Channels`, null, this.settings['channels'][type], (i) => {
-                                    this.settings['channels'][type] = i;
+                                return new Switch(`Show ${formattedType} Channels`, null, this.settings.channels[type], (i) => {
+                                    this.settings.channels[type] = i;
                                     this.rerenderChannels();
                                 });
                             })
@@ -1071,9 +1071,9 @@ export default !global.ZeresPluginLibrary
                                     new IconSwitch(
                                         guild.name,
                                         guild.description,
-                                        this.settings['blacklistedGuilds'][guild.id] ?? false,
+                                        this.settings.blacklistedGuilds[guild.id] ?? false,
                                         (e) => {
-                                            this.settings['blacklistedGuilds'][guild.id] = e;
+                                            this.settings.blacklistedGuilds[guild.id] = e;
                                         },
                                         {
                                             icon:

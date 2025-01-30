@@ -31,13 +31,14 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
         >
             <div className="shc-hidden-notice">
                 <img
+                    alt='Hidden Channel Icon'
                     style={{
                         WebkitUserDrag: 'none',
                         maxHeight: 128,
                         margin: '0 auto',
                     }}
                     src={
-                        settings['hiddenChannelIcon'] == 'eye'
+                        settings.hiddenChannelIcon === 'eye'
                             ? 'https://raw.githubusercontent.com/JustOptimize/ShowHiddenChannels/main/assets/eye.png'
                             : '/assets/755d4654e19c105c3cd108610b78d01c.svg'
                     }
@@ -59,11 +60,11 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                         marginTop: 8,
                     }}
                 >
-                    You cannot see the contents of this channel. {channel.topic && channel.type != 15 && 'However, you may see its topic.'}
+                    You cannot see the contents of this channel. {channel.topic && channel.type !== 15 && 'However, you may see its topic.'}
                 </TextElement>
                 {/* Topic */}
                 {channel.topic &&
-                    channel.type != 15 &&
+                    channel.type !== 15 &&
                     (ChannelUtils?.renderTopic(channel, guild) || "ChannelUtils module is missing, topic won't be shown.")}
 
                 {/* Icon Emoji */}
@@ -82,7 +83,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                 {/* Slowmode */}
                 {channel.rateLimitPerUser > 0 && (
                     <TextElement color={TextElement.Colors.INTERACTIVE_NORMAL} size={TextElement.Sizes.SIZE_14}>
-                        Slowmode: {convertToHMS(channel.rateLimitPerUser)}
+                        Slowmode: {convertToHMS(Number(channel.rateLimitPerUser))}
                     </TextElement>
                 )}
 
@@ -94,7 +95,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                 )}
 
                 {/* Bitrate */}
-                {channel.bitrate && channel.type == 2 && (
+                {channel.bitrate && channel.type === 2 && (
                     <TextElement color={TextElement.Colors.INTERACTIVE_NORMAL} size={TextElement.Sizes.SIZE_14}>
                         Bitrate: {channel.bitrate / 1000}kbps
                     </TextElement>
@@ -119,7 +120,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
                 )}
 
                 {/* Permissions */}
-                {settings['showPerms'] && channel.permissionOverwrites && (
+                {settings.showPerms && channel.permissionOverwrites && (
                     <div
                         style={{
                             margin: '16px auto 0 auto',
