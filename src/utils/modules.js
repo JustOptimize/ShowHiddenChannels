@@ -89,7 +89,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
 );
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
-    return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
+    return ChannelItemUtils[k]?.toString()?.includes(',textFocused:');
 });
 
 const RolePill = WebpackModules?.getModule(

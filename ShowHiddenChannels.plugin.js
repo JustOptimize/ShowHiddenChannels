@@ -580,7 +580,7 @@ const ChannelItemUtils = WebpackModules?.getModule(
 );
 
 const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
-    return ChannelItemUtils[k]?.toString()?.includes('.AnnouncementsWarningIcon');
+    return ChannelItemUtils[k]?.toString()?.includes(',textFocused:');
 });
 
 const RolePill = WebpackModules?.getModule(
@@ -1391,7 +1391,7 @@ class MissingZeresDummy {
 
                     //* Remove lock icon from hidden voice channels
                     if (!ChannelItemUtils) {
-                        window.BdApi.UI.showToast("(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.", {
+                        window.BdApi.UI.showToast("(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.", {
                             type: 'warning',
                         });
                     }
