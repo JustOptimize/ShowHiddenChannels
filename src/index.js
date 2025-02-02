@@ -16,6 +16,13 @@ const config = {
 
     changelog: [
         {
+            title: 'v0.5.7 - Improvements and Fixes',
+            items: [
+                'Fixed missing ChannelItemUtilsKey module.',
+                'Small code improvements.',
+            ],
+        },
+        {
             title: 'v0.5.6 - Fix Missing Module',
             items: [
                 'Fixed missing LocaleManager module.',
@@ -26,12 +33,6 @@ const config = {
             items: [
                 'Fix Crash when using canary/ptb version of Discord. (#218)',
             ],
-        },
-        {
-            title: 'v0.5.4 - Fix Crash',
-            items: [
-                'Fix Crash when muting/unmuting specific servers. (#214)',
-            ], 
         },
     ],
 

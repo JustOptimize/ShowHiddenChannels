@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName Show Hidden Channels (SHC)
- * @version 0.5.6
+ * @version 0.5.7
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/ShowHiddenChannels
@@ -838,11 +838,18 @@ const config = {
         ],
         description:
             "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
-        version: "0.5.6",
+        version: "0.5.7",
         github: 'https://github.com/JustOptimize/ShowHiddenChannels',
     },
 
     changelog: [
+        {
+            title: 'v0.5.7 - Improvements and Fixes',
+            items: [
+                'Fixed missing ChannelItemUtilsKey module.',
+                'Small code improvements.',
+            ],
+        },
         {
             title: 'v0.5.6 - Fix Missing Module',
             items: [
@@ -854,12 +861,6 @@ const config = {
             items: [
                 'Fix Crash when using canary/ptb version of Discord. (#218)',
             ],
-        },
-        {
-            title: 'v0.5.4 - Fix Crash',
-            items: [
-                'Fix Crash when muting/unmuting specific servers. (#214)',
-            ], 
         },
     ],
 
