@@ -222,6 +222,68 @@ const HiddenChannelIcon = React.memo(HiddenChannelComponent);
 
 /***/ }),
 
+/***/ "./src/components/IconSwitchWrapper.jsx":
+/*!**********************************************!*\
+  !*** ./src/components/IconSwitchWrapper.jsx ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   IconSwitchWrapper: () => (/* binding */ IconSwitchWrapper)
+/* harmony export */ });
+const React = BdApi.React;
+function IconSwitchWrapper({
+  icon,
+  value,
+  onChange,
+  children,
+  note
+}) {
+  const [enabled, setEnabled] = React.useState(value);
+  return BdApi.React.createElement("div", null, BdApi.React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: '16px',
+      marginTop: '16px'
+    }
+  }, BdApi.React.createElement("img", {
+    src: icon,
+    width: 48,
+    height: 48,
+    title: "Click to toggle",
+    style: {
+      borderRadius: '360px',
+      cursor: 'pointer',
+      border: enabled ? '3px solid green' : '3px solid grey',
+      marginRight: '8px'
+    },
+    onClick: () => {
+      onChange(!enabled);
+      setEnabled(!enabled);
+    }
+  }), BdApi.React.createElement("div", {
+    style: {
+      maxWidth: '89%'
+    }
+  }, BdApi.React.createElement("div", {
+    style: {
+      fontSize: '20px',
+      color: 'var(--header-primary)',
+      fontWeight: '600'
+    }
+  }, children), BdApi.React.createElement("div", {
+    style: {
+      color: 'var(--header-secondary)',
+      fontSize: '16px'
+    }
+  }, note))));
+}
+
+/***/ }),
+
 /***/ "./src/components/Lockscreen.jsx":
 /*!***************************************!*\
   !*** ./src/components/Lockscreen.jsx ***!
@@ -1726,7 +1788,7 @@ class MissingZeresDummy {
                 }
 
                 getSettingsPanel() {
-                    const { IconSwitchWrapper } = eval('require')('./components/IconSwitchWrapper');
+                    const { IconSwitchWrapper } = __webpack_require__(/*! ./components/IconSwitchWrapper */ "./src/components/IconSwitchWrapper.jsx");
 
                     class IconSwitch extends SettingField {
                         constructor(name, note, isChecked, onChange, options = {}) {

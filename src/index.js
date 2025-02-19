@@ -898,7 +898,7 @@ export default !global.ZeresPluginLibrary
                 }
 
                 getSettingsPanel() {
-                    const { IconSwitchWrapper } = eval('require')('./components/IconSwitchWrapper');
+                    const { IconSwitchWrapper } = require('./components/IconSwitchWrapper');
 
                     class IconSwitch extends SettingField {
                         constructor(name, note, isChecked, onChange, options = {}) {
