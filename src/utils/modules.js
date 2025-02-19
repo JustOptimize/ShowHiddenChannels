@@ -49,16 +49,7 @@ const DiscordConstants = {};
 
 DiscordConstants.Permissions = DiscordPermissions;
 
-DiscordConstants.ChannelTypes = Object.values(
-    WebpackModules?.getModule(
-        (m) =>
-            m &&
-            typeof m === 'object' &&
-            !Array.isArray(m) &&
-            Object.values(m).some((v) => v?.ADMINISTRATOR) &&
-            Object.values(m).some((v) => v?.GUILD_VOICE)
-    )
-).find((c) => c.GUILD_VOICE);
+DiscordConstants.ChannelTypes = BetterWebpackModules.getModule(x => x.GUILD_VOICE, { searchExports: true });
 
 DiscordConstants.NOOP = () => {};
 
@@ -71,12 +62,7 @@ const chat = WebpackModules?.getByProps('chat', 'chatContent')?.chat;
 
 const Route = WebpackModules.getModule((m) => /.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()));
 
-const ChannelItem = WebpackModules.getModule(
-    (m) =>
-        m &&
-        typeof m === 'object' &&
-        Object.values(m).some((c) => c && typeof c === 'function' && c?.toString?.()?.includes('.iconContainerWithGuildIcon,'))
-);
+const ChannelItem = BetterWebpackModules.getBySource("forceInteractable", "unreadImportant:void 0)}),");
 const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
     return ChannelItem[k]?.toString()?.includes('.ALL_MESSAGES');
 });
