@@ -1,4 +1,14 @@
 {
-    "editor.formatOnSave": true,
-    "conventionalCommits.scopes": ["Settings", "Lockscreen"]
+	"editor.formatOnSave": true,
+	"conventionalCommits.scopes": [
+		"Settings",
+		"Lockscreen"
+	],
+	"editor.defaultFormatter": "biomejs.biome",
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
 }

@@ -1,72 +1,80 @@
-const path = require('path');
-const webpack = require('webpack');
-const pluginConfig = require('./src/config.json');
-const process = require('process');
+const path = require("node:path");
+const webpack = require("webpack");
+const pluginConfig = require("./src/config.json");
+const process = require("node:process");
+const fs = require("node:fs");
 
 const meta = (() => {
-    const lines = ['/**'];
-    for (const key in pluginConfig) {
-        lines.push(` * @${key} ${pluginConfig[key]}`);
-    }
-    lines.push(' */');
-    return lines.join('\n');
+	const lines = ["/**"];
+	for (const key in pluginConfig) {
+		lines.push(` * @${key} ${pluginConfig[key]}`);
+	}
+	lines.push(" */");
+	return lines.join("\n");
 })();
 
 module.exports = {
-    mode: 'development',
-    target: 'node',
-    devtool: false,
-    entry: './src/index.js',
-    output: {
-        filename: 'ShowHiddenChannels.plugin.js',
+	mode: "development",
+	target: "node",
+	devtool: false,
+	entry: "./src/index.js",
+	output: {
+		filename: "ShowHiddenChannels.plugin.js",
 
-        // todo: use github releases instead -> path.join(__dirname, 'dist')
-        // eslint-disable-next-line no-undef
-        path: __dirname,
+		path: path.join(__dirname, "dist"),
 
-        libraryTarget: 'commonjs2',
-        libraryExport: 'default',
-        compareBeforeEmit: false,
-    },
-    resolve: {
-        extensions: ['.js', '.css', '.jsx'],
-    },
-    module: {
-        rules: [
-            { test: /\.css$/, use: 'raw-loader' },
-            { test: /\.jsx$/, exclude: /node_modules/, use: 'babel-loader' },
-        ],
-    },
-    plugins: [
-        new webpack.BannerPlugin({ raw: true, banner: meta }),
-        {
-            apply: (compiler) => {
-                compiler.hooks.assetEmitted.tap('ShowHiddenChannels', (filename, info) => {
-                    console.info(`\n\nℹ️  Plugin built as ${filename}\n`);
+		libraryTarget: "commonjs2",
+		libraryExport: "default",
+		compareBeforeEmit: false,
+	},
+	resolve: {
+		extensions: [".js", ".css", ".jsx"],
+	},
+	module: {
+		rules: [
+			{ test: /\.css$/, use: "raw-loader" },
+			{ test: /\.jsx$/, exclude: /node_modules/, use: "babel-loader" },
+		],
+	},
+	plugins: [
+		new webpack.BannerPlugin({ raw: true, banner: meta }),
+		{
+			apply: (compiler) => {
+				compiler.hooks.assetEmitted.tap(
+					"ShowHiddenChannels",
+					(filename, info) => {
+						console.info(`\n\nℹ️  Plugin built as ${filename}\n`);
 
-                    const userConfig = (() => {
-                        if (process.platform === 'win32') return process.env.APPDATA;
+						const userConfig = (() => {
+							if (process.platform === "win32") return process.env.APPDATA;
 
-                        if (process.platform === 'darwin') {
-                            return path.join(process.env.HOME, 'Library', 'Application Support');
-                        }
+							if (process.platform === "darwin") {
+								return path.join(
+									process.env.HOME,
+									"Library",
+									"Application Support",
+								);
+							}
 
-                        if (process.env.XDG_CONFIG_HOME) {
-                            return process.env.XDG_CONFIG_HOME;
-                        }
+							if (process.env.XDG_CONFIG_HOME) {
+								return process.env.XDG_CONFIG_HOME;
+							}
 
-                        return path.join(process.env.HOME, 'Library', '.config');
-                    })();
+							return path.join(process.env.HOME, "Library", ".config");
+						})();
 
-                    const fs = require('fs');
-                    const bdFolder = path.join(userConfig, 'BetterDiscord');
-                    fs.copyFileSync(info.targetPath, path.join(bdFolder, 'plugins', filename));
-                    console.info(`\n\n✅ Copied to BD folder\n`);
-                });
-            },
-        },
-        new webpack.DefinePlugin({
-            __VERSION__: JSON.stringify(pluginConfig.version),
-        }),
-    ],
+						const bdFolder = path.join(userConfig, "BetterDiscord");
+						fs.copyFileSync(
+							info.targetPath,
+							path.join(bdFolder, "plugins", filename),
+						);
+						console.info("\n\n✅ Copied to BD folder\n");
+					},
+				);
+			},
+		},
+		new webpack.DefinePlugin({
+			__VERSION__: JSON.stringify(pluginConfig.version),
+		}),
+	],
 };
