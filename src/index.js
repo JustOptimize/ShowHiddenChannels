@@ -232,11 +232,8 @@ export default !global.ZeresPluginLibrary
 
 						this.collapsed = {};
 						this.processContextMenu = this?.processContextMenu?.bind(this);
-						this.settings = Utilities.loadData(
-							config.info.name,
-							"settings",
-							defaultSettings,
-						);
+						this.settings =
+							BdApi.Data.load(config.info.name, "settings") ?? defaultSettings;
 
 						this.can =
 							ChannelPermissionStore.can.__originalFunction ??
@@ -278,7 +275,7 @@ export default !global.ZeresPluginLibrary
 
 						if (this.settings.debugMode) {
 							Logger.info(
-								`Latest version: ${latestRelease}, pre-release: ${this.settings.usePreRelease}`,
+								`Latest version: ${latestRelease}, pre-release: ${!!this.settings.usePreRelease}`,
 							);
 						}
 
@@ -595,12 +592,16 @@ export default !global.ZeresPluginLibrary
 										item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
 									}
 
-									const children = Utilities.findInReactTree(
+									const children = Utilities.findInTree(
 										res,
 										(m) =>
 											m?.props?.onClick
 												?.toString()
 												.includes("stopPropagation") && m.type === "div",
+										{
+											walkable: ["props", "children", "child", "sibling"],
+											maxRecursion: 100,
+										},
 									);
 
 									if (children.props?.children) {
@@ -621,10 +622,16 @@ export default !global.ZeresPluginLibrary
 										return res;
 									}
 
-									const wrapper = Utilities.findInReactTree(res, (channel) =>
-										channel?.props?.className?.includes(
-											"shc-hidden-channel-type-2",
-										),
+									const wrapper = Utilities.findInTree(
+										res,
+										(channel) =>
+											channel?.props?.className?.includes(
+												"shc-hidden-channel-type-2",
+											),
+										{
+											walkable: ["props", "children", "child", "sibling"],
+											maxRecursion: 100,
+										},
 									);
 
 									if (!wrapper) {
@@ -1283,7 +1290,7 @@ export default !global.ZeresPluginLibrary
 					}
 
 					saveSettings() {
-						Utilities.saveData(config.info.name, "settings", this.settings);
+						BdApi.Data.save(config.info.name, "settings", this.settings);
 						this.rerenderChannels();
 					}
 				};
