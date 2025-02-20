@@ -1,54 +1,88 @@
 const FallbackLibrary = {
-	Logger: {
-		info: console.info,
-		warn: console.warn,
-		err: console.error,
-	},
 	Settings: {},
-	DiscordModules: {},
+};
+
+const Logger = {
+	_log: (type, color, ...x) => {
+		const line = new Error().stack;
+		const lines = line.split("\n");
+		console[type](
+			`%c SHC %c ${type.toUpperCase()} %c`,
+			"background: #5968f0; color: white; font-weight: bold; border-radius: 5px;",
+			`background: ${color}; color: black; font-weight: bold; border-radius: 5px; margin-left: 5px;`,
+			"",
+			...x,
+			`\n\n${lines[3].substring(lines[3].indexOf("("), lines[3].lastIndexOf(")") + 1)}`,
+		);
+	},
+	info: (...x) => {
+		Logger._log("log", "#2f3781", ...x);
+	},
+	warn: (...x) => {
+		Logger._log("warn", "#f0b859", ...x);
+	},
+	err: (...x) => {
+		Logger._log("error", "#f05959", ...x);
+	},
 };
 
 const {
 	WebpackModules,
 	Utilities,
 	DOMTools,
-	Logger,
-	ReactTools,
-	Modals,
 
 	Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
-
-	DiscordModules: {
-		ChannelStore,
-		MessageActions,
-		TextElement,
-		React,
-		ReactDOM,
-		GuildChannelsStore,
-		GuildMemberStore,
-		NavigationUtils,
-		ImageResolver,
-		UserStore,
-		Dispatcher,
-		DiscordPermissions,
-	},
 } = global.ZeresPluginLibrary ?? FallbackLibrary;
 
 let key = null;
 let loaded_successfully_internal = true;
 
-const Tooltip = window.BdApi?.Components?.Tooltip;
-const ContextMenu = window.BdApi?.ContextMenu;
-const Utils = window.BdApi?.Utils;
-const BetterWebpackModules = window.BdApi.Webpack;
+const React = BdApi.React;
+const ReactDOM = BdApi.ReactDOM;
+const ReactTools = BdApi.ReactUtils;
+const Tooltip = BdApi.Components?.Tooltip;
+const ContextMenu = BdApi.ContextMenu;
+const Utils = BdApi.Utils;
+const BetterWebpackModules = BdApi.Webpack;
 
-const GuildStore = WebpackModules?.getByProps(
-	"getGuild",
-	"getGuildCount",
-	"getGuildIds",
-	"getGuilds",
-	"isLoaded",
+const DiscordPermissions = BetterWebpackModules.getModule(
+	(m) => m.ADD_REACTIONS,
+	{ searchExports: true },
 );
+const Dispatcher = WebpackModules?.getByProps("dispatch", "subscribe");
+const ImageResolver = WebpackModules?.getByProps(
+	"getUserAvatarURL",
+	"getGuildIconURL",
+);
+const UserStore = BetterWebpackModules.getStore("UserStore");
+
+// DiscordModules
+const ChannelStore = BetterWebpackModules.getStore("ChannelStore");
+const GuildStore = BetterWebpackModules.getStore("GuildStore");
+const MessageActions = WebpackModules?.getByProps(
+	"jumpToMessage",
+	"_sendMessage",
+	"fetchMessages", // This gets patched
+);
+const TextElement = BetterWebpackModules.getModule(
+	(m) => m?.Sizes?.SIZE_32 && m.Colors,
+);
+const GuildChannelsStore = WebpackModules?.getByProps(
+	"getChannels",
+	"getDefaultChannel",
+);
+const GuildMemberStore = WebpackModules?.getByProps("getMember");
+const NavigationUtils = {
+	transitionTo: BetterWebpackModules.getModule(
+		(m) => m?.toString?.().includes(`"transitionTo - Transitioning to "`),
+		{ searchExports: true },
+	),
+};
+if (!NavigationUtils.transitionTo) {
+	loaded_successfully_internal = false;
+	console.error("Failed to load NavigationUtils", NavigationUtils);
+}
+
 const LocaleManager = WebpackModules?.getByProps("setLocale");
 
 const DiscordConstants = {};
@@ -228,7 +262,6 @@ const UsedModules = {
 	DOMTools,
 	Logger,
 	ReactTools,
-	Modals,
 
 	/* Settings */
 	SettingField,
