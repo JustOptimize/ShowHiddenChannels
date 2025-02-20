@@ -7,6 +7,8 @@ const fs = require("node:fs");
 const meta = (() => {
 	const lines = ["/**"];
 	for (const key in pluginConfig) {
+		if (key === "changelog") continue;
+
 		lines.push(` * @${key} ${pluginConfig[key]}`);
 	}
 	lines.push(" */");
@@ -75,6 +77,9 @@ module.exports = {
 		},
 		new webpack.DefinePlugin({
 			__VERSION__: JSON.stringify(pluginConfig.version),
+		}),
+		new webpack.DefinePlugin({
+			__CHANGELOG__: JSON.stringify(pluginConfig.changelog),
 		}),
 	],
 };

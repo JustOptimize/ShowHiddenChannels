@@ -596,10 +596,10 @@ const {
 let key = null;
 let loaded_successfully_internal = true;
 
-const Tooltip = window.BdApi?.Components?.Tooltip;
-const ContextMenu = window.BdApi?.ContextMenu;
-const Utils = window.BdApi?.Utils;
-const BetterWebpackModules = window.BdApi.Webpack;
+const Tooltip = BdApi.Components?.Tooltip;
+const ContextMenu = BdApi.ContextMenu;
+const Utils = BdApi.Utils;
+const BetterWebpackModules = BdApi.Webpack;
 
 const GuildStore = WebpackModules?.getByProps(
 	"getGuild",
@@ -1018,7 +1018,7 @@ class MissingZeresDummy {
 	}
 
 	async downloadZLib() {
-		window.BdApi.UI.showToast("Downloading ZeresPluginLibrary...", {
+		BdApi.UI.showToast("Downloading ZeresPluginLibrary...", {
 			type: "info",
 		});
 
@@ -1046,7 +1046,7 @@ class MissingZeresDummy {
 		new Promise((cb) => {
 			eval("require")("fs").writeFile(
 				eval("require")("path").join(
-					window.BdApi.Plugins.folder,
+					BdApi.Plugins.folder,
 					"0PluginLibrary.plugin.js",
 				),
 				content,
@@ -1056,13 +1056,13 @@ class MissingZeresDummy {
 	}
 
 	downloadSuccessfulToast() {
-		window.BdApi.UI.showToast("Successfully downloaded ZeresPluginLibrary!", {
+		BdApi.UI.showToast("Successfully downloaded ZeresPluginLibrary!", {
 			type: "success",
 		});
 	}
 
 	downloadZLibPopup() {
-		window.BdApi.UI.showConfirmationModal(
+		BdApi.UI.showConfirmationModal(
 			"Library Missing",
 			`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`,
 			{
@@ -1074,7 +1074,7 @@ class MissingZeresDummy {
 	}
 
 	downloadZLibErrorPopup() {
-		window.BdApi.UI.showConfirmationModal(
+		BdApi.UI.showConfirmationModal(
 			"Error Downloading",
 			"ZeresPluginLibrary download failed. Manually install plugin library from the link below.",
 			{
@@ -1218,7 +1218,7 @@ class MissingZeresDummy {
 							`https://api.github.com/repos/${config.github_short}/tags`,
 						);
 						if (!tags_raw || !tags_raw.ok) {
-							return window.BdApi.UI.showToast(
+							return BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to check for updates.",
 								{
 									type: "error",
@@ -1228,7 +1228,7 @@ class MissingZeresDummy {
 
 						const tags = await tags_raw.json();
 						if (!tags || !tags.length) {
-							return window.BdApi.UI.showToast(
+							return BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to check for updates.",
 								{
 									type: "error",
@@ -1253,7 +1253,7 @@ class MissingZeresDummy {
 							return Logger.info("No updates found.");
 						}
 
-						window.BdApi.UI.showConfirmationModal(
+						BdApi.UI.showConfirmationModal(
 							"Update available",
 							`ShowHiddenChannels has an update available. Would you like to update to version ${latestVersion}?`,
 							{
@@ -1267,7 +1267,7 @@ class MissingZeresDummy {
 									)
 										.then((res) => res.text())
 										.catch(() => {
-											window.BdApi.UI.showToast(
+											BdApi.UI.showToast(
 												"Failed to fetch the latest version.",
 												{
 													type: "error",
@@ -1279,7 +1279,7 @@ class MissingZeresDummy {
 								},
 
 								onCancel: () => {
-									window.BdApi.UI.showToast("Update cancelled.", {
+									BdApi.UI.showToast("Update cancelled.", {
 										type: "info",
 									});
 								},
@@ -1295,7 +1295,7 @@ class MissingZeresDummy {
 						}
 
 						function failed() {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to update.",
 								{
 									type: "error",
@@ -1314,14 +1314,14 @@ class MissingZeresDummy {
 							const path = eval("require")("path");
 
 							await fs.writeFile(
-								path.join(window.BdApi.Plugins.folder, config.main),
+								path.join(BdApi.Plugins.folder, config.main),
 								SHCContent,
 								(err) => {
 									if (err) return failed();
 								},
 							);
 
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								`ShowHiddenChannels updated to version ${version}`,
 								{
 									type: "success",
@@ -1342,7 +1342,7 @@ class MissingZeresDummy {
 						if (loaded_successfully) {
 							this.doStart();
 						} else {
-							window.BdApi.UI.showConfirmationModal(
+							BdApi.UI.showConfirmationModal(
 								"(SHC) Broken Modules",
 								"ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)",
 								{
@@ -1355,7 +1355,7 @@ class MissingZeresDummy {
 									},
 
 									onCancel: () => {
-										window.BdApi.Plugins.disable("ShowHiddenChannels");
+										BdApi.Plugins.disable("ShowHiddenChannels");
 									},
 								},
 							);
@@ -1378,7 +1378,7 @@ class MissingZeresDummy {
 							!ChannelListStore?.getGuild ||
 							!DiscordConstants?.ChannelTypes
 						) {
-							return window.BdApi.UI.showToast(
+							return BdApi.UI.showToast(
 								"(SHC) Some crucial modules are missing, aborting. (Wait for an update)",
 								{
 									type: "error",
@@ -1398,7 +1398,7 @@ class MissingZeresDummy {
 						);
 
 						if (!ReadStateStore) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ReadStateStore module is missing, channels will be marked as unread.",
 								{
 									type: "warning",
@@ -1480,7 +1480,7 @@ class MissingZeresDummy {
 						);
 
 						if (!Voice || !Route) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) Voice or Route modules are missing, channel lockscreen won't work.",
 								{
 									type: "warning",
@@ -1513,7 +1513,7 @@ class MissingZeresDummy {
 
 						//* Stop fetching messages if the channel is hidden
 						if (!MessageActions?.fetchMessages) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) MessageActions module is missing, this mean that the plugin could be detected by Discord.",
 								{
 									type: "warning",
@@ -1537,7 +1537,7 @@ class MissingZeresDummy {
 
 						if (this.settings.hiddenChannelIcon) {
 							if (!ChannelItem || !ChannelItemKey) {
-								window.BdApi.UI.showToast(
+								BdApi.UI.showToast(
 									"(SHC) ChannelItem module is missing, channel lock icon won't be shown.",
 									{
 										type: "warning",
@@ -1620,7 +1620,7 @@ class MissingZeresDummy {
 
 						//* Remove lock icon from hidden voice channels
 						if (!ChannelItemUtils) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.",
 								{
 									type: "warning",
@@ -1642,7 +1642,7 @@ class MissingZeresDummy {
 
 						//* Manually collapse hidden channel category
 						if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.",
 								{
 									type: "warning",
@@ -1843,7 +1843,7 @@ class MissingZeresDummy {
 
 						//* add entry in guild context menu
 						if (!ContextMenu?.patch) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ContextMenu is missing, skipping.",
 								{
 									type: "warning",

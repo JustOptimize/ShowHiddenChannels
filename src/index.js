@@ -1,5 +1,8 @@
 import styles from "./styles.css";
 
+// biome-ignore lint/security/noGlobalEval: This is a necessary evil
+const RuntimeRequire = eval("require");
+
 const config = {
 	info: {
 		name: "ShowHiddenChannels",
@@ -14,27 +17,7 @@ const config = {
 		github: "https://github.com/JustOptimize/ShowHiddenChannels",
 	},
 
-	changelog: [
-		{
-			title: "v0.5.8 - Fix plugin not working after February 17th",
-			items: [
-				"Fixed plugin not working after Discord update.",
-				"Refactor a couple of modules.",
-				"Fix settings panel not showing up.",
-			],
-		},
-		{
-			title: "v0.5.7 - Improvements and Fixes",
-			items: [
-				"Fixed missing ChannelItemUtilsKey module.",
-				"Small code improvements.",
-			],
-		},
-		{
-			title: "v0.5.6 - Fix Missing Module",
-			items: ["Fixed missing LocaleManager module."],
-		},
-	],
+	changelog: __CHANGELOG__,
 
 	main: "ShowHiddenChannels.plugin.js",
 	github_short: "JustOptimize/ShowHiddenChannels",
@@ -75,16 +58,13 @@ class MissingZeresDummy {
 	}
 
 	async downloadZLib() {
-		window.BdApi.UI.showToast("Downloading ZeresPluginLibrary...", {
+		BdApi.UI.showToast("Downloading ZeresPluginLibrary...", {
 			type: "info",
 		});
 
-		// TODO: Use BdApi.Net.fetch
-		eval("require")("request").get(
-			"https://betterdiscord.app/gh-redirect?id=9",
-			async (err, _resp, body) => {
-				if (err || !body) return this.downloadZLibErrorPopup();
-
+		BdApi.Net.fetch("https://betterdiscord.app/gh-redirect?id=9")
+			.then((res) => res.text())
+			.then((body) => {
 				if (!body.match(/(?<=version: ").*(?=")/)) {
 					console.error(
 						"Failed to download ZeresPluginLibrary, this is not the correct content.",
@@ -92,18 +72,18 @@ class MissingZeresDummy {
 					return this.downloadZLibErrorPopup();
 				}
 
-				await this.manageFile(body);
-			},
-		);
+				this.manageFile(body);
+			})
+			.catch(() => this.downloadZLibErrorPopup());
 	}
 
 	manageFile(content) {
 		this.downloadSuccessfulToast();
 
 		new Promise((cb) => {
-			eval("require")("fs").writeFile(
-				eval("require")("path").join(
-					window.BdApi.Plugins.folder,
+			RuntimeRequire("fs").writeFile(
+				RuntimeRequire("path").join(
+					BdApi.Plugins.folder,
 					"0PluginLibrary.plugin.js",
 				),
 				content,
@@ -113,13 +93,13 @@ class MissingZeresDummy {
 	}
 
 	downloadSuccessfulToast() {
-		window.BdApi.UI.showToast("Successfully downloaded ZeresPluginLibrary!", {
+		BdApi.UI.showToast("Successfully downloaded ZeresPluginLibrary!", {
 			type: "success",
 		});
 	}
 
 	downloadZLibPopup() {
-		window.BdApi.UI.showConfirmationModal(
+		BdApi.UI.showConfirmationModal(
 			"Library Missing",
 			`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`,
 			{
@@ -131,14 +111,14 @@ class MissingZeresDummy {
 	}
 
 	downloadZLibErrorPopup() {
-		window.BdApi.UI.showConfirmationModal(
+		BdApi.UI.showConfirmationModal(
 			"Error Downloading",
 			"ZeresPluginLibrary download failed. Manually install plugin library from the link below.",
 			{
 				confirmText: "Visit Download Page",
 				cancelText: "Cancel",
 				onConfirm: () =>
-					eval("require")("electron").shell.openExternal(
+					RuntimeRequire("electron").shell.openExternal(
 						"https://betterdiscord.app/Download?id=9",
 					),
 			},
@@ -168,7 +148,6 @@ export default !global.ZeresPluginLibrary
 					DOMTools,
 					Logger,
 					ReactTools,
-					Modals,
 
 					/* Settings */
 					SettingField,
@@ -228,8 +207,8 @@ export default !global.ZeresPluginLibrary
 					MarkUnread: false,
 
 					checkForUpdates: true,
+					usePreRelease: false,
 
-					// alwaysCollapse: false,
 					shouldShowEmptyCategory: false,
 					debugMode: false,
 
@@ -271,11 +250,11 @@ export default !global.ZeresPluginLibrary
 							);
 						}
 
-						const tags_raw = await fetch(
-							`https://api.github.com/repos/${config.github_short}/tags`,
+						const releases_raw = await fetch(
+							`https://api.github.com/repos/${config.github_short}/releases`,
 						);
-						if (!tags_raw || !tags_raw.ok) {
-							return window.BdApi.UI.showToast(
+						if (!releases_raw || !releases_raw.ok) {
+							return BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to check for updates.",
 								{
 									type: "error",
@@ -283,9 +262,9 @@ export default !global.ZeresPluginLibrary
 							);
 						}
 
-						const tags = await tags_raw.json();
-						if (!tags || !tags.length) {
-							return window.BdApi.UI.showToast(
+						const releases = await releases_raw.json();
+						if (!releases || !releases.length) {
+							return BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to check for updates.",
 								{
 									type: "error",
@@ -293,38 +272,42 @@ export default !global.ZeresPluginLibrary
 							);
 						}
 
-						const latestVersion = tags[0]?.name?.replace("v", "");
+						const latestRelease = this.settings.usePreRelease
+							? releases[0]?.tag_name?.replace("v", "")
+							: releases.find((m) => !m.prerelease)?.tag_name?.replace("v", "");
 
 						if (this.settings.debugMode) {
-							Logger.info(`Latest version: ${latestVersion}`);
+							Logger.info(
+								`Latest version: ${latestRelease}, pre-release: ${this.settings.usePreRelease}`,
+							);
 						}
 
-						if (!latestVersion) {
+						if (!latestRelease) {
 							BdApi.alert("Failed to check for updates, version not found.");
 							return Logger.err(
 								"Failed to check for updates, version not found.",
 							);
 						}
 
-						if (latestVersion <= config.info.version) {
+						if (latestRelease <= config.info.version) {
 							return Logger.info("No updates found.");
 						}
 
-						window.BdApi.UI.showConfirmationModal(
+						BdApi.UI.showConfirmationModal(
 							"Update available",
-							`ShowHiddenChannels has an update available. Would you like to update to version ${latestVersion}?`,
+							`ShowHiddenChannels has an update available. Would you like to update to version ${latestRelease}?`,
 							{
 								confirmText: "Update",
 								cancelText: "Cancel",
 								danger: false,
 
 								onConfirm: async () => {
-									const SHCContent = await fetch(
-										`https://raw.githubusercontent.com/${config.github_short}/v${latestVersion}/${config.main}`,
+									const SHCContent = await BdApi.Net.fetch(
+										`https://github.com/JustOptimize/ShowHiddenChannels/releases/download/v${latestRelease}/${config.main}`,
 									)
 										.then((res) => res.text())
 										.catch(() => {
-											window.BdApi.UI.showToast(
+											BdApi.UI.showToast(
 												"Failed to fetch the latest version.",
 												{
 													type: "error",
@@ -332,11 +315,11 @@ export default !global.ZeresPluginLibrary
 											);
 										});
 
-									this.proceedWithUpdate(SHCContent, latestVersion);
+									this.proceedWithUpdate(SHCContent, latestRelease);
 								},
 
 								onCancel: () => {
-									window.BdApi.UI.showToast("Update cancelled.", {
+									BdApi.UI.showToast("Update cancelled.", {
 										type: "info",
 									});
 								},
@@ -352,12 +335,9 @@ export default !global.ZeresPluginLibrary
 						}
 
 						function failed() {
-							window.BdApi.UI.showToast(
-								"(ShowHiddenChannels) Failed to update.",
-								{
-									type: "error",
-								},
-							);
+							BdApi.UI.showToast("(ShowHiddenChannels) Failed to update.", {
+								type: "error",
+							});
 						}
 
 						if (!SHCContent) return failed();
@@ -367,18 +347,18 @@ export default !global.ZeresPluginLibrary
 						}
 
 						try {
-							const fs = eval("require")("fs");
-							const path = eval("require")("path");
+							const fs = RuntimeRequire("fs");
+							const path = RuntimeRequire("path");
 
 							await fs.writeFile(
-								path.join(window.BdApi.Plugins.folder, config.main),
+								path.join(BdApi.Plugins.folder, config.main),
 								SHCContent,
 								(err) => {
 									if (err) return failed();
 								},
 							);
 
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								`ShowHiddenChannels updated to version ${version}`,
 								{
 									type: "success",
@@ -399,7 +379,7 @@ export default !global.ZeresPluginLibrary
 						if (loaded_successfully) {
 							this.doStart();
 						} else {
-							window.BdApi.UI.showConfirmationModal(
+							BdApi.UI.showConfirmationModal(
 								"(SHC) Broken Modules",
 								"ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)",
 								{
@@ -412,7 +392,7 @@ export default !global.ZeresPluginLibrary
 									},
 
 									onCancel: () => {
-										window.BdApi.Plugins.disable("ShowHiddenChannels");
+										BdApi.Plugins.disable("ShowHiddenChannels");
 									},
 								},
 							);
@@ -435,7 +415,7 @@ export default !global.ZeresPluginLibrary
 							!ChannelListStore?.getGuild ||
 							!DiscordConstants?.ChannelTypes
 						) {
-							return window.BdApi.UI.showToast(
+							return BdApi.UI.showToast(
 								"(SHC) Some crucial modules are missing, aborting. (Wait for an update)",
 								{
 									type: "error",
@@ -455,7 +435,7 @@ export default !global.ZeresPluginLibrary
 						);
 
 						if (!ReadStateStore) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ReadStateStore module is missing, channels will be marked as unread.",
 								{
 									type: "warning",
@@ -537,7 +517,7 @@ export default !global.ZeresPluginLibrary
 						);
 
 						if (!Voice || !Route) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) Voice or Route modules are missing, channel lockscreen won't work.",
 								{
 									type: "warning",
@@ -570,7 +550,7 @@ export default !global.ZeresPluginLibrary
 
 						//* Stop fetching messages if the channel is hidden
 						if (!MessageActions?.fetchMessages) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) MessageActions module is missing, this mean that the plugin could be detected by Discord.",
 								{
 									type: "warning",
@@ -594,7 +574,7 @@ export default !global.ZeresPluginLibrary
 
 						if (this.settings.hiddenChannelIcon) {
 							if (!ChannelItem || !ChannelItemKey) {
-								window.BdApi.UI.showToast(
+								BdApi.UI.showToast(
 									"(SHC) ChannelItem module is missing, channel lock icon won't be shown.",
 									{
 										type: "warning",
@@ -677,7 +657,7 @@ export default !global.ZeresPluginLibrary
 
 						//* Remove lock icon from hidden voice channels
 						if (!ChannelItemUtils) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.",
 								{
 									type: "warning",
@@ -699,7 +679,7 @@ export default !global.ZeresPluginLibrary
 
 						//* Manually collapse hidden channel category
 						if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
-							window.BdApi.UI.showToast(
+							BdApi.UI.showToast(
 								"(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.",
 								{
 									type: "warning",
@@ -900,12 +880,9 @@ export default !global.ZeresPluginLibrary
 
 						//* add entry in guild context menu
 						if (!ContextMenu?.patch) {
-							window.BdApi.UI.showToast(
-								"(SHC) ContextMenu is missing, skipping.",
-								{
-									type: "warning",
-								},
-							);
+							BdApi.UI.showToast("(SHC) ContextMenu is missing, skipping.", {
+								type: "warning",
+							});
 						}
 
 						ContextMenu?.patch("guild-context", this.processContextMenu);
@@ -1223,6 +1200,14 @@ export default !global.ZeresPluginLibrary
 									},
 								),
 								new Switch(
+									"Use Pre-Release",
+									"Check for pre-releases when checking for updates.",
+									this.settings.usePreRelease,
+									(i) => {
+										this.settings.usePreRelease = i;
+									},
+								),
+								new Switch(
 									"Enable Debug Mode",
 									"Enables debug mode, which will log more information to the console.",
 									this.settings.debugMode,
@@ -1288,7 +1273,7 @@ export default !global.ZeresPluginLibrary
 					reloadNotification(
 						coolText = "Reload Discord to apply changes and avoid bugs",
 					) {
-						Modals.showConfirmationModal("Reload Discord?", coolText, {
+						BdApi.showConfirmationModal("Reload Discord?", coolText, {
 							confirmText: "Reload",
 							cancelText: "Later",
 							onConfirm: () => {

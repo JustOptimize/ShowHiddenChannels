@@ -6,7 +6,7 @@
 	],
 	"editor.defaultFormatter": "biomejs.biome",
 	"[jsonc]": {
-		"editor.defaultFormatter": "vscode.json-language-features"
+		"editor.defaultFormatter": "biomejs.biome"
 	},
 	"[javascriptreact]": {
 		"editor.defaultFormatter": "biomejs.biome"
