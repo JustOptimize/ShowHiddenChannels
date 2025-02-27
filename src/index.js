@@ -190,7 +190,6 @@ export default !global.ZeresPluginLibrary
 					Voice,
 					CategoryStore,
 				} = require("./utils/modules").ModuleStore;
-
 				// Patcher from the library variable is different from the one in the global scope
 				const Patcher = Library.Patcher;
 
@@ -238,14 +237,14 @@ export default !global.ZeresPluginLibrary
 						this.can =
 							ChannelPermissionStore.can.__originalFunction ??
 							ChannelPermissionStore.can;
+
+						Logger.isDebugging = this.settings.debugMode;
 					}
 
 					async checkForUpdates() {
-						if (this.settings.debugMode) {
-							Logger.info(
-								`Checking for updates, current version: ${config.info.version}`,
-							);
-						}
+						Logger.debug(
+							`Checking for updates, current version: ${config.info.version}`,
+						);
 
 						const releases_raw = await fetch(
 							`https://api.github.com/repos/${config.github_short}/releases`,
@@ -259,7 +258,7 @@ export default !global.ZeresPluginLibrary
 							);
 						}
 
-						const releases = await releases_raw.json();
+						let releases = await releases_raw.json();
 						if (!releases || !releases.length) {
 							return BdApi.UI.showToast(
 								"(ShowHiddenChannels) Failed to check for updates.",
@@ -269,18 +268,25 @@ export default !global.ZeresPluginLibrary
 							);
 						}
 
+						// Remove releases that do not have in the assets a file named ShowHiddenChannels.plugin.js
+						releases = releases.filter((m) =>
+							m.assets.some((n) => n.name === config.main),
+						);
+
 						const latestRelease = this.settings.usePreRelease
 							? releases[0]?.tag_name?.replace("v", "")
 							: releases.find((m) => !m.prerelease)?.tag_name?.replace("v", "");
 
-						if (this.settings.debugMode) {
-							Logger.info(
-								`Latest version: ${latestRelease}, pre-release: ${!!this.settings.usePreRelease}`,
-							);
-						}
+						Logger.debug(
+							`Latest version: ${latestRelease}, pre-release: ${!!this.settings.usePreRelease}`,
+						);
 
 						if (!latestRelease) {
-							BdApi.alert("Failed to check for updates, version not found.");
+							BdApi.UI.alert(
+								config.info.name,
+								"Failed to check for updates, version not found.",
+							);
+
 							return Logger.err(
 								"Failed to check for updates, version not found.",
 							);
@@ -325,11 +331,9 @@ export default !global.ZeresPluginLibrary
 					}
 
 					async proceedWithUpdate(SHCContent, version) {
-						if (this.settings.debugMode) {
-							Logger.info(
-								`Update confirmed by the user, updating to version ${version}`,
-							);
-						}
+						Logger.debug(
+							`Update confirmed by the user, updating to version ${version}`,
+						);
 
 						function failed() {
 							BdApi.UI.showToast("(ShowHiddenChannels) Failed to update.", {
@@ -1220,6 +1224,9 @@ export default !global.ZeresPluginLibrary
 									this.settings.debugMode,
 									(i) => {
 										this.settings.debugMode = i;
+										Logger.isDebugging = true;
+										Logger.debug(`Debug mode ${i ? "enabled" : "disabled"}`);
+										Logger.isDebugging = i;
 									},
 								),
 							),
@@ -1229,13 +1236,13 @@ export default !global.ZeresPluginLibrary
 							}).append(
 								...Object.values(ChannelTypes).map((type) => {
 									// GUILD_STAGE_VOICE => [GUILD, STAGE, VOICE]
-									let formattedType = type.split("_");
+									const formattedTypes = type.split("_");
 
 									// [GUILD, STAGE, VOICE] => [STAGE, VOICE]
-									formattedType.shift();
+									formattedTypes.shift();
 
 									// [STAGE, VOICE] => Stage Voice
-									formattedType = formattedType
+									const formattedType = formattedTypes
 										.map((word) => capitalizeFirst(word))
 										.join(" ");
 
@@ -1280,7 +1287,7 @@ export default !global.ZeresPluginLibrary
 					reloadNotification(
 						coolText = "Reload Discord to apply changes and avoid bugs",
 					) {
-						BdApi.showConfirmationModal("Reload Discord?", coolText, {
+						BdApi.UI.showConfirmationModal("Reload Discord?", coolText, {
 							confirmText: "Reload",
 							cancelText: "Later",
 							onConfirm: () => {
@@ -1291,6 +1298,7 @@ export default !global.ZeresPluginLibrary
 
 					saveSettings() {
 						BdApi.Data.save(config.info.name, "settings", this.settings);
+						Logger.debug("Settings saved.", this.settings);
 						this.rerenderChannels();
 					}
 				};

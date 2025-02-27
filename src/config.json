@@ -1,15 +1,21 @@
 {
 	"name": "ShowHiddenChannels",
 	"displayName": "Show Hidden Channels (SHC)",
-	"version": "0.5.9",
+	"version": "0.6.0",
 	"author": "JustOptimize (Oggetto)",
 	"authorId": "619203349954166804",
 	"source": "https://github.com/JustOptimize/ShowHiddenChannels",
 	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
 	"changelog": [
 		{
-			"title": "v0.6.0 - The Big Update",
-			"items": ["Switched to BdApi.Net for fetching data."]
+			"title": "v0.6.0 - Dependency Update",
+			"items": [
+				"Switched to BdApi.Net for fetching data.",
+				"Stopped using ZeresPluginLibrary to fetch modules",
+				"Replaced ZeresPluginLibrary Logger with a custom logger (now the console looks pretty)",
+				"Edited the updater to fetch the file from the releases and not from the tags",
+				"Code cleanup"
+			]
 		},
 		{
 			"title": "v0.5.8 - Fix plugin not working after February 17th",

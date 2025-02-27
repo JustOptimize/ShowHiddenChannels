@@ -1,10 +1,13 @@
+// @ts-check
+
 const FallbackLibrary = {
 	Settings: {},
 };
 
 const Logger = {
+	isDebugging: false,
 	_log: (type, color, ...x) => {
-		const line = new Error().stack;
+		const line = new Error().stack || "";
 		const lines = line.split("\n");
 		console[type](
 			`%c SHC %c ${type.toUpperCase()} %c`,
@@ -24,12 +27,20 @@ const Logger = {
 	err: (...x) => {
 		Logger._log("error", "#f05959", ...x);
 	},
+	debug: (...x) => {
+		if (!Logger.isDebugging) return;
+
+		Logger._log("debug", "#f05959", ...x);
+	},
 };
 
 const {
 	Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
 } = global.ZeresPluginLibrary ?? FallbackLibrary;
 
+/**
+ * @type {null | string}
+ */
 let key = null;
 let loaded_successfully_internal = true;
 
@@ -107,6 +118,7 @@ const Route = WebpackModules.getModule((m) =>
 	/.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()),
 );
 
+// @ts-ignore
 const ChannelItem = WebpackModules.getBySource(
 	"forceInteractable",
 	"unreadImportant:void 0)}),",
@@ -201,7 +213,7 @@ const ChannelUtils = {
 					m[k]?.toString()?.includes(".GROUP_DM:return null")
 				);
 			}),
-	)?.[key],
+	)?.[key || ""],
 };
 if (!ChannelUtils.renderTopic) {
 	loaded_successfully_internal = false;
@@ -221,7 +233,7 @@ const ProfileActions = {
 					m[k]?.toString()?.includes("USER_PROFILE_FETCH_START")
 				);
 			}),
-	)?.[key],
+	)?.[key || ""],
 };
 if (!ProfileActions.fetchProfile) {
 	loaded_successfully_internal = false;
@@ -244,7 +256,7 @@ Object.keys(PermissionUtilsModule).find((k) => {
 		?.includes("excludeGuildPermissions:");
 });
 const PermissionUtils = {
-	can: PermissionUtilsModule?.[key],
+	can: PermissionUtilsModule?.[key || ""],
 };
 
 const CategoryStore = WebpackModules.getByKeys(
