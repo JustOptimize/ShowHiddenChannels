@@ -50,8 +50,12 @@ const ReactTools = BdApi.ReactUtils;
 const DOMTools = BdApi.DOM;
 const Tooltip = BdApi.Components?.Tooltip;
 const ContextMenu = BdApi.ContextMenu;
-const Utils = BdApi.Utils;
+/**
+ * @type {typeof BdApi.Webpack & { getBySource: (source: string, ...filters: string[]) => any }}
+ */
+// @ts-ignore
 const WebpackModules = BdApi.Webpack;
+
 const Utilities = BdApi.Utils;
 
 const DiscordPermissions = WebpackModules.getModule((m) => m.ADD_REACTIONS, {
@@ -118,7 +122,6 @@ const Route = WebpackModules.getModule((m) =>
 	/.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()),
 );
 
-// @ts-ignore
 const ChannelItem = WebpackModules.getBySource(
 	"forceInteractable",
 	"unreadImportant:void 0)}),",
@@ -144,16 +147,7 @@ const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
 	return ChannelItemUtils[k]?.toString()?.includes(",textFocused:");
 });
 
-const RolePill = WebpackModules?.getModule(
-	(m) =>
-		m &&
-		typeof m === "object" &&
-		Object.values(m).some(
-			(c) =>
-				(c && typeof c === "function" && c?.toString()?.includes(".u3RVsL")) ||
-				c?.toString()?.includes(".Messages.USER_PROFILE_REMOVE_ROLE"),
-		),
-);
+const RolePill = WebpackModules.getBySource(".roleRemoveButton,");
 
 const ChannelPermissionStore = WebpackModules.getByKeys(
 	"getChannelPermissions",
@@ -166,13 +160,13 @@ if (!ChannelPermissionStore?.can) {
 	);
 }
 
-const PermissionStoreActionHandler = Utils?.findInTree(
+const PermissionStoreActionHandler = Utilities?.findInTree(
 	Dispatcher,
 	(c) =>
 		c?.name === "PermissionStore" &&
 		typeof c?.actionHandler?.CONNECTION_OPEN === "function",
 )?.actionHandler;
-const ChannelListStoreActionHandler = Utils?.findInTree(
+const ChannelListStoreActionHandler = Utilities?.findInTree(
 	Dispatcher,
 	(c) =>
 		c?.name === "ChannelListStore" &&
@@ -295,7 +289,6 @@ const UsedModules = {
 	/* BdApi */
 	Tooltip,
 	ContextMenu,
-	Utils,
 
 	/* Manually found modules */
 	GuildStore,
