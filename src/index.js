@@ -1,8 +1,5 @@
 import styles from "./styles.css";
 
-// biome-ignore lint/security/noGlobalEval: This is a necessary evil
-const RuntimeRequire = eval("require");
-
 const config = {
 	info: {
 		name: "ShowHiddenChannels",
@@ -24,6 +21,9 @@ const config = {
 };
 
 export default (() => {
+	// biome-ignore lint/security/noGlobalEval: This is a necessary evil
+	const RuntimeRequire = eval("require");
+
 	const ChannelTypes = [
 		"GUILD_TEXT",
 		"GUILD_VOICE",
@@ -123,13 +123,19 @@ export default (() => {
 	};
 
 	return class ShowHiddenChannels {
-		constructor() {
+		constructor(meta) {
+			this.meta = meta;
+			this.api = new BdApi(meta.name);
+
 			this.hiddenChannelCache = {};
 
 			this.collapsed = {};
 			this.processContextMenu = this?.processContextMenu?.bind(this);
-			this.settings =
-				BdApi.Data.load(config.info.name, "settings") ?? defaultSettings;
+			this.settings = Object.assign(
+				{},
+				defaultSettings,
+				this.api.Data.load("settings"),
+			);
 
 			this.can =
 				ChannelPermissionStore.can.__originalFunction ??
@@ -147,7 +153,7 @@ export default (() => {
 				`https://api.github.com/repos/${config.github_short}/releases`,
 			);
 			if (!releases_raw || !releases_raw.ok) {
-				return BdApi.UI.showToast(
+				return this.api.UI.showToast(
 					"(ShowHiddenChannels) Failed to check for updates.",
 					{
 						type: "error",
@@ -157,7 +163,7 @@ export default (() => {
 
 			let releases = await releases_raw.json();
 			if (!releases || !releases.length) {
-				return BdApi.UI.showToast(
+				return this.api.UI.showToast(
 					"(ShowHiddenChannels) Failed to check for updates.",
 					{
 						type: "error",
@@ -179,7 +185,7 @@ export default (() => {
 			);
 
 			if (!latestRelease) {
-				BdApi.UI.alert(
+				this.api.UI.alert(
 					config.info.name,
 					"Failed to check for updates, version not found.",
 				);
@@ -191,7 +197,7 @@ export default (() => {
 				return Logger.info("No updates found.");
 			}
 
-			BdApi.UI.showConfirmationModal(
+			this.api.UI.showConfirmationModal(
 				"Update available",
 				`ShowHiddenChannels has an update available. Would you like to update to version ${latestRelease}?`,
 				{
@@ -200,12 +206,12 @@ export default (() => {
 					danger: false,
 
 					onConfirm: async () => {
-						const SHCContent = await BdApi.Net.fetch(
+						const SHCContent = await this.api.Net.fetch(
 							`https://github.com/JustOptimize/ShowHiddenChannels/releases/download/v${latestRelease}/${config.main}`,
 						)
 							.then((res) => res.text())
 							.catch(() => {
-								BdApi.UI.showToast("Failed to fetch the latest version.", {
+								this.api.UI.showToast("Failed to fetch the latest version.", {
 									type: "error",
 								});
 							});
@@ -214,7 +220,7 @@ export default (() => {
 					},
 
 					onCancel: () => {
-						BdApi.UI.showToast("Update cancelled.", {
+						this.api.UI.showToast("Update cancelled.", {
 							type: "info",
 						});
 					},
@@ -228,7 +234,7 @@ export default (() => {
 			);
 
 			function failed() {
-				BdApi.UI.showToast("(ShowHiddenChannels) Failed to update.", {
+				this.api.UI.showToast("(ShowHiddenChannels) Failed to update.", {
 					type: "error",
 				});
 			}
@@ -244,16 +250,19 @@ export default (() => {
 				const path = RuntimeRequire("path");
 
 				await fs.writeFile(
-					path.join(BdApi.Plugins.folder, config.main),
+					path.join(this.api.Plugins.folder, config.main),
 					SHCContent,
 					(err) => {
 						if (err) return failed();
 					},
 				);
 
-				BdApi.UI.showToast(`ShowHiddenChannels updated to version ${version}`, {
-					type: "success",
-				});
+				this.api.UI.showToast(
+					`ShowHiddenChannels updated to version ${version}`,
+					{
+						type: "success",
+					},
+				);
 			} catch (err) {
 				return failed();
 			}
@@ -269,7 +278,7 @@ export default (() => {
 			if (loaded_successfully) {
 				this.doStart();
 			} else {
-				BdApi.UI.showConfirmationModal(
+				this.api.UI.showConfirmationModal(
 					"(SHC) Broken Modules",
 					"ShowHiddenChannels has detected that some modules are broken, would you like to start anyway? (This might break the plugin or Discord itself)",
 					{
@@ -282,7 +291,7 @@ export default (() => {
 						},
 
 						onCancel: () => {
-							BdApi.Plugins.disable("ShowHiddenChannels");
+							this.api.Plugins.disable("ShowHiddenChannels");
 						},
 					},
 				);
@@ -290,6 +299,16 @@ export default (() => {
 		}
 
 		doStart() {
+			const savedVersion = this.api.Data.load("version");
+			if (savedVersion !== this.meta.version) {
+				this.api.UI.showChangelogModal({
+					title: this.meta.name,
+					subtitle: `v${this.meta.version}`,
+					changes: config.changelog,
+				});
+				this.api.Data.save("version", config.info.version);
+			}
+
 			DOMTools.addStyle(config.info.name, styles);
 			this.Patch();
 			this.rerenderChannels();
@@ -305,7 +324,7 @@ export default (() => {
 				!ChannelListStore?.getGuild ||
 				!DiscordConstants?.ChannelTypes
 			) {
-				return BdApi.UI.showToast(
+				return this.api.UI.showToast(
 					"(SHC) Some crucial modules are missing, aborting. (Wait for an update)",
 					{
 						type: "error",
@@ -321,7 +340,7 @@ export default (() => {
 			});
 
 			if (!ReadStateStore) {
-				BdApi.UI.showToast(
+				this.api.UI.showToast(
 					"(SHC) ReadStateStore module is missing, channels will be marked as unread.",
 					{
 						type: "warning",
@@ -399,7 +418,7 @@ export default (() => {
 			);
 
 			if (!Voice || !Route) {
-				BdApi.UI.showToast(
+				this.api.UI.showToast(
 					"(SHC) Voice or Route modules are missing, channel lockscreen won't work.",
 					{
 						type: "warning",
@@ -432,7 +451,7 @@ export default (() => {
 
 			//* Stop fetching messages if the channel is hidden
 			if (!MessageActions?.fetchMessages) {
-				BdApi.UI.showToast(
+				this.api.UI.showToast(
 					"(SHC) MessageActions module is missing, this mean that the plugin could be detected by Discord.",
 					{
 						type: "warning",
@@ -454,7 +473,7 @@ export default (() => {
 
 			if (this.settings.hiddenChannelIcon) {
 				if (!ChannelItem || !ChannelItemKey) {
-					BdApi.UI.showToast(
+					this.api.UI.showToast(
 						"(SHC) ChannelItem module is missing, channel lock icon won't be shown.",
 						{
 							type: "warning",
@@ -545,7 +564,7 @@ export default (() => {
 
 			//* Remove lock icon from hidden voice channels
 			if (!ChannelItemUtils) {
-				BdApi.UI.showToast(
+				this.api.UI.showToast(
 					"(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.",
 					{
 						type: "warning",
@@ -567,7 +586,7 @@ export default (() => {
 
 			//* Manually collapse hidden channel category
 			if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
-				BdApi.UI.showToast(
+				this.api.UI.showToast(
 					"(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.",
 					{
 						type: "warning",
@@ -757,7 +776,7 @@ export default (() => {
 
 			//* add entry in guild context menu
 			if (!ContextMenu?.patch) {
-				BdApi.UI.showToast("(SHC) ContextMenu is missing, skipping.", {
+				this.api.UI.showToast("(SHC) ContextMenu is missing, skipping.", {
 					type: "warning",
 				});
 			}
@@ -1135,7 +1154,7 @@ export default (() => {
 		reloadNotification(
 			coolText = "Reload Discord to apply changes and avoid bugs",
 		) {
-			BdApi.UI.showConfirmationModal("Reload Discord?", coolText, {
+			this.api.UI.showConfirmationModal("Reload Discord?", coolText, {
 				confirmText: "Reload",
 				cancelText: "Later",
 				onConfirm: () => {
@@ -1145,7 +1164,7 @@ export default (() => {
 		}
 
 		saveSettings() {
-			BdApi.Data.save(config.info.name, "settings", this.settings);
+			this.api.Data.save("settings", this.settings);
 			Logger.debug("Settings saved.", this.settings);
 			this.rerenderChannels();
 		}
