@@ -190,8 +190,13 @@ export default !global.ZeresPluginLibrary
 					Voice,
 					CategoryStore,
 				} = require("./utils/modules").ModuleStore;
-				// Patcher from the library variable is different from the one in the global scope
-				const Patcher = Library.Patcher;
+
+				const Patcher = {
+					before: (...x) => BdApi.Patcher.before(config.info.name, ...x),
+					instead: (...x) => BdApi.Patcher.instead(config.info.name, ...x),
+					after: (...x) => BdApi.Patcher.after(config.info.name, ...x),
+					unpatchAll: () => BdApi.Patcher.unpatchAll(config.info.name),
+				};
 
 				const capitalizeFirst = (string) =>
 					`${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;

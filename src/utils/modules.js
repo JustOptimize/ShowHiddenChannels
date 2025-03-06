@@ -92,7 +92,7 @@ const NavigationUtils = {
 };
 if (!NavigationUtils.transitionTo) {
 	loaded_successfully_internal = false;
-	console.error("Failed to load NavigationUtils", NavigationUtils);
+	Logger.err("Failed to load NavigationUtils", NavigationUtils);
 }
 
 const LocaleManager = WebpackModules.getByKeys("setLocale");
@@ -113,7 +113,7 @@ if (
 	!DiscordConstants.NOOP
 ) {
 	loaded_successfully_internal = false;
-	console.error("Failed to load DiscordConstants", DiscordConstants);
+	Logger.err("Failed to load DiscordConstants", DiscordConstants);
 }
 
 const chat = WebpackModules.getByKeys("chat", "chatContent")?.chat;
@@ -147,17 +147,14 @@ const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
 	return ChannelItemUtils[k]?.toString()?.includes(",textFocused:");
 });
 
-const RolePill = WebpackModules.getBySource(".roleRemoveButton,");
+const RolePill = WebpackModules.getBySource(".roleRemoveButton,")?.Z;
 
 const ChannelPermissionStore = WebpackModules.getByKeys(
 	"getChannelPermissions",
 );
 if (!ChannelPermissionStore?.can) {
 	loaded_successfully_internal = false;
-	console.error(
-		"Failed to load ChannelPermissionStore",
-		ChannelPermissionStore,
-	);
+	Logger.err("Failed to load ChannelPermissionStore", ChannelPermissionStore);
 }
 
 const PermissionStoreActionHandler = Utilities?.findInTree(
@@ -211,7 +208,7 @@ const ChannelUtils = {
 };
 if (!ChannelUtils.renderTopic) {
 	loaded_successfully_internal = false;
-	console.error("Failed to load ChannelUtils", ChannelUtils);
+	Logger.err("Failed to load ChannelUtils", ChannelUtils);
 }
 
 const ProfileActions = {
@@ -231,7 +228,7 @@ const ProfileActions = {
 };
 if (!ProfileActions.fetchProfile) {
 	loaded_successfully_internal = false;
-	console.error("Failed to load ProfileActions", ProfileActions);
+	Logger.err("Failed to load ProfileActions", ProfileActions);
 }
 
 const PermissionUtilsModule = WebpackModules?.getModule((m) =>
