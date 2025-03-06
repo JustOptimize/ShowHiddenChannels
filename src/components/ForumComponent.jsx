@@ -1,4 +1,6 @@
-const TextElement = global.ZeresPluginLibrary?.DiscordModules?.TextElement;
+// @ts-check
+const React = BdApi.React;
+const TextElement = require("../utils/modules").ModuleStore.TextElement;
 
 export default function ForumComponent({ channel }) {
 	if (channel.type !== 15) return null;

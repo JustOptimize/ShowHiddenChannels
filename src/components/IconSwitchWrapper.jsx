@@ -1,3 +1,4 @@
+// @ts-ignore
 const React = BdApi.React;
 
 export function IconSwitchWrapper({ icon, value, onChange, children, note }) {

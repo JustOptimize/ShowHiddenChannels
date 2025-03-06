@@ -48,8 +48,10 @@ const React = BdApi.React;
 const ReactDOM = BdApi.ReactDOM;
 const ReactTools = BdApi.ReactUtils;
 const DOMTools = BdApi.DOM;
-const Tooltip = BdApi.Components?.Tooltip;
 const ContextMenu = BdApi.ContextMenu;
+const Tooltip = BdApi.Components.Tooltip;
+const TextElement = BdApi.Components.Text;
+
 /**
  * @type {typeof BdApi.Webpack & { getBySource: (source: string, ...filters: string[]) => any }}
  */
@@ -75,9 +77,6 @@ const MessageActions = WebpackModules.getByKeys(
 	"jumpToMessage",
 	"_sendMessage",
 	"fetchMessages", // This gets patched
-);
-const TextElement = WebpackModules.getModule(
-	(m) => m?.Sizes?.SIZE_32 && m.Colors,
 );
 const GuildChannelsStore = WebpackModules.getByKeys(
 	"getChannels",

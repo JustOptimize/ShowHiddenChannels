@@ -18,8 +18,7 @@ Discord is working on an experimental feature that should hide private channels 
 -   Got to the [releases page](https://github.com/JustOptimize/ShowHiddenChannels/releases/) of this repository.
 -   Download the latest version of the plugin by clicking on the `ShowHiddenChannels.plugin.js` file.
 -   Move the downloaded `ShowHiddenChannels.plugin.js` file into your BetterDiscord plugins folder.
--   If you don't have the ZeresPluginLibrary installed, the plugin will prompt you to install it.
--   Enable both the ShowHiddenChannels plugin and the ZeresPluginLibrary.
+-   Enable the ShowHiddenChannels plugin.
 -   Restart Discord to complete the installation.
 -   Enjoy the plugin!
 
