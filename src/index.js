@@ -85,13 +85,6 @@ export default (() => {
 		CategoryStore,
 	} = require("./utils/modules").ModuleStore;
 
-	const Patcher = {
-		before: (...x) => BdApi.Patcher.before(config.info.name, ...x),
-		instead: (...x) => BdApi.Patcher.instead(config.info.name, ...x),
-		after: (...x) => BdApi.Patcher.after(config.info.name, ...x),
-		unpatchAll: () => BdApi.Patcher.unpatchAll(config.info.name),
-	};
-
 	const capitalizeFirst = (string) =>
 		`${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
 	const randomNo = (min, max) =>
@@ -315,6 +308,8 @@ export default (() => {
 		}
 
 		Patch() {
+			const Patcher = this.api.Patcher;
+
 			// Check for needed modules
 			if (
 				!ChannelRecordBase ||
@@ -928,16 +923,20 @@ export default (() => {
 			if (!element) return;
 
 			const toForceUpdate = ReactTools.getOwnerInstance(element);
-			const forceRerender = Patcher.instead(toForceUpdate, "render", () => {
-				forceRerender();
-				return null;
-			});
+			const forceRerender = this.api.Patcher.instead(
+				toForceUpdate,
+				"render",
+				() => {
+					forceRerender();
+					return null;
+				},
+			);
 
 			toForceUpdate.forceUpdate(() => toForceUpdate.forceUpdate(() => {}));
 		}
 
 		stop() {
-			Patcher.unpatchAll();
+			this.api.Patcher.unpatchAll();
 			DOMTools.removeStyle(config.info.name);
 			ContextMenu.unpatch("guild-context", this.processContextMenu);
 			this.rerenderChannels();
