@@ -919,6 +919,11 @@ export default (() => {
 			this.forceUpdate(document.querySelector(`.${container}`));
 		}
 
+		/**
+		 * Forces the rerender of a React element.
+		 * @param {HTMLElement} element - The element to rerender.
+		 * @returns {void}
+		 */
 		forceUpdate(element) {
 			if (!element) return;
 
