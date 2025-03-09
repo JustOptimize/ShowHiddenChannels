@@ -174,7 +174,6 @@ const container = WebpackModules.getByKeys(
 	"hubContainer",
 )?.container;
 
-// const Channel = BetterWebpackModules.getByKeys('ChannelRecordBase')?.ChannelRecordBase;
 const ChannelRecordBase = WebpackModules?.getModule(
 	(m) => m?.Sf?.prototype?.isManaged,
 )?.Sf;
