@@ -24,15 +24,6 @@ export default (() => {
 	// biome-ignore lint/security/noGlobalEval: This is a necessary evil
 	const RuntimeRequire = eval("require");
 
-	const ChannelTypes = [
-		"GUILD_TEXT",
-		"GUILD_VOICE",
-		"GUILD_ANNOUNCEMENT",
-		"GUILD_STORE",
-		"GUILD_STAGE_VOICE",
-		"GUILD_FORUM",
-	];
-
 	const { Lockscreen } = require("./components/Lockscreen");
 	const { HiddenChannelIcon } = require("./components/HiddenChannelIcon");
 
@@ -43,27 +34,17 @@ export default (() => {
 		Logger,
 		ReactTools,
 
-		/* Settings */
-		SettingField,
-		SettingPanel,
-		SettingGroup,
-		Switch,
-		RadioGroup,
-
 		/* Discord Modules (From lib) */
 		ChannelStore,
 		MessageActions,
 		React,
-		ReactDOM,
 		GuildChannelsStore,
 		NavigationUtils,
-		ImageResolver,
 
 		/* BdApi */
 		ContextMenu,
 
 		/* Manually found modules */
-		GuildStore,
 		DiscordConstants,
 		chat,
 		Route,
@@ -77,18 +58,12 @@ export default (() => {
 		container,
 		ChannelRecordBase,
 		ChannelListStore,
-		DEFAULT_AVATARS,
 		iconItem,
 		actionIcon,
 		ReadStateStore,
 		Voice,
 		CategoryStore,
 	} = require("./utils/modules").ModuleStore;
-
-	const capitalizeFirst = (string) =>
-		`${string.charAt(0).toUpperCase()}${string.substring(1).toLowerCase()}`;
-	const randomNo = (min, max) =>
-		Math.floor(Math.random() * (max - min + 1) + min);
 
 	const defaultSettings = {
 		hiddenChannelIcon: "lock",
@@ -948,211 +923,19 @@ export default (() => {
 		}
 
 		getSettingsPanel() {
-			const { IconSwitchWrapper } = require("./components/IconSwitchWrapper");
+			const { SettingsPanel } = require("./components/SettingsPanel");
 
-			class IconSwitch extends SettingField {
-				constructor(name, note, isChecked, onChange, options = {}) {
-					super(name, note, onChange);
-					this.disabled = options.disabled;
-					this.icon = options.icon;
-					this.value = isChecked;
-				}
-				onAdded() {
-					ReactDOM.createRoot(this.getElement()).render(
-						React.createElement(
-							IconSwitchWrapper,
-							{
-								icon: this.icon,
-								note: this.note,
-								disabled: this.disabled,
-								hideBorder: false,
-								value: this.value,
-								onChange: (e) => {
-									this.onChange(e);
-								},
-							},
-							this.name,
-						),
-					);
-				}
-			}
-
-			return SettingPanel.build(
-				this.saveSettings.bind(this),
-				new SettingGroup("General Settings").append(
-					new RadioGroup(
-						"Hidden Channel Icon",
-						"What icon to show as indicator for hidden channels.",
-						this.settings.hiddenChannelIcon,
-						[
-							{
-								name: "Lock Icon",
-								value: "lock",
-							},
-							{
-								name: "Eye Icon",
-								value: "eye",
-							},
-							{
-								name: "None",
-								value: false,
-							},
-						],
-						(i) => {
-							this.settings.hiddenChannelIcon = i;
-						},
-					),
-					new RadioGroup(
-						"Sorting Order",
-						"Where to display Hidden Channels.",
-						this.settings.sort,
-						[
-							{
-								name: "Hidden Channels in the native Discord order (default)",
-								value: "native",
-							},
-							{
-								name: "Hidden Channels at the bottom of the Category",
-								value: "bottom",
-							},
-							{
-								name: "Hidden Channels in a separate Category at the bottom",
-								value: "extra",
-							},
-						],
-						(i) => {
-							this.settings.sort = i;
-						},
-					),
-					new Switch(
-						"Show Permissions",
-						"Show what roles/users can access the hidden channel.",
-						this.settings.showPerms,
-						(i) => {
-							this.settings.showPerms = i;
-						},
-					),
-					new RadioGroup(
-						"Show Admin Roles",
-						"Show roles that have ADMINISTRATOR permission in the hidden channel page (requires 'Shows Permission' enabled).",
-						this.settings.showAdmin,
-						[
-							{
-								name: "Show only channel specific roles",
-								value: "channel",
-							},
-							{
-								name: "Include Bot Roles",
-								value: "include",
-							},
-							{
-								name: "Exclude Bot Roles",
-								value: "exclude",
-							},
-							{
-								name: "Don't Show Administrator Roles",
-								value: false,
-							},
-						],
-						(i) => {
-							this.settings.showAdmin = i;
-						},
-					),
-					new Switch(
-						"Stop marking hidden channels as read",
-						"Stops the plugin from marking hidden channels as read.",
-
-						this.settings.MarkUnread,
-						(i) => {
-							this.settings.MarkUnread = i;
-						},
-					),
-					new Switch(
-						"Show Empty Category",
-						"Show category even if it's empty",
-						this.settings.shouldShowEmptyCategory,
-						(i) => {
-							this.settings.shouldShowEmptyCategory = i;
-						},
-					),
-					new Switch(
-						"Check for Updates",
-						"Automatically check for updates at startup.",
-						this.settings.checkForUpdates,
-						(i) => {
-							this.settings.checkForUpdates = i;
-						},
-					),
-					new Switch(
-						"Use Pre-Release",
-						"Check for pre-releases when checking for updates.",
-						this.settings.usePreRelease,
-						(i) => {
-							this.settings.usePreRelease = i;
-						},
-					),
-					new Switch(
-						"Enable Debug Mode",
-						"Enables debug mode, which will log more information to the console.",
-						this.settings.debugMode,
-						(i) => {
-							this.settings.debugMode = i;
-							Logger.isDebugging = true;
-							Logger.debug(`Debug mode ${i ? "enabled" : "disabled"}`);
-							Logger.isDebugging = i;
-						},
-					),
-				),
-				new SettingGroup("Choose what channels you want to display", {
-					collapsible: true,
-					shown: false,
-				}).append(
-					...Object.values(ChannelTypes).map((type) => {
-						// GUILD_STAGE_VOICE => [GUILD, STAGE, VOICE]
-						const formattedTypes = type.split("_");
-
-						// [GUILD, STAGE, VOICE] => [STAGE, VOICE]
-						formattedTypes.shift();
-
-						// [STAGE, VOICE] => Stage Voice
-						const formattedType = formattedTypes
-							.map((word) => capitalizeFirst(word))
-							.join(" ");
-
-						return new Switch(
-							`Show ${formattedType} Channels`,
-							null,
-							this.settings.channels[type],
-							(i) => {
-								this.settings.channels[type] = i;
-								this.rerenderChannels();
-							},
-						);
-					}),
-				),
-
-				new SettingGroup("Guilds Blacklist", {
-					collapsible: true,
-					shown: false,
-				}).append(
-					...Object.values(GuildStore.getGuilds()).map(
-						(guild) =>
-							new IconSwitch(
-								guild.name,
-								guild.description,
-								this.settings.blacklistedGuilds[guild.id] ?? false,
-								(e) => {
-									this.settings.blacklistedGuilds[guild.id] = e;
-								},
-								{
-									icon:
-										ImageResolver.getGuildIconURL(guild) ??
-										DEFAULT_AVATARS[randomNo(0, DEFAULT_AVATARS.length - 1)],
-								},
-							),
-					),
-				),
-			);
+			return React.createElement(SettingsPanel, {
+				settings: this.settings,
+				onSettingsChange: (newSetting, value) => {
+					this.settings = {
+						...this.settings,
+						[newSetting]: value,
+					};
+					Logger.debug(`Setting changed: ${newSetting} => ${value}`);
+					this.saveSettings();
+				},
+			});
 		}
 
 		reloadNotification(

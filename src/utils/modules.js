@@ -1,9 +1,5 @@
 // @ts-check
 
-const FallbackLibrary = {
-	Settings: {},
-};
-
 const Logger = {
 	isDebugging: false,
 	_log: (type, color, ...x) => {
@@ -33,10 +29,6 @@ const Logger = {
 		Logger._log("debug", "#f05959", ...x);
 	},
 };
-
-const {
-	Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
-} = global.ZeresPluginLibrary ?? FallbackLibrary;
 
 /**
  * @type {null | string}
@@ -260,13 +252,6 @@ const UsedModules = {
 	Logger,
 	ReactTools,
 
-	/* Settings */
-	SettingField,
-	SettingPanel,
-	SettingGroup,
-	Switch,
-	RadioGroup,
-
 	/* Discord Modules (From lib) */
 	ChannelStore,
 	MessageActions,
@@ -314,11 +299,6 @@ const UsedModules = {
 };
 
 function checkVariables() {
-	if (!global.ZeresPluginLibrary) {
-		Logger.err("ZeresPluginLibrary not found.");
-		return false;
-	}
-
 	for (const variable in UsedModules) {
 		if (!UsedModules[variable]) {
 			Logger.err(`Variable not found: ${variable}`);

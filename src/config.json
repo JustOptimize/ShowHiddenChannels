@@ -8,12 +8,14 @@
 	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
 	"changelog": [
 		{
-			"title": "v0.6.0 - Dependency Update",
+			"title": "v0.6.0 - Standalone",
 			"items": [
+				"Started using new BdApi features.",
 				"Switched to BdApi.Net for fetching data.",
-				"Stopped using ZeresPluginLibrary to fetch modules",
-				"Replaced ZeresPluginLibrary Logger with a custom logger (now the console looks pretty)",
+				"Stopped using ZeresPluginLibrary, now the plugin is standalone.",
+				"Added a custom logger (now the console looks pretty)",
 				"Edited the updater to fetch the file from the releases and not from the tags",
+				"Updated dev dependencies.",
 				"Code cleanup"
 			]
 		},
