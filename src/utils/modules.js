@@ -49,7 +49,7 @@ const {
 
 // TODO: Add this to above when BdApi types are updated
 /**
- * @type {typeof BdApi.Webpack & { getBySource: (source: string, ...filters: string[]) => any }}
+ * @type {typeof BdApi.Webpack & { getBySource: (source: string | RegExp, ...filters: string[]) => any }}
  */
 // @ts-ignore
 const WebpackModules = BdApi.Webpack;
@@ -108,9 +108,7 @@ if (
 
 const chat = WebpackModules.getByKeys("chat", "chatContent")?.chat;
 
-const Route = WebpackModules.getModule((m) =>
-	/.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()),
-);
+const Route = WebpackModules.getBySource(/.ImpressionTypes.PAGE,name:\w+,/);
 
 const ChannelItem = WebpackModules.getBySource(
 	"forceInteractable",
