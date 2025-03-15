@@ -36,21 +36,23 @@ const Logger = {
 let key = null;
 let loaded_successfully_internal = true;
 
-const React = BdApi.React;
-const ReactDOM = BdApi.ReactDOM;
-const ReactTools = BdApi.ReactUtils;
-const DOMTools = BdApi.DOM;
-const ContextMenu = BdApi.ContextMenu;
-const Tooltip = BdApi.Components.Tooltip;
-const TextElement = BdApi.Components.Text;
+const {
+	React,
+	ReactDOM,
+	ReactUtils: ReactTools,
+	DOM: DOMTools,
+	ContextMenu,
+	Utils: Utilities,
+	// Webpack: WebpackModules,
+	Components: { Tooltip, Text: TextElement },
+} = BdApi;
 
+// TODO: Add this to above when BdApi types are updated
 /**
  * @type {typeof BdApi.Webpack & { getBySource: (source: string, ...filters: string[]) => any }}
  */
 // @ts-ignore
 const WebpackModules = BdApi.Webpack;
-
-const Utilities = BdApi.Utils;
 
 const DiscordPermissions = WebpackModules.getModule((m) => m.ADD_REACTIONS, {
 	searchExports: true,
@@ -70,10 +72,7 @@ const MessageActions = WebpackModules.getByKeys(
 	"_sendMessage",
 	"fetchMessages", // This gets patched
 );
-const GuildChannelsStore = WebpackModules.getByKeys(
-	"getChannels",
-	"getDefaultChannel",
-);
+const GuildChannelStore = WebpackModules.getStore("GuildChannelStore");
 const GuildMemberStore = WebpackModules.getByKeys("getMember");
 const NavigationUtils = {
 	transitionTo: WebpackModules.getModule(
@@ -258,7 +257,7 @@ const UsedModules = {
 	TextElement,
 	React,
 	ReactDOM,
-	GuildChannelsStore,
+	GuildChannelStore,
 	GuildMemberStore,
 	LocaleManager,
 	NavigationUtils,

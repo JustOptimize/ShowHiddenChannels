@@ -38,7 +38,7 @@ export default (() => {
 		ChannelStore,
 		MessageActions,
 		React,
-		GuildChannelsStore,
+		GuildChannelStore,
 		NavigationUtils,
 
 		/* BdApi */
@@ -555,9 +555,9 @@ export default (() => {
 			);
 
 			//* Manually collapse hidden channel category
-			if (!ChannelStore?.getChannel || !GuildChannelsStore?.getChannels) {
+			if (!ChannelStore?.getChannel || !GuildChannelStore?.getChannels) {
 				this.api.UI.showToast(
-					"(SHC) ChannelStore or GuildChannelsStore are missing, extra category settings won't work.",
+					"(SHC) ChannelStore or GuildChannelStore are missing, extra category settings won't work.",
 					{
 						type: "warning",
 					},
@@ -590,7 +590,7 @@ export default (() => {
 				ChannelStore,
 				"getMutableGuildChannelsForGuild",
 				(_, [guildId], GuildChannels) => {
-					if (!GuildChannelsStore?.getChannels) return;
+					if (!GuildChannelStore?.getChannels) return;
 
 					if (
 						this.settings.sort !== "extra" ||
@@ -608,7 +608,7 @@ export default (() => {
 					});
 
 					const GuildCategories =
-						GuildChannelsStore.getChannels(guildId)[
+						GuildChannelStore.getChannels(guildId)[
 							DiscordConstants.ChannelTypes.GUILD_CATEGORY
 						];
 					Object.defineProperty(HiddenCategoryChannel, "position", {
@@ -629,7 +629,7 @@ export default (() => {
 				},
 			);
 
-			Patcher.after(GuildChannelsStore, "getChannels", (_, [guildId], res) => {
+			Patcher.after(GuildChannelStore, "getChannels", (_, [guildId], res) => {
 				const GuildCategories =
 					res[DiscordConstants.ChannelTypes.GUILD_CATEGORY];
 				const hiddenCategoryId = `${guildId}_hidden`;
