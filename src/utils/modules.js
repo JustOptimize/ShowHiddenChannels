@@ -49,7 +49,7 @@ const {
 
 // TODO: Add this to above when BdApi types are updated
 /**
- * @type {typeof BdApi.Webpack & { getBySource: (source: string | RegExp, ...filters: string[]) => any }}
+ * @type {typeof BdApi.Webpack & { getBySource: (source: string | RegExp, ...filters: string[]) => any, getMangled: (module: string, filters: Record<string,  (...args: any[]) => boolean>) => any }}
  */
 // @ts-ignore
 const WebpackModules = BdApi.Webpack;
@@ -74,12 +74,15 @@ const MessageActions = WebpackModules.getByKeys(
 );
 const GuildChannelStore = WebpackModules.getStore("GuildChannelStore");
 const GuildMemberStore = WebpackModules.getByKeys("getMember");
-const NavigationUtils = {
-	transitionTo: WebpackModules.getModule(
-		(m) => m?.toString?.().includes(`"transitionTo - Transitioning to "`),
-		{ searchExports: true },
-	),
-};
+const NavigationUtils = WebpackModules.getMangled(
+	"transitionTo - Transitioning to ",
+	{
+		transitionTo: BdApi.Webpack.Filters.byStrings(
+			"transitionTo - Transitioning to ",
+		),
+	},
+);
+
 if (!NavigationUtils.transitionTo) {
 	loaded_successfully_internal = false;
 	Logger.err("Failed to load NavigationUtils", NavigationUtils);
@@ -171,29 +174,17 @@ const ChannelListStore = WebpackModules.getStore("ChannelListStore");
 const DEFAULT_AVATARS =
 	WebpackModules.getByKeys("DEFAULT_AVATARS")?.DEFAULT_AVATARS;
 
-const Icon = WebpackModules.getByKeys("iconItem");
-const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
+const { iconItem, actionIcon } = WebpackModules.getByKeys("iconItem") || {};
 
 const ReadStateStore = WebpackModules.getStore("ReadStateStore");
 const Voice = WebpackModules.getByKeys("getVoiceStateStats");
 
 const UserMentions = WebpackModules.getByKeys("handleUserContextMenu");
-const ChannelUtils = {
-	renderTopic: WebpackModules?.getModule(
-		(m) =>
-			m &&
-			typeof m === "object" &&
-			Object.keys(m).find((k) => {
-				key = k;
-				return (
-					m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes(".GROUP_DM:return null")
-				);
-			}),
-	)?.[key || ""],
-};
-if (!ChannelUtils.renderTopic) {
+
+const ChannelUtils = WebpackModules.getMangled(".guildBreadcrumbIcon,", {
+	renderTopic: WebpackModules.Filters.byStrings(".GROUP_DM:return null"),
+});
+if (!ChannelUtils?.renderTopic) {
 	loaded_successfully_internal = false;
 	Logger.err("Failed to load ChannelUtils", ChannelUtils);
 }
