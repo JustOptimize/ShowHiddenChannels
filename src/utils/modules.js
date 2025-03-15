@@ -166,9 +166,11 @@ const container = WebpackModules.getByKeys(
 	"hubContainer",
 )?.container;
 
-const ChannelRecordBase = WebpackModules?.getModule(
-	(m) => m?.Sf?.prototype?.isManaged,
-)?.Sf;
+const ChannelRecordBase = WebpackModules.getMangled("isManaged(){return null", {
+	ChannelRecordBase: WebpackModules.Filters.byStrings(
+		"isManaged(){return null",
+	),
+})?.ChannelRecordBase;
 
 const ChannelListStore = WebpackModules.getStore("ChannelListStore");
 const DEFAULT_AVATARS =
