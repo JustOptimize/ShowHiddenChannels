@@ -1,6 +1,13 @@
-const { TextElement, RolePill, DiscordConstants } =
-	require("../utils/modules").ModuleStore;
-const React = BdApi.React;
+// @ts-check
+
+import { ModuleStore } from "../utils/modules";
+
+const {
+	Components: { TextElement },
+	RolePill,
+	DiscordConstants,
+	React,
+} = ModuleStore;
 
 const AdminRolesElement = ({ guild, settings, roles }) => {
 	if (!settings.showAdmin) return null;
@@ -23,7 +30,7 @@ const AdminRolesElement = ({ guild, settings, roles }) => {
 
 	return (
 		<TextElement
-			color={TextElement.Colors.INTERACTIVE_NORMAL}
+			color={TextElement.Colors.STANDARD}
 			style={{
 				borderTop: "1px solid var(--background-tertiary)",
 				padding: 5,

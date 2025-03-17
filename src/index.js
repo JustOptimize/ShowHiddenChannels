@@ -28,41 +28,43 @@ export default (() => {
 	const { HiddenChannelIcon } = require("./components/HiddenChannelIcon");
 
 	const {
-		/* Library */
-		Utilities,
-		DOMTools,
-		Logger,
-		ReactTools,
+		ModuleStore: {
+			/* Library */
+			Utilities,
+			DOMTools,
+			Logger,
+			ReactTools,
 
-		/* Discord Modules (From lib) */
-		ChannelStore,
-		MessageActions,
-		React,
-		GuildChannelStore,
-		NavigationUtils,
+			/* Discord Modules (From lib) */
+			ChannelStore,
+			MessageActions,
+			React,
+			GuildChannelStore,
+			NavigationUtils,
 
-		/* BdApi */
-		ContextMenu,
+			/* BdApi */
+			ContextMenu,
 
-		/* Manually found modules */
-		DiscordConstants,
-		chat,
-		Route,
-		ChannelItem,
-		ChannelItemKey,
-		ChannelItemUtils,
-		ChannelPermissionStore,
-		PermissionStoreActionHandler,
-		ChannelListStoreActionHandler,
-		container,
-		ChannelRecordBase,
-		ChannelListStore,
-		iconItem,
-		actionIcon,
-		ReadStateStore,
-		Voice,
-		CategoryStore,
-	} = require("./utils/modules").ModuleStore;
+			/* Manually found modules */
+			DiscordConstants,
+			chat,
+			Route,
+			ChannelItem,
+			ChannelItemKey,
+			ChannelItemUtils,
+			ChannelPermissionStore,
+			PermissionStoreActionHandler,
+			ChannelListStoreActionHandler,
+			container,
+			ChannelRecordBase,
+			ChannelListStore,
+			iconItem,
+			actionIcon,
+			ReadStateStore,
+			Voice,
+			CategoryStore,
+		},
+	} = require("./utils/modules");
 
 	const defaultSettings = {
 		hiddenChannelIcon: "lock",
@@ -912,7 +914,7 @@ export default (() => {
 		stop() {
 			this.api.Patcher.unpatchAll();
 			DOMTools.removeStyle(config.info.name);
-			ContextMenu.unpatch("guild-context", this.processContextMenu);
+			ContextMenu?.unpatch("guild-context", this.processContextMenu);
 			this.rerenderChannels();
 		}
 

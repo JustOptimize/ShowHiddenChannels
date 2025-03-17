@@ -1,28 +1,28 @@
 // @ts-check
-
-// @ts-ignore
-const React = BdApi.React;
+import { ModuleStore } from "../utils/modules";
 
 const {
+	React,
 	Logger,
 	DiscordConstants,
 	GuildStore,
 	ImageResolver,
 	DEFAULT_AVATARS,
-	// @ts-ignore
-} = require("../utils/modules").ModuleStore;
+} = ModuleStore;
+
+const {
+	Components: {
+		RadioInput,
+		SettingGroup,
+		SwitchInput: SwitchItem,
+		SettingItem,
+	},
+} = BdApi;
 
 // If type starts with GUILD, it's a guild channel
 const ChannelTypes = Object.keys(DiscordConstants?.ChannelTypes ?? {}).filter(
 	(type) => type.startsWith("GUILD") && type !== "GUILD_CATEGORY",
 );
-
-const {
-	RadioInput,
-	SettingGroup,
-	SwitchInput: SwitchItem,
-	SettingItem,
-} = BdApi.Components;
 
 const { IconSwitchWrapper } = require("./IconSwitchWrapper");
 

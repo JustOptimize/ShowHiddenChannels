@@ -1,42 +1,42 @@
 {
-  "name": "showhiddenchannels",
-  "description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)",
-  "main": "ShowHiddenChannels.plugin.js",
-  "scripts": {
-    "build": "webpack --progress --color"
-  },
-  "author": "JustOptimize (Oggetto)",
-  "license": "GPL-3.0-only",
-  "devDependencies": {
-    "@babel/core": "^7.26.9",
-    "@babel/preset-env": "^7.26.9",
-    "@babel/preset-react": "^7.26.3",
-    "@biomejs/biome": "1.9.4",
-    "babel-loader": "^9.2.1",
-    "raw-loader": "^4.0.2",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^5.1.4"
-  },
-  "babel": {
-    "presets": [
-      [
-        "@babel/env",
-        {
-          "targets": {
-            "node": "16.17.1",
-            "chrome": "108"
-          }
-        }
-      ],
-      [
-        "@babel/preset-react",
-        {
-          "pragma": "BdApi.React.createElement"
-        }
-      ]
-    ]
-  },
-  "dependencies": {
-    "@types/betterdiscord": "github:zerthox/betterdiscord-types"
-  }
+	"name": "showhiddenchannels",
+	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)",
+	"main": "ShowHiddenChannels.plugin.js",
+	"scripts": {
+		"build": "webpack --progress --color"
+	},
+	"author": "JustOptimize (Oggetto)",
+	"license": "GPL-3.0-only",
+	"devDependencies": {
+		"@babel/core": "^7.26.9",
+		"@babel/preset-env": "^7.26.9",
+		"@babel/preset-react": "^7.26.3",
+		"@biomejs/biome": "1.9.4",
+		"babel-loader": "^9.2.1",
+		"raw-loader": "^4.0.2",
+		"webpack": "^5.98.0",
+		"webpack-cli": "^5.1.4"
+	},
+	"babel": {
+		"presets": [
+			[
+				"@babel/env",
+				{
+					"targets": {
+						"node": "16.17.1",
+						"chrome": "108"
+					}
+				}
+			],
+			[
+				"@babel/preset-react",
+				{
+					"pragma": "BdApi.React.createElement"
+				}
+			]
+		]
+	},
+	"dependencies": {
+		"@types/betterdiscord": "github:zerthox/betterdiscord-types"
+	}
 }

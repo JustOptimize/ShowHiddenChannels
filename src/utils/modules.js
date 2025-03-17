@@ -212,7 +212,6 @@ const UsedModules = {
 	/* Discord Modules (From lib) */
 	ChannelStore,
 	MessageActions,
-	TextElement,
 	React,
 	ReactDOM,
 	GuildChannelStore,
@@ -223,9 +222,11 @@ const UsedModules = {
 	UserStore,
 	Dispatcher,
 
-	/* BdApi */
-	Tooltip,
 	ContextMenu,
+	Components: {
+		Tooltip,
+		TextElement,
+	},
 
 	/* Manually found modules */
 	GuildStore,
@@ -261,12 +262,22 @@ function checkVariables() {
 		}
 	}
 
+	for (const component in UsedModules.Components) {
+		if (!UsedModules.Components[component]) {
+			Logger.err(`Component not found: ${component}`);
+		}
+	}
+
 	if (!loaded_successfully_internal) {
 		Logger.err("Failed to load internal modules.");
 		return false;
 	}
 
-	if (Object.values(UsedModules).includes(undefined)) {
+	if (
+		Object.values(UsedModules).includes(undefined) ||
+		// @ts-ignore
+		Object.values(UsedModules.Components).includes(undefined)
+	) {
 		return false;
 	}
 
@@ -276,3 +287,4 @@ function checkVariables() {
 
 export const loaded_successfully = checkVariables();
 export const ModuleStore = UsedModules;
+export default ModuleStore;

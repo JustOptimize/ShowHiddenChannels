@@ -1,20 +1,25 @@
-const React = BdApi.React;
+// @ts-check
+
+import { ModuleStore } from "../utils/modules";
 
 const {
-	TextElement,
+	React,
 	UserMentions,
 	ProfileActions,
 	GuildMemberStore,
 	UserStore,
 	DiscordConstants,
 	PermissionUtils,
-} = require("../utils/modules").ModuleStore;
+	Components: { TextElement },
+} = ModuleStore;
 
 export default function UserMentionsComponent({ channel, guild, settings }) {
-	const [userMentionComponents, setUserMentionComponents] = React.useState([]);
+	const [userMentionComponents, setUserMentionComponents] = React.useState([
+		"Loading...",
+	]);
 
 	const fetchMemberAndMap = async () => {
-		setUserMentionComponents("Loading...");
+		setUserMentionComponents(["Loading..."]);
 
 		if (!settings.showPerms) {
 			return setUserMentionComponents(["None"]);
@@ -78,7 +83,7 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
 
 	return (
 		<TextElement
-			color={TextElement.Colors.INTERACTIVE_NORMAL}
+			color={TextElement.Colors.STANDARD}
 			size={TextElement.Sizes.SIZE_14}
 		>
 			Users that can see this channel:

@@ -1,9 +1,10 @@
 // @ts-check
-const React = BdApi.React;
+import { ModuleStore } from "../utils/modules";
 
 const {
-	ModuleStore: { TextElement },
-} = require("../utils/modules");
+	Components: { TextElement },
+	React,
+} = ModuleStore;
 
 export default function ForumComponent({ channel }) {
 	if (channel.type !== 15) return null;
@@ -28,7 +29,7 @@ export default function ForumComponent({ channel }) {
 			Forum
 			{/* Tags */}
 			<TextElement
-				color={TextElement.Colors.INTERACTIVE_NORMAL}
+				color={TextElement.Colors.STANDARD}
 				size={TextElement.Sizes.SIZE_14}
 				style={{
 					marginTop: 24,
@@ -41,7 +42,7 @@ export default function ForumComponent({ channel }) {
 			{/* Guidelines */}
 			{channel.topic && (
 				<TextElement
-					color={TextElement.Colors.INTERACTIVE_NORMAL}
+					color={TextElement.Colors.STANDARD}
 					size={TextElement.Sizes.SIZE_14}
 					style={{
 						marginTop: 16,
@@ -52,7 +53,7 @@ export default function ForumComponent({ channel }) {
 			)}
 			{!channel.topic && (
 				<TextElement
-					color={TextElement.Colors.INTERACTIVE_NORMAL}
+					color={TextElement.Colors.STANDARD}
 					size={TextElement.Sizes.SIZE_14}
 					style={{
 						marginTop: 8,
