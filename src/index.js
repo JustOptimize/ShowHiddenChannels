@@ -774,11 +774,10 @@ export default (() => {
 			);
 		}
 
-		// TODO: Maybe replace this
 		patchEmptyCategoryFunction(categories) {
 			for (const category of categories) {
 				if (!category.shouldShowEmptyCategory.__originalFunction) {
-					Patcher.instead(category, "shouldShowEmptyCategory", () => true);
+					category.shouldShowEmptyCategory = () => true;
 				}
 			}
 		}
