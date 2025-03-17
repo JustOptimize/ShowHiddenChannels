@@ -51,7 +51,6 @@ export default (() => {
 		ChannelItem,
 		ChannelItemKey,
 		ChannelItemUtils,
-		ChannelItemUtilsKey,
 		ChannelPermissionStore,
 		PermissionStoreActionHandler,
 		ChannelListStoreActionHandler,
@@ -533,26 +532,22 @@ export default (() => {
 			}
 
 			//* Remove lock icon from hidden voice channels
-			if (!ChannelItemUtils) {
+			if (!ChannelItemUtils?.icon) {
 				this.api.UI.showToast(
-					"(SHC) ChannelItemUtils/ChannelItemUtilsKey is missing, voice channel lock icon won't be removed.",
+					"(SHC) ChannelItemUtils is missing, voice channel lock icon won't be removed.",
 					{
 						type: "warning",
 					},
 				);
 			}
 
-			Patcher.before(
-				ChannelItemUtils,
-				ChannelItemUtilsKey ?? "getChannelIconComponent",
-				(_, args) => {
-					if (!args[2]) return;
+			Patcher.before(ChannelItemUtils, "icon", (_, args) => {
+				if (!args[2]) return;
 
-					if (args[0]?.isHidden?.() && args[2].locked) {
-						args[2].locked = false;
-					}
-				},
-			);
+				if (args[0]?.isHidden?.() && args[2].locked) {
+					args[2].locked = false;
+				}
+			});
 
 			//* Manually collapse hidden channel category
 			if (!ChannelStore?.getChannel || !GuildChannelStore?.getChannels) {

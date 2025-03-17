@@ -33,7 +33,7 @@ const Logger = {
 /**
  * @type {null | string}
  */
-let key = null;
+const key = null;
 let loaded_successfully_internal = true;
 
 const {
@@ -121,21 +121,8 @@ const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
 	return ChannelItem[k]?.toString()?.includes(".ALL_MESSAGES");
 });
 
-const ChannelItemUtils = WebpackModules?.getModule(
-	(m) =>
-		m &&
-		typeof m === "object" &&
-		Object.keys(m).some(
-			(k) =>
-				(m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes('["/7EhaW"]')) ||
-				m[k]?.toString()?.includes(".Messages.CHANNEL_TOOLTIP_RULES"),
-		),
-);
-
-const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
-	return ChannelItemUtils[k]?.toString()?.includes(",textFocused:");
+const ChannelItemUtils = WebpackModules.getMangled(".ToS;", {
+	icon: WebpackModules.Filters.byStrings(",textFocused:"),
 });
 
 const RolePill = WebpackModules.getBySource(".roleRemoveButton,")?.Z;
@@ -148,18 +135,18 @@ if (!ChannelPermissionStore?.can) {
 	Logger.err("Failed to load ChannelPermissionStore", ChannelPermissionStore);
 }
 
-const PermissionStoreActionHandler = Utilities?.findInTree(
-	Dispatcher,
-	(c) =>
-		c?.name === "PermissionStore" &&
-		typeof c?.actionHandler?.CONNECTION_OPEN === "function",
-)?.actionHandler;
-const ChannelListStoreActionHandler = Utilities?.findInTree(
-	Dispatcher,
-	(c) =>
-		c?.name === "ChannelListStore" &&
-		typeof c?.actionHandler?.CONNECTION_OPEN === "function",
-)?.actionHandler;
+const fluxDispatcherHandlers = BdApi.Webpack.getByKeys("dispatch", "subscribe")
+	._actionHandlers._dependencyGraph;
+
+const PermissionStoreActionHandler =
+	fluxDispatcherHandlers.nodes[
+		BdApi.Webpack.getStore("PermissionStore")._dispatchToken
+	].actionHandler;
+
+const ChannelListStoreActionHandler =
+	fluxDispatcherHandlers.nodes[
+		BdApi.Webpack.getStore("ChannelListStore")._dispatchToken
+	].actionHandler;
 
 const container = WebpackModules.getByKeys(
 	"container",
@@ -191,44 +178,24 @@ if (!ChannelUtils?.renderTopic) {
 	Logger.err("Failed to load ChannelUtils", ChannelUtils);
 }
 
-const ProfileActions = {
-	fetchProfile: WebpackModules?.getModule(
-		(m) =>
-			m &&
-			typeof m === "object" &&
-			Object.keys(m).find((k) => {
-				key = k;
-				return (
-					m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes("USER_PROFILE_FETCH_START")
-				);
-			}),
-	)?.[key || ""],
-};
+const ProfileActions = WebpackModules.getMangled(
+	"setFlag: user cannot be undefined",
+	{
+		fetchProfile: WebpackModules.Filters.byStrings("USER_PROFILE_FETCH_START"),
+	},
+);
+
 if (!ProfileActions.fetchProfile) {
 	loaded_successfully_internal = false;
 	Logger.err("Failed to load ProfileActions", ProfileActions);
 }
 
-const PermissionUtilsModule = WebpackModules?.getModule((m) =>
-	Object.values(m).some(
-		(c) =>
-			c &&
-			typeof c === "function" &&
-			c?.toString()?.includes(".computeLurkerPermissionsAllowList()"),
-	),
+const PermissionUtils = WebpackModules.getMangled(
+	".computeLurkerPermissionsAllowList()",
+	{
+		can: WebpackModules.Filters.byStrings("excludeGuildPermissions:"),
+	},
 );
-
-Object.keys(PermissionUtilsModule).find((k) => {
-	key = k;
-	return PermissionUtilsModule[k]
-		?.toString()
-		?.includes("excludeGuildPermissions:");
-});
-const PermissionUtils = {
-	can: PermissionUtilsModule?.[key || ""],
-};
 
 const CategoryStore = WebpackModules.getByKeys(
 	"isCollapsed",
@@ -268,7 +235,6 @@ const UsedModules = {
 	ChannelItem,
 	ChannelItemKey,
 	ChannelItemUtils,
-	ChannelItemUtilsKey,
 	ChannelPermissionStore,
 	PermissionStoreActionHandler,
 	ChannelListStoreActionHandler,
