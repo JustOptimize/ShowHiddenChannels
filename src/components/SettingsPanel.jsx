@@ -7,7 +7,6 @@ const {
 	Logger,
 	DiscordConstants,
 	GuildStore,
-	ReactDOM,
 	ImageResolver,
 	DEFAULT_AVATARS,
 	// @ts-ignore
@@ -18,10 +17,12 @@ const ChannelTypes = Object.keys(DiscordConstants?.ChannelTypes ?? {}).filter(
 	(type) => type.startsWith("GUILD") && type !== "GUILD_CATEGORY",
 );
 
-const RadioInput = BdApi.Components.RadioInput;
-const SettingGroup = BdApi.Components.SettingGroup;
-const SwitchItem = BdApi.Components.SwitchInput;
-const SettingItem = BdApi.Components.SettingItem;
+const {
+	RadioInput,
+	SettingGroup,
+	SwitchInput: SwitchItem,
+	SettingItem,
+} = BdApi.Components;
 
 const { IconSwitchWrapper } = require("./IconSwitchWrapper");
 

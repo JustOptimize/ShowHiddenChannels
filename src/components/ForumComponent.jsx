@@ -1,6 +1,9 @@
 // @ts-check
 const React = BdApi.React;
-const TextElement = require("../utils/modules").ModuleStore.TextElement;
+
+const {
+	ModuleStore: { TextElement },
+} = require("../utils/modules");
 
 export default function ForumComponent({ channel }) {
 	if (channel.type !== 15) return null;
