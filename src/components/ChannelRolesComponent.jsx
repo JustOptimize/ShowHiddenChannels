@@ -1,5 +1,13 @@
-const { TextElement, RolePill, DiscordConstants } =
-	require("../utils/modules").ModuleStore;
+// @ts-check
+
+import { ModuleStore } from "../utils/modules";
+
+const {
+	Components: { TextElement },
+	RolePill,
+	DiscordConstants,
+	React,
+} = ModuleStore;
 
 export default function ChannelRolesComponent({
 	channel,
@@ -20,12 +28,12 @@ export default function ChannelRolesComponent({
 				(role.allow & BigInt(1024)) === BigInt(1024) ||
 				//* If role can view channel by default and overwrites don't deny VIEW_CHANNEL
 				(roles[role.id].permissions & BigInt(1024) &&
-					(role.deny & BigInt(1024)) === 0)),
+					(role.deny & BigInt(1024)) === BigInt(0))),
 	);
 
 	return (
 		<TextElement
-			color={TextElement.Colors.INTERACTIVE_NORMAL}
+			color={TextElement.Colors.STANDARD}
 			style={{
 				borderTop: "1px solid var(--background-tertiary)",
 				padding: 8,

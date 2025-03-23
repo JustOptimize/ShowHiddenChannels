@@ -1,4 +1,5 @@
-const { Logger, LocaleManager } = require("./modules").ModuleStore;
+import { ModuleStore } from "./modules";
+const { Logger, LocaleManager } = ModuleStore;
 
 export function convertToHMS(timeInSeconds) {
 	const hours = Math.floor(timeInSeconds / 3600);

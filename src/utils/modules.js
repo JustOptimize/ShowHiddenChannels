@@ -1,64 +1,102 @@
-const FallbackLibrary = {
-	Logger: {
-		info: console.info,
-		warn: console.warn,
-		err: console.error,
+// @ts-check
+
+const Logger = {
+	isDebugging: false,
+	_log: (type, color, ...x) => {
+		const line = new Error().stack || "";
+		const lines = line.split("\n");
+		console[type](
+			`%c SHC %c ${type.toUpperCase()} %c`,
+			"background: #5968f0; color: white; font-weight: bold; border-radius: 5px;",
+			`background: ${color}; color: black; font-weight: bold; border-radius: 5px; margin-left: 5px;`,
+			"",
+			...x,
+			`\n\n${lines[3].substring(lines[3].indexOf("("), lines[3].lastIndexOf(")") + 1)}`,
+		);
 	},
-	Settings: {},
-	DiscordModules: {},
+	info: (...x) => {
+		Logger._log("log", "#2f3781", ...x);
+	},
+	warn: (...x) => {
+		Logger._log("warn", "#f0b859", ...x);
+	},
+	err: (...x) => {
+		Logger._log("error", "#f05959", ...x);
+	},
+	debug: (...x) => {
+		if (!Logger.isDebugging) return;
+
+		Logger._log("debug", "#f05959", ...x);
+	},
 };
 
-const {
-	WebpackModules,
-	Utilities,
-	DOMTools,
-	Logger,
-	ReactTools,
-	Modals,
-
-	Settings: { SettingField, SettingPanel, SettingGroup, Switch, RadioGroup },
-
-	DiscordModules: {
-		ChannelStore,
-		MessageActions,
-		TextElement,
-		React,
-		ReactDOM,
-		GuildChannelsStore,
-		GuildMemberStore,
-		NavigationUtils,
-		ImageResolver,
-		UserStore,
-		Dispatcher,
-		DiscordPermissions,
-	},
-} = global.ZeresPluginLibrary ?? FallbackLibrary;
-
-let key = null;
+/**
+ * @type {null | string}
+ */
+const key = null;
 let loaded_successfully_internal = true;
 
-const Tooltip = window.BdApi?.Components?.Tooltip;
-const ContextMenu = window.BdApi?.ContextMenu;
-const Utils = window.BdApi?.Utils;
-const BetterWebpackModules = window.BdApi.Webpack;
+const {
+	React,
+	ReactDOM,
+	ReactUtils: ReactTools,
+	DOM: DOMTools,
+	ContextMenu,
+	Utils: Utilities,
+	// Webpack: WebpackModules,
+	Components: { Tooltip, Text: TextElement },
+} = BdApi;
 
-const GuildStore = WebpackModules?.getByProps(
-	"getGuild",
-	"getGuildCount",
-	"getGuildIds",
-	"getGuilds",
-	"isLoaded",
+// TODO: Add this to above when BdApi types are updated
+/**
+ * @type {typeof BdApi.Webpack & { getBySource: (source: string | RegExp, ...filters: string[]) => any, getMangled: (module: string, filters: Record<string,  (...args: any[]) => boolean>) => any }}
+ */
+// @ts-ignore
+const WebpackModules = BdApi.Webpack;
+
+const DiscordPermissions = WebpackModules.getModule((m) => m.ADD_REACTIONS, {
+	searchExports: true,
+});
+const Dispatcher = WebpackModules.getByKeys("dispatch", "subscribe");
+const ImageResolver = WebpackModules.getByKeys(
+	"getUserAvatarURL",
+	"getGuildIconURL",
 );
-const LocaleManager = WebpackModules?.getByProps("setLocale");
+const UserStore = WebpackModules.getStore("UserStore");
+
+// DiscordModules
+const ChannelStore = WebpackModules.getStore("ChannelStore");
+const GuildStore = WebpackModules.getStore("GuildStore");
+const MessageActions = WebpackModules.getByKeys(
+	"jumpToMessage",
+	"_sendMessage",
+	"fetchMessages", // This gets patched
+);
+const GuildChannelStore = WebpackModules.getStore("GuildChannelStore");
+const GuildMemberStore = WebpackModules.getByKeys("getMember");
+const NavigationUtils = WebpackModules.getMangled(
+	"transitionTo - Transitioning to ",
+	{
+		transitionTo: BdApi.Webpack.Filters.byStrings(
+			"transitionTo - Transitioning to ",
+		),
+	},
+);
+
+if (!NavigationUtils.transitionTo) {
+	loaded_successfully_internal = false;
+	Logger.err("Failed to load NavigationUtils", NavigationUtils);
+}
+
+const LocaleManager = WebpackModules.getByKeys("setLocale");
 
 const DiscordConstants = {};
 
 DiscordConstants.Permissions = DiscordPermissions;
 
-DiscordConstants.ChannelTypes = BetterWebpackModules.getModule(
-	(x) => x.GUILD_VOICE,
-	{ searchExports: true },
-);
+DiscordConstants.ChannelTypes = WebpackModules.getModule((x) => x.GUILD_VOICE, {
+	searchExports: true,
+});
 
 DiscordConstants.NOOP = () => {};
 
@@ -68,16 +106,14 @@ if (
 	!DiscordConstants.NOOP
 ) {
 	loaded_successfully_internal = false;
-	console.error("Failed to load DiscordConstants", DiscordConstants);
+	Logger.err("Failed to load DiscordConstants", DiscordConstants);
 }
 
-const chat = WebpackModules?.getByProps("chat", "chatContent")?.chat;
+const chat = WebpackModules.getByKeys("chat", "chatContent")?.chat;
 
-const Route = WebpackModules.getModule((m) =>
-	/.ImpressionTypes.PAGE,name:\w+,/.test(m?.Z?.toString()),
-);
+const Route = WebpackModules.getBySource(/.ImpressionTypes.PAGE,name:\w+,/);
 
-const ChannelItem = BetterWebpackModules.getBySource(
+const ChannelItem = WebpackModules.getBySource(
 	"forceInteractable",
 	"unreadImportant:void 0)}),",
 );
@@ -85,139 +121,83 @@ const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
 	return ChannelItem[k]?.toString()?.includes(".ALL_MESSAGES");
 });
 
-const ChannelItemUtils = WebpackModules?.getModule(
-	(m) =>
-		m &&
-		typeof m === "object" &&
-		Object.keys(m).some(
-			(k) =>
-				(m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes('["/7EhaW"]')) ||
-				m[k]?.toString()?.includes(".Messages.CHANNEL_TOOLTIP_RULES"),
-		),
-);
-
-const ChannelItemUtilsKey = Object.keys(ChannelItemUtils || {}).find((k) => {
-	return ChannelItemUtils[k]?.toString()?.includes(",textFocused:");
+const ChannelItemUtils = WebpackModules.getMangled(".ToS;", {
+	icon: WebpackModules.Filters.byStrings(",textFocused:"),
 });
 
-const RolePill = WebpackModules?.getModule(
-	(m) =>
-		m &&
-		typeof m === "object" &&
-		Object.values(m).some(
-			(c) =>
-				(c && typeof c === "function" && c?.toString()?.includes(".u3RVsL")) ||
-				c?.toString()?.includes(".Messages.USER_PROFILE_REMOVE_ROLE"),
-		),
-);
+const RolePill = WebpackModules.getBySource(".roleRemoveButton,")?.Z;
 
-const ChannelPermissionStore = WebpackModules?.getByProps(
+const ChannelPermissionStore = WebpackModules.getByKeys(
 	"getChannelPermissions",
 );
 if (!ChannelPermissionStore?.can) {
 	loaded_successfully_internal = false;
-	console.error(
-		"Failed to load ChannelPermissionStore",
-		ChannelPermissionStore,
-	);
+	Logger.err("Failed to load ChannelPermissionStore", ChannelPermissionStore);
 }
 
-const PermissionStoreActionHandler = Utils?.findInTree(
-	Dispatcher,
-	(c) =>
-		c?.name === "PermissionStore" &&
-		typeof c?.actionHandler?.CONNECTION_OPEN === "function",
-)?.actionHandler;
-const ChannelListStoreActionHandler = Utils?.findInTree(
-	Dispatcher,
-	(c) =>
-		c?.name === "ChannelListStore" &&
-		typeof c?.actionHandler?.CONNECTION_OPEN === "function",
-)?.actionHandler;
+const fluxDispatcherHandlers = BdApi.Webpack.getByKeys("dispatch", "subscribe")
+	._actionHandlers._dependencyGraph;
 
-const container = WebpackModules?.getByProps(
+const PermissionStoreActionHandler =
+	fluxDispatcherHandlers.nodes[
+		BdApi.Webpack.getStore("PermissionStore")._dispatchToken
+	].actionHandler;
+
+const ChannelListStoreActionHandler =
+	fluxDispatcherHandlers.nodes[
+		BdApi.Webpack.getStore("ChannelListStore")._dispatchToken
+	].actionHandler;
+
+const container = WebpackModules.getByKeys(
 	"container",
 	"hubContainer",
 )?.container;
 
-// const Channel = WebpackModules?.getByProps('ChannelRecordBase')?.ChannelRecordBase;
-const ChannelRecordBase = WebpackModules?.getModule(
-	(m) => m?.Sf?.prototype?.isManaged,
-)?.Sf;
-
-const ChannelListStore = BetterWebpackModules.getStore("ChannelListStore");
-const DEFAULT_AVATARS =
-	WebpackModules?.getByProps("DEFAULT_AVATARS")?.DEFAULT_AVATARS;
-
-const Icon = WebpackModules?.getByProps("iconItem");
-const [iconItem, actionIcon] = [Icon?.iconItem, Icon?.actionIcon];
-
-const ReadStateStore = BetterWebpackModules.getStore("ReadStateStore");
-const Voice = WebpackModules?.getByProps("getVoiceStateStats");
-
-const UserMentions = WebpackModules?.getByProps("handleUserContextMenu");
-const ChannelUtils = {
-	renderTopic: WebpackModules?.getModule(
-		(m) =>
-			m &&
-			typeof m === "object" &&
-			Object.keys(m).find((k) => {
-				key = k;
-				return (
-					m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes(".GROUP_DM:return null")
-				);
-			}),
-	)?.[key],
-};
-if (!ChannelUtils.renderTopic) {
-	loaded_successfully_internal = false;
-	console.error("Failed to load ChannelUtils", ChannelUtils);
-}
-
-const ProfileActions = {
-	fetchProfile: WebpackModules?.getModule(
-		(m) =>
-			m &&
-			typeof m === "object" &&
-			Object.keys(m).find((k) => {
-				key = k;
-				return (
-					m[k] &&
-					typeof m[k] === "function" &&
-					m[k]?.toString()?.includes("USER_PROFILE_FETCH_START")
-				);
-			}),
-	)?.[key],
-};
-if (!ProfileActions.fetchProfile) {
-	loaded_successfully_internal = false;
-	console.error("Failed to load ProfileActions", ProfileActions);
-}
-
-const PermissionUtilsModule = WebpackModules?.getModule((m) =>
-	Object.values(m).some(
-		(c) =>
-			c &&
-			typeof c === "function" &&
-			c?.toString()?.includes(".computeLurkerPermissionsAllowList()"),
+const ChannelRecordBase = WebpackModules.getMangled("isManaged(){return null", {
+	ChannelRecordBase: WebpackModules.Filters.byStrings(
+		"isManaged(){return null",
 	),
+})?.ChannelRecordBase;
+
+const ChannelListStore = WebpackModules.getStore("ChannelListStore");
+const DEFAULT_AVATARS =
+	WebpackModules.getByKeys("DEFAULT_AVATARS")?.DEFAULT_AVATARS;
+
+const { iconItem, actionIcon } = WebpackModules.getByKeys("iconItem") || {};
+
+const ReadStateStore = WebpackModules.getStore("ReadStateStore");
+const Voice = WebpackModules.getByKeys("getVoiceStateStats");
+
+const UserMentions = WebpackModules.getByKeys("handleUserContextMenu");
+
+const ChannelUtils = WebpackModules.getMangled(".guildBreadcrumbIcon,", {
+	renderTopic: WebpackModules.Filters.byStrings(".GROUP_DM:return null"),
+});
+if (!ChannelUtils?.renderTopic) {
+	loaded_successfully_internal = false;
+	Logger.err("Failed to load ChannelUtils", ChannelUtils);
+}
+
+const ProfileActions = WebpackModules.getMangled(
+	"setFlag: user cannot be undefined",
+	{
+		fetchProfile: WebpackModules.Filters.byStrings("USER_PROFILE_FETCH_START"),
+	},
 );
 
-Object.keys(PermissionUtilsModule).find((k) => {
-	key = k;
-	return PermissionUtilsModule[k]
-		?.toString()
-		?.includes("excludeGuildPermissions:");
-});
-const PermissionUtils = {
-	can: PermissionUtilsModule?.[key],
-};
+if (!ProfileActions.fetchProfile) {
+	loaded_successfully_internal = false;
+	Logger.err("Failed to load ProfileActions", ProfileActions);
+}
 
-const CategoryStore = WebpackModules?.getByProps(
+const PermissionUtils = WebpackModules.getMangled(
+	".computeLurkerPermissionsAllowList()",
+	{
+		can: WebpackModules.Filters.byStrings("excludeGuildPermissions:"),
+	},
+);
+
+const CategoryStore = WebpackModules.getByKeys(
 	"isCollapsed",
 	"getCollapsedCategories",
 );
@@ -228,22 +208,13 @@ const UsedModules = {
 	DOMTools,
 	Logger,
 	ReactTools,
-	Modals,
-
-	/* Settings */
-	SettingField,
-	SettingPanel,
-	SettingGroup,
-	Switch,
-	RadioGroup,
 
 	/* Discord Modules (From lib) */
 	ChannelStore,
 	MessageActions,
-	TextElement,
 	React,
 	ReactDOM,
-	GuildChannelsStore,
+	GuildChannelStore,
 	GuildMemberStore,
 	LocaleManager,
 	NavigationUtils,
@@ -251,10 +222,11 @@ const UsedModules = {
 	UserStore,
 	Dispatcher,
 
-	/* BdApi */
-	Tooltip,
 	ContextMenu,
-	Utils,
+	Components: {
+		Tooltip,
+		TextElement,
+	},
 
 	/* Manually found modules */
 	GuildStore,
@@ -264,7 +236,6 @@ const UsedModules = {
 	ChannelItem,
 	ChannelItemKey,
 	ChannelItemUtils,
-	ChannelItemUtilsKey,
 	ChannelPermissionStore,
 	PermissionStoreActionHandler,
 	ChannelListStoreActionHandler,
@@ -285,14 +256,15 @@ const UsedModules = {
 };
 
 function checkVariables() {
-	if (!global.ZeresPluginLibrary) {
-		Logger.err("ZeresPluginLibrary not found.");
-		return false;
-	}
-
 	for (const variable in UsedModules) {
 		if (!UsedModules[variable]) {
 			Logger.err(`Variable not found: ${variable}`);
+		}
+	}
+
+	for (const component in UsedModules.Components) {
+		if (!UsedModules.Components[component]) {
+			Logger.err(`Component not found: ${component}`);
 		}
 	}
 
@@ -301,7 +273,11 @@ function checkVariables() {
 		return false;
 	}
 
-	if (Object.values(UsedModules).includes(undefined)) {
+	if (
+		Object.values(UsedModules).includes(undefined) ||
+		// @ts-ignore
+		Object.values(UsedModules.Components).includes(undefined)
+	) {
 		return false;
 	}
 
@@ -311,3 +287,4 @@ function checkVariables() {
 
 export const loaded_successfully = checkVariables();
 export const ModuleStore = UsedModules;
+export default ModuleStore;

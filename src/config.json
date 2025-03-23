@@ -1,9 +1,38 @@
 {
 	"name": "ShowHiddenChannels",
 	"displayName": "Show Hidden Channels (SHC)",
-	"version": "0.5.8",
+	"version": "0.6.0",
 	"author": "JustOptimize (Oggetto)",
 	"authorId": "619203349954166804",
 	"source": "https://github.com/JustOptimize/ShowHiddenChannels",
-	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)."
+	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
+	"changelog": [
+		{
+			"title": "v0.6.0 - Standalone",
+			"items": [
+				"Started using new BdApi features.",
+				"Switched to BdApi.Net for fetching data.",
+				"Stopped using ZeresPluginLibrary, now the plugin is standalone.",
+				"Added a custom logger (now the console looks pretty)",
+				"Edited the updater to fetch the file from the releases and not from the tags",
+				"Updated dev dependencies.",
+				"Code cleanup"
+			]
+		},
+		{
+			"title": "v0.5.8 - Fix plugin not working after February 17th",
+			"items": [
+				"Fixed plugin not working after Discord update.",
+				"Refactor a couple of modules.",
+				"Fix settings panel not showing up."
+			]
+		},
+		{
+			"title": "v0.5.7 - Improvements and Fixes",
+			"items": [
+				"Fixed missing ChannelItemUtilsKey module.",
+				"Small code improvements."
+			]
+		}
+	]
 }

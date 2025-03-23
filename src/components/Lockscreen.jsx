@@ -1,13 +1,18 @@
-const React = BdApi.React;
+// @ts-check
 
 import { convertToHMS, getDateFromSnowflake } from "../utils/date";
+import { ModuleStore } from "../utils/modules";
 import AdminRolesComponent from "./AdminRolesComponent";
 import ChannelRolesComponent from "./ChannelRolesComponent";
 import ForumComponent from "./ForumComponent";
 import UserMentionsComponent from "./UserMentionsComponent";
 
-const { TextElement, GuildStore, ChannelUtils } =
-	require("../utils/modules").ModuleStore;
+const {
+	Components: { TextElement },
+	GuildStore,
+	ChannelUtils,
+	React,
+} = ModuleStore;
 
 const CHANNEL_TYPES = {
 	0: "text",
@@ -18,6 +23,7 @@ const CHANNEL_TYPES = {
 	13: "stage",
 };
 
+// @ts-ignore
 export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 	const guild = GuildStore.getGuild(channel.guild_id);
 	const guildRoles = GuildStore.getRoles(guild.id);
@@ -75,7 +81,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				{/* Icon Emoji */}
 				{channel?.iconEmoji && (
 					<TextElement
-						color={TextElement.Colors.INTERACTIVE_NORMAL}
+						color={TextElement.Colors.STANDARD}
 						size={TextElement.Sizes.SIZE_14}
 						style={{
 							marginTop: 16,
@@ -88,7 +94,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				{/* Slowmode */}
 				{channel.rateLimitPerUser > 0 && (
 					<TextElement
-						color={TextElement.Colors.INTERACTIVE_NORMAL}
+						color={TextElement.Colors.STANDARD}
 						size={TextElement.Sizes.SIZE_14}
 					>
 						Slowmode: {convertToHMS(Number(channel.rateLimitPerUser))}
@@ -98,7 +104,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				{/* NSFW */}
 				{channel.nsfw && (
 					<TextElement
-						color={TextElement.Colors.INTERACTIVE_NORMAL}
+						color={TextElement.Colors.STANDARD}
 						size={TextElement.Sizes.SIZE_14}
 					>
 						Age-Restricted Channel (NSFW) 🔞
@@ -108,7 +114,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				{/* Bitrate */}
 				{channel.bitrate && channel.type === 2 && (
 					<TextElement
-						color={TextElement.Colors.INTERACTIVE_NORMAL}
+						color={TextElement.Colors.STANDARD}
 						size={TextElement.Sizes.SIZE_14}
 					>
 						Bitrate: {channel.bitrate / 1000}kbps
@@ -117,7 +123,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 
 				{/* Creation date */}
 				<TextElement
-					color={TextElement.Colors.INTERACTIVE_NORMAL}
+					color={TextElement.Colors.STANDARD}
 					size={TextElement.Sizes.SIZE_14}
 					style={{
 						marginTop: 8,
@@ -129,7 +135,7 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				{/* Last message */}
 				{channel.lastMessageId && (
 					<TextElement
-						color={TextElement.Colors.INTERACTIVE_NORMAL}
+						color={TextElement.Colors.STANDARD}
 						size={TextElement.Sizes.SIZE_14}
 					>
 						Last message sent: {getDateFromSnowflake(channel.lastMessageId)}

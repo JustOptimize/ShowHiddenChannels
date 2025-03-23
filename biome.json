@@ -7,9 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [
-			"ShowHiddenChannels.plugin.js"
-		]
+		"ignore": ["ShowHiddenChannels.plugin.js"]
 	},
 	"formatter": {
 		"enabled": true,
