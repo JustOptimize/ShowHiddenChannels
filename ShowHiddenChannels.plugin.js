@@ -1,7 +1,7 @@
 /**
  * @name ShowHiddenChannels
  * @displayName ShowHiddenChannels - Updater
- * @version 1.0.0
+ * @version 1.0.1
  * @author JustOptimize (Oggetto)
  * @authorId 619203349954166804
  * @source https://github.com/JustOptimize/ShowHiddenChannels
@@ -80,7 +80,7 @@ module.exports = class ShowHiddenChannels {
 		)
 			.then((res) => res.text())
 			.catch(() => {
-				this.api.UI.showToast("Failed to fetch the latest version.", {
+				BdApi.UI.showToast("Failed to fetch the latest version.", {
 					type: "error",
 				});
 			});
