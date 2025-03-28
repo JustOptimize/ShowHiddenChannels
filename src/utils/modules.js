@@ -77,7 +77,7 @@ const GuildMemberStore = WebpackModules.getByKeys("getMember");
 const NavigationUtils = WebpackModules.getMangled(
 	"transitionTo - Transitioning to ",
 	{
-		transitionTo: BdApi.Webpack.Filters.byStrings(
+		transitionTo: WebpackModules.Filters.byStrings(
 			"transitionTo - Transitioning to ",
 		),
 	},
@@ -113,12 +113,9 @@ const chat = WebpackModules.getByKeys("chat", "chatContent")?.chat;
 
 const Route = WebpackModules.getBySource(/.ImpressionTypes.PAGE,name:\w+,/);
 
-const ChannelItem = WebpackModules.getBySource(
-	"forceInteractable",
-	"unreadImportant:void 0)}),",
-);
-const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
-	return ChannelItem[k]?.toString()?.includes(".ALL_MESSAGES");
+const ChannelItem = WebpackModules.getBySource(".iconContainerWithGuildIcon,");
+const ChannelItemRenderer = Object.values(ChannelItem).find((k) => {
+	return k?.render?.toString()?.includes(".ALL_MESSAGES");
 });
 
 const ChannelItemUtils = WebpackModules.getMangled(".ToS;", {
@@ -135,17 +132,17 @@ if (!ChannelPermissionStore?.can) {
 	Logger.err("Failed to load ChannelPermissionStore", ChannelPermissionStore);
 }
 
-const fluxDispatcherHandlers = BdApi.Webpack.getByKeys("dispatch", "subscribe")
+const fluxDispatcherHandlers = WebpackModules.getByKeys("dispatch", "subscribe")
 	._actionHandlers._dependencyGraph;
 
 const PermissionStoreActionHandler =
 	fluxDispatcherHandlers.nodes[
-		BdApi.Webpack.getStore("PermissionStore")._dispatchToken
+		WebpackModules.getStore("PermissionStore")._dispatchToken
 	].actionHandler;
 
 const ChannelListStoreActionHandler =
 	fluxDispatcherHandlers.nodes[
-		BdApi.Webpack.getStore("ChannelListStore")._dispatchToken
+		WebpackModules.getStore("ChannelListStore")._dispatchToken
 	].actionHandler;
 
 const container = WebpackModules.getByKeys(
@@ -233,8 +230,7 @@ const UsedModules = {
 	DiscordConstants,
 	chat,
 	Route,
-	ChannelItem,
-	ChannelItemKey,
+	ChannelItemRenderer,
 	ChannelItemUtils,
 	ChannelPermissionStore,
 	PermissionStoreActionHandler,
