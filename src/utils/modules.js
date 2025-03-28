@@ -114,8 +114,8 @@ const chat = WebpackModules.getByKeys("chat", "chatContent")?.chat;
 const Route = WebpackModules.getBySource(/.ImpressionTypes.PAGE,name:\w+,/);
 
 const ChannelItem = WebpackModules.getBySource(".iconContainerWithGuildIcon,");
-const ChannelItemKey = Object.keys(ChannelItem).find((k) => {
-	return ChannelItem[k]?.toString()?.includes(".ALL_MESSAGES");
+const ChannelItemRenderer = Object.values(ChannelItem).find((k) => {
+	return k?.render?.toString()?.includes(".ALL_MESSAGES");
 });
 
 const ChannelItemUtils = WebpackModules.getMangled(".ToS;", {
@@ -230,8 +230,7 @@ const UsedModules = {
 	DiscordConstants,
 	chat,
 	Route,
-	ChannelItem,
-	ChannelItemKey,
+	ChannelItemRenderer,
 	ChannelItemUtils,
 	ChannelPermissionStore,
 	PermissionStoreActionHandler,

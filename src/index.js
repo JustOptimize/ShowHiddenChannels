@@ -49,8 +49,7 @@ export default (() => {
 			DiscordConstants,
 			chat,
 			Route,
-			ChannelItem,
-			ChannelItemKey,
+			ChannelItemRenderer,
 			ChannelItemUtils,
 			ChannelPermissionStore,
 			PermissionStoreActionHandler,
@@ -443,94 +442,87 @@ export default (() => {
 			);
 
 			if (this.settings.hiddenChannelIcon) {
-				if (!ChannelItem || !ChannelItemKey) {
+				if (!ChannelItemRenderer) {
 					this.api.UI.showToast(
-						"(SHC) ChannelItem/ChannelItemKey module is missing, channel lock icon won't be shown.",
+						"(SHC) ChannelItemRenderer module is missing, channel lock icon won't be shown.",
 						{
 							type: "warning",
 						},
 					);
 				}
 
-				Patcher.after(
-					ChannelItem,
-					ChannelItemKey ?? "default",
-					(_, [instance], res) => {
-						if (!instance?.channel?.isHidden()) {
-							return res;
-						}
-
-						const item = res?.props?.children?.props;
-						if (item?.className) {
-							item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
-						}
-
-						const children = Utilities.findInTree(
-							res,
-							(m) =>
-								m?.props?.onClick?.toString().includes("stopPropagation") &&
-								m.type === "div",
-							{
-								walkable: ["props", "children", "child", "sibling"],
-								maxRecursion: 100,
-							},
-						);
-
-						if (children.props?.children) {
-							children.props.children = [
-								React.createElement(HiddenChannelIcon, {
-									icon: this.settings.hiddenChannelIcon,
-									iconItem: iconItem,
-									actionIcon: actionIcon,
-								}),
-							];
-						}
-
-						const isInCallInThisChannel =
-							instance.channel.type ===
-								DiscordConstants.ChannelTypes.GUILD_VOICE &&
-							!instance.connected;
-						if (!isInCallInThisChannel) {
-							return res;
-						}
-
-						const wrapper = Utilities.findInTree(
-							res,
-							(channel) =>
-								channel?.props?.className?.includes(
-									"shc-hidden-channel-type-2",
-								),
-							{
-								walkable: ["props", "children", "child", "sibling"],
-								maxRecursion: 100,
-							},
-						);
-
-						if (!wrapper) {
-							return res;
-						}
-
-						wrapper.props.onMouseDown = () => {};
-						wrapper.props.onMouseUp = () => {};
-
-						const mainContent = wrapper?.props?.children[1]?.props?.children;
-
-						if (!mainContent) {
-							return res;
-						}
-
-						mainContent.props.onClick = () => {
-							if (instance.channel?.isGuildVocal()) {
-								NavigationUtils.transitionTo(
-									`/channels/${instance.channel.guild_id}/${instance.channel.id}`,
-								);
-							}
-						};
-						mainContent.props.href = null;
-
+				Patcher.after(ChannelItemRenderer, "render", (_, [instance], res) => {
+					if (!instance?.channel?.isHidden()) {
 						return res;
-					},
-				);
+					}
+
+					const item = res?.props?.children?.props;
+					if (item?.className) {
+						item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
+					}
+
+					const children = Utilities.findInTree(
+						res,
+						(m) =>
+							m?.props?.onClick?.toString().includes("stopPropagation") &&
+							m.type === "div",
+						{
+							walkable: ["props", "children", "child", "sibling"],
+							maxRecursion: 100,
+						},
+					);
+
+					if (children.props?.children) {
+						children.props.children = [
+							React.createElement(HiddenChannelIcon, {
+								icon: this.settings.hiddenChannelIcon,
+								iconItem: iconItem,
+								actionIcon: actionIcon,
+							}),
+						];
+					}
+
+					const isInCallInThisChannel =
+						instance.channel.type ===
+							DiscordConstants.ChannelTypes.GUILD_VOICE && !instance.connected;
+					if (!isInCallInThisChannel) {
+						return res;
+					}
+
+					const wrapper = Utilities.findInTree(
+						res,
+						(channel) =>
+							channel?.props?.className?.includes("shc-hidden-channel-type-2"),
+						{
+							walkable: ["props", "children", "child", "sibling"],
+							maxRecursion: 100,
+						},
+					);
+
+					if (!wrapper) {
+						return res;
+					}
+
+					wrapper.props.onMouseDown = () => {};
+					wrapper.props.onMouseUp = () => {};
+
+					const mainContent = wrapper?.props?.children[1]?.props?.children;
+
+					if (!mainContent) {
+						return res;
+					}
+
+					mainContent.props.onClick = () => {
+						if (instance.channel?.isGuildVocal()) {
+							NavigationUtils.transitionTo(
+								`/channels/${instance.channel.guild_id}/${instance.channel.id}`,
+							);
+						}
+					};
+					mainContent.props.href = null;
+
+					return res;
+				});
 			}
 
 			//* Remove lock icon from hidden voice channels
