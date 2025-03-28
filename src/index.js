@@ -445,7 +445,7 @@ export default (() => {
 			if (this.settings.hiddenChannelIcon) {
 				if (!ChannelItem || !ChannelItemKey) {
 					this.api.UI.showToast(
-						"(SHC) ChannelItem module is missing, channel lock icon won't be shown.",
+						"(SHC) ChannelItem/ChannelItemKey module is missing, channel lock icon won't be shown.",
 						{
 							type: "warning",
 						},
