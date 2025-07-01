@@ -67,6 +67,8 @@ const UserStore = WebpackModules.getStore("UserStore");
 // DiscordModules
 const ChannelStore = WebpackModules.getStore("ChannelStore");
 const GuildStore = WebpackModules.getStore("GuildStore");
+const GuildRoleStore = WebpackModules.getStore("GuildRoleStore");
+
 const MessageActions = WebpackModules.getByKeys(
 	"jumpToMessage",
 	"_sendMessage",
@@ -227,6 +229,7 @@ const UsedModules = {
 
 	/* Manually found modules */
 	GuildStore,
+	GuildRoleStore,
 	DiscordConstants,
 	chat,
 	Route,

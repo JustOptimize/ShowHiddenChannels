@@ -10,6 +10,7 @@ import UserMentionsComponent from "./UserMentionsComponent";
 const {
 	Components: { TextElement },
 	GuildStore,
+	GuildRoleStore,
 	ChannelUtils,
 	React,
 } = ModuleStore;
@@ -26,7 +27,7 @@ const CHANNEL_TYPES = {
 // @ts-ignore
 export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 	const guild = GuildStore.getGuild(channel.guild_id);
-	const guildRoles = GuildStore.getRoles(guild.id);
+	const guildRoles = GuildRoleStore.getRoles(guild?.id);
 
 	return (
 		<div
