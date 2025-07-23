@@ -41,7 +41,8 @@ export const Lockscreen = React.memo(({ chat, channel, settings }) => {
 				<img
 					alt="Hidden Channel Icon"
 					style={{
-						WebkitUserDrag: "none",
+						// @ts-ignore webkitUserDrag is not recognized by TypeScript but is valid in CSS
+						webkitUserDrag: "none",
 						maxHeight: 128,
 						margin: "0 auto",
 					}}
