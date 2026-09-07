@@ -1,3 +1,15 @@
+/* Self-center regardless of slot: renderChat's parent is a flex row,
+   renderCall's is a flex column, so don't rely on Discord's chat class. */
+.shc-hidden-chat-content {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 0;
+	height: 100%;
+}
+
 .shc-hidden-notice {
 	display: flex;
 	flex-direction: column;
@@ -8,22 +20,8 @@
 	width: 100%;
 }
 
-.shc-hidden-notice > div[class^="divider"] {
-	display: none;
-}
-
-.shc-hidden-notice > div[class^="topic"] {
-	background-color: var(--background-secondary);
-	padding: 5px;
-	max-width: 50dvh;
-	text-overflow: ellipsis;
-	border-radius: 8px;
-	margin: 12px auto 0 auto;
-	overflow: visible;
-}
-
 .shc-rolePill {
-	background-color: var(--background-primary);
+	background-color: var(--background-mod-subtle);
 	padding: 12px;
 	margin: 4px 0;
 }

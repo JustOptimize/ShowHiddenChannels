@@ -34,7 +34,7 @@ export default function ChannelRolesComponent({
 		<TextElement
 			color={TextElement.Colors.STANDARD}
 			style={{
-				borderTop: "1px solid var(--background-tertiary)",
+				borderTop: "1px solid var(--border-subtle)",
 				padding: 8,
 			}}
 		>
