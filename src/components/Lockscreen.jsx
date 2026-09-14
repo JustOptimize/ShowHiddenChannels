@@ -11,7 +11,6 @@ const {
 	Components: { TextElement },
 	GuildStore,
 	GuildRoleStore,
-	ChannelUtils,
 	React,
 } = getModules();
 
@@ -22,6 +21,8 @@ const CHANNEL_TYPES = {
 	5: "news",
 	6: "store",
 	13: "stage",
+	15: "forum",
+	16: "media",
 };
 
 export const Lockscreen = React.memo(
@@ -66,7 +67,9 @@ export const Lockscreen = React.memo(
 							fontWeight: "bold",
 						}}
 					>
-						{`This is a hidden ${CHANNEL_TYPES[channel.type] ?? "unknown"} channel`}
+						{CHANNEL_TYPES[channel.type]
+							? `This is a hidden ${CHANNEL_TYPES[channel.type]} channel`
+							: "This is a hidden channel"}
 					</TextElement>
 					<TextElement
 						color={TextElement.Colors.HEADER_SECONDARY}
@@ -75,16 +78,8 @@ export const Lockscreen = React.memo(
 							marginTop: 8,
 						}}
 					>
-						You cannot see the contents of this channel.{" "}
-						{channel.topic &&
-							channel.type !== 15 &&
-							"However, you may see its topic."}
+						You cannot see the contents of this channel.
 					</TextElement>
-					{/* Topic */}
-					{channel.topic &&
-						channel.type !== 15 &&
-						(ChannelUtils?.renderTopic?.(channel, guild) ||
-							"ChannelUtils module is missing, topic won't be shown.")}
 
 					{/* Icon Emoji */}
 					{channel?.iconEmoji && (
@@ -116,6 +111,16 @@ export const Lockscreen = React.memo(
 							size={TextElement.Sizes.SIZE_14}
 						>
 							Age-Restricted Channel (NSFW) 🔞
+						</TextElement>
+					)}
+
+					{/* Spoiler */}
+					{channel.isSpoilerChannel?.() && (
+						<TextElement
+							color={TextElement.Colors.STANDARD}
+							size={TextElement.Sizes.SIZE_14}
+						>
+							Spoiler Channel 👁️
 						</TextElement>
 					)}
 
@@ -155,10 +160,10 @@ export const Lockscreen = React.memo(
 						<div
 							style={{
 								margin: "16px auto 0 auto",
-								backgroundColor: "var(--background-secondary)",
+								backgroundColor: "var(--bg-surface-raised)",
 								padding: 10,
 								borderRadius: 5,
-								color: "var(--text-normal)",
+								color: "var(--text-default)",
 							}}
 						>
 							{/* Users */}

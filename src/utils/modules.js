@@ -181,13 +181,6 @@ export function getModules() {
 
 	const UserMentions = WebpackModules.getByKeys("handleUserContextMenu");
 
-	const ChannelUtils = WebpackModules.getMangled(".SMALLER,className", {
-		renderTopic: WebpackModules.Filters.byStrings("GROUP_DM:return null!="),
-	});
-	if (!ChannelUtils?.renderTopic) {
-		Logger.warn("Failed to load ChannelUtils, topics won't be shown.");
-	}
-
 	const ProfileActions = WebpackModules.getMangled(
 		"setFlag: user cannot be undefined",
 		{
@@ -260,7 +253,6 @@ export function getModules() {
 		Voice,
 		RolePill,
 		UserMentions,
-		ChannelUtils,
 		ProfileActions,
 		PermissionUtils,
 		CategoryStore,

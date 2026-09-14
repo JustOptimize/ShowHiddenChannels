@@ -17,10 +17,9 @@ export default function ForumComponent({ channel }) {
 			size={TextElement.Sizes.SIZE_24}
 			style={{
 				margin: "16px auto",
-				backgroundColor: "var(--background-secondary)",
+				backgroundColor: "var(--bg-surface-raised)",
 				padding: 24,
 				borderRadius: 8,
-				color: "var(--text-normal)",
 				fontWeight: "bold",
 				maxWidth: "40vw",
 			}}

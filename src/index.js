@@ -1,5 +1,6 @@
 // @ts-check
 /** @typedef {import('./discord').SHCChannel} SHCChannel */
+/** @typedef {{ props?: { channel?: SHCChannel }, renderHeaderToolbar?: (...a: any[]) => any, shcToolbarWrapped?: boolean }} ChannelViewInstance */
 import styles from "./styles.css";
 
 const config = {
@@ -316,9 +317,9 @@ export default (() => {
 			const {
 				/* Library */
 				Utilities,
+				ReactTools,
 				// DOMTools,
 				// Logger,
-				// ReactTools,
 
 				/* Discord Modules (From lib) */
 				ChannelStore,
@@ -451,8 +452,111 @@ export default (() => {
 				);
 			}
 
+			// Swap only the message area and the members sidebar of Discord's own
+			// Channel view, so its native header (name, topic, "See More") stays.
+			// The class isn't exported, so grab it by walking the fiber tree up
+			// from a rendered channel.
+			let channelViewPatched = false;
+
+			const { GUILD_VOICE, GUILD_STAGE_VOICE } = DiscordConstants.ChannelTypes;
+			const isVoiceLike = (type) =>
+				type === GUILD_VOICE || type === GUILD_STAGE_VOICE;
+
+			const patchChannelView = (ChannelView) => {
+				channelViewPatched = true;
+
+				// render() calls both renderChat and renderCall, so gate each by
+				// type or a text channel gets two lock screens.
+				const swapWhen = (wantVoice) => (self, args, original) => {
+					const channel = self?.props?.channel;
+					if (
+						isVoiceLike(channel?.type) === wantVoice &&
+						this.isHidden(channel) &&
+						channel?.id !== Voice?.getChannelId()
+					) {
+						return React.createElement(Lockscreen, {
+							chat,
+							channel,
+							settings: this.settings,
+						});
+					}
+					return original.apply(self, args);
+				};
+
+				Patcher.instead(ChannelView.prototype, "renderChat", swapWhen(false));
+				if (typeof ChannelView.prototype.renderCall === "function") {
+					Patcher.instead(ChannelView.prototype, "renderCall", swapWhen(true));
+				}
+
+				Patcher.instead(
+					ChannelView.prototype,
+					"renderSidebar",
+					(self, args, original) =>
+						this.isHidden(
+							/** @type {ChannelViewInstance} */ (self)?.props?.channel,
+						)
+							? null
+							: original.apply(self, args),
+				);
+
+				// renderHeaderToolbar is a per-instance arrow field, so wrap it on
+				// each instance from the prototype render(). Drop every toolbar
+				// button except mute for hidden channels (threads, pins and the
+				// member toggle do nothing when you can't read the channel).
+				Patcher.before(ChannelView.prototype, "render", (self) => {
+					const view = /** @type {ChannelViewInstance} */ (self);
+					if (view.shcToolbarWrapped) return;
+					view.shcToolbarWrapped = true;
+
+					const original = view.renderHeaderToolbar;
+					if (typeof original !== "function") return;
+
+					view.renderHeaderToolbar = (...toolbarArgs) => {
+						const items = original.apply(view, toolbarArgs);
+						if (!this.isHidden(view.props?.channel) || !Array.isArray(items)) {
+							return items;
+						}
+						return items.filter((item) => item?.key === "notifications");
+					};
+				});
+			};
+
+			const captureChannelView = () => {
+				if (channelViewPatched) return true;
+
+				for (const sel of [
+					'[class*="chatContent"]',
+					'[class*="chat_"]',
+					'[class*="content_"]',
+				]) {
+					const node = document.querySelector(sel);
+					if (!node) continue;
+
+					let fiber = ReactTools.getInternalInstance(node);
+					for (let depth = 0; fiber && depth < 100; depth++) {
+						const instance = fiber.stateNode;
+						if (
+							typeof instance?.renderChat === "function" &&
+							typeof instance?.renderSidebar === "function"
+						) {
+							patchChannelView(instance.constructor);
+							return true;
+						}
+						fiber = fiber.return;
+					}
+				}
+
+				return false;
+			};
+
+			captureChannelView();
+			this.captureViewTimeout = setTimeout(captureChannelView, 3000);
+
+			// Fail-safe: until the Channel view is patched (or if it never is,
+			// e.g. a Discord refactor), replace the whole routed page instead.
 			Patcher.after(Route, "A", (_, _args, res) => {
 				if (!Voice || !Route) return res;
+				if (captureChannelView()) return res;
 
 				const channelId = res.props?.computedMatch?.params?.channelId;
 				const guildId = res.props?.computedMatch?.params?.guildId;
@@ -999,6 +1103,7 @@ export default (() => {
 			const { DOMTools, ContextMenu } = require("./utils/modules").getModules();
 			const { UnloadModules } = require("./utils/modules");
 
+			clearTimeout(this.captureViewTimeout);
 			this.api.Patcher.unpatchAll();
 			DOMTools.removeStyle(config.info.name);
 			ContextMenu?.unpatch("guild-context", this.processContextMenu);
