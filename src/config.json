@@ -1,7 +1,7 @@
 {
 	"name": "ShowHiddenChannels",
 	"displayName": "Show Hidden Channels (SHC)",
-	"version": "6.12",
+	"version": "6.13",
 	"author": "JustOptimize (Oggetto)",
 	"authorId": "619203349954166804",
 	"source": "https://github.com/JustOptimize/ShowHiddenChannels",
@@ -9,6 +9,13 @@
 	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible).",
 	"runAt": "idle",
 	"changelog": [
+		{
+			"title": "v6.13 - Discord Dispatcher Update",
+			"type": "fixed",
+			"items": [
+				"Fixed the plugin failing to load after Discord's dispatcher update (#291)."
+			]
+		},
 		{
 			"title": "v6.12 - Native Channel Header",
 			"type": "changed",
@@ -25,17 +32,6 @@
 			"type": "fixed",
 			"items": [
 				"Fix `TypeError: Cannot read properties of undefined (reading 'A')` error."
-			]
-		},
-		{
-			"title": "v6.10 - Reliability Improvements",
-			"type": "fixed",
-			"items": [
-				"Plugin now waits for Discord to be ready before starting instead of using a fixed 1s delay.",
-				"Pre-release update checking now correctly picks the newest version instead of blindly grabbing the first GitHub release.",
-				"Logger is now exported directly so it's usable before modules are fully loaded.",
-				"Fixed console.debug being suppressed on Discord stable (falls back to console.log).",
-				"Fixed loaded_successfully flag not resetting on module refetch."
 			]
 		}
 	]

@@ -145,21 +145,16 @@ export function getModules() {
 		Logger.err("Failed to load ChannelPermissionStore", ChannelPermissionStore);
 	}
 
-	const fluxDispatcherHandlers = WebpackModules.getByKeys(
-		"dispatch",
-		"subscribe",
-		{ searchExports: true },
-	)?._actionHandlers._dependencyGraph;
+	const getStoreActionHandler = (storeName) => {
+		const store = WebpackModules.getStore(storeName);
+		const handlers = store?._dispatcher?._actionHandlers;
 
-	const PermissionStoreActionHandler =
-		fluxDispatcherHandlers?.nodes[
-			WebpackModules.getStore("PermissionStore")._dispatchToken
-		].actionHandler;
+		return handlers?._nodes?.get(store._dispatchToken)?.actionHandler;
+	};
 
+	const PermissionStoreActionHandler = getStoreActionHandler("PermissionStore");
 	const ChannelListStoreActionHandler =
-		fluxDispatcherHandlers?.nodes[
-			WebpackModules.getStore("ChannelListStore")._dispatchToken
-		].actionHandler;
+		getStoreActionHandler("ChannelListStore");
 
 	const container = WebpackModules.getByKeys(
 		"container",
