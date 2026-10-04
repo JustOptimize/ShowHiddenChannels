@@ -3,7 +3,8 @@
 	"description": "A plugin which displays all hidden Channels and allows users to view information about them, this won't allow you to read them (impossible)",
 	"main": "ShowHiddenChannels.plugin.js",
 	"scripts": {
-		"build": "webpack --progress --color"
+		"build": "webpack --progress --color",
+		"test:discord": "node --test tests/discord-modules.test.cjs"
 	},
 	"author": "JustOptimize (Oggetto)",
 	"license": "GPL-3.0-only",
