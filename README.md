@@ -1,6 +1,6 @@
 # ShowHiddenChannels
 
-ShowHiddenChannels is a plugin for [BetterDiscord](https://betterdiscord.app/) that allows users to view information about hidden channels in a Discord server, such as their name, description and which roles or users have access to these hidden channels.
+ShowHiddenChannels is a plugin for [BetterDiscord](https://betterdiscord.app/) that shows the hidden channels in a Discord server and the information Discord still sends about them.
 **Please note that this plugin will not allow you to read the messages in these channels, it will only show you information about them.**
 
 The original plugin by [@rauenzi](https://github.com/rauenzi/) was discontinued and removed from the official BetterDiscordAddons repository, so this plugin was created to fill that void.
@@ -9,23 +9,16 @@ If you are searching for the [Replugged](https://replugged.dev/) version of this
 
 ## Channel names show up as "No Access"
 
-Discord has rolled out the `2026-02-private-channel-hiding` experiment, which hides private channels on the server side. If you are in it, Discord never sends the real channel names to your client, so every hidden channel shows up as "No Access". The plugin still starts normally and the console reports no error, because there is nothing left for it to read.
+Since November 2026, Discord hides private channels on the server side for everyone. The `2026-02-private-channel-hiding` experiment has been removed, so setting it to `Not Eligible` no longer works, and there is no bypass. Discord never sends the real name, topic, last message or permissions of a channel you can't see, so the plugin can't show them.
 
 ![image](https://github.com/user-attachments/assets/fbe4a5df-e8dc-4afd-a43a-510ba6831632)
 
-A bypass exists, but it would make the plugin detectable server-side, so it will not be shipped with the plugin.
+What the plugin can still show for a hidden channel:
 
-You can opt yourself out of the experiment instead:
-
-1.  Get access to the experiments page. [YABDP4Nitro](https://github.com/riolubruh/YABDP4Nitro) has a setting that enables it, or paste [this snippet](https://github.com/JustOptimize/ShowHiddenChannels/issues/279#issuecomment-4668816488) into DevTools. On Vencord and Equicord, use their Experiments plugin.
-2.  Open `Settings` > `Experiments`, search for `private-channel-hiding` and select the `2026-02-private-channel-hiding` entry.
-3.  Set the variant override to `Not Eligible`.
-4.  Fully close and reopen Discord.
-
-If the channels are still hidden after restarting, try these in order:
-
--   Switch the override to another variant, set it back to `Not Eligible`, then press `Ctrl+R`.
--   Log out and log back in, so Discord invalidates the cached channel list.
+-   That the channel exists, its type (text, voice, forum, ...) and where it sits in the channel list.
+-   Who is in a hidden voice channel.
+-   Slowmode, the spoiler flag and the creation date.
+-   The server's admin roles.
 
 See [#279](https://github.com/JustOptimize/ShowHiddenChannels/issues/279) for the full discussion.
 
