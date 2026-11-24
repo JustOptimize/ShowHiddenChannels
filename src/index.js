@@ -466,15 +466,17 @@ export default (() => {
 				// type or a text channel gets two lock screens.
 				const swapWhen = (wantVoice) => (self, args, original) => {
 					const channel = self?.props?.channel;
+					const hidden = this.isHidden(channel);
 					if (
 						isVoiceLike(channel?.type) === wantVoice &&
-						this.isHidden(channel) &&
+						(hidden || this.isLockedVoice(channel)) &&
 						channel?.id !== Voice?.getChannelId()
 					) {
 						return React.createElement(Lockscreen, {
 							chat,
 							channel,
 							settings: this.settings,
+							locked: !hidden,
 						});
 					}
 					return original.apply(self, args);
@@ -558,10 +560,11 @@ export default (() => {
 				const channelId = res.props?.computedMatch?.params?.channelId;
 				const guildId = res.props?.computedMatch?.params?.guildId;
 				const channel = ChannelStore?.getChannel(channelId);
+				const hidden = this.isHidden(channel);
 
 				if (
 					guildId &&
-					this.isHidden(channel) &&
+					(hidden || this.isLockedVoice(channel)) &&
 					channel?.id !== Voice.getChannelId()
 				) {
 					res.props.render = () =>
@@ -569,6 +572,7 @@ export default (() => {
 							chat,
 							channel,
 							settings: this.settings,
+							locked: !hidden,
 						});
 				}
 
@@ -598,28 +602,34 @@ export default (() => {
 				},
 			);
 
-			if (this.settings.hiddenChannelIcon) {
-				if (!ChannelItemRenderer) {
-					this.api.UI.showToast(
-						"(SHC) ChannelItemRenderer module is missing, channel lock icon won't be shown.",
-						{
-							type: "warning",
-						},
-					);
+			if (!ChannelItemRenderer) {
+				this.api.UI.showToast(
+					"(SHC) ChannelItemRenderer module is missing, channel lock icon won't be shown and locked voice channels won't be clickable.",
+					{
+						type: "warning",
+					},
+				);
+			}
+
+			Patcher.after(ChannelItemRenderer, "render", (_, args, res) => {
+				const [instance] =
+					/** @type {[{channel: SHCChannel, connected: boolean}]} */ (args);
+				const channel = instance?.channel;
+				const hidden = this.isHidden(channel);
+				//* Visible voice channels you can't join: Discord ignores clicks on them
+				const locked = !hidden && this.isLockedVoice(channel);
+				if (!hidden && !locked) {
+					return res;
 				}
 
-				Patcher.after(ChannelItemRenderer, "render", (_, args, res) => {
-					const [instance] =
-						/** @type {[{channel: SHCChannel, connected: boolean}]} */ (args);
-					if (!this.isHidden(instance?.channel)) {
-						return res;
-					}
+				const item = res?.props?.children?.props;
+				if (item?.className) {
+					item.className += hidden
+						? ` shc-hidden-channel shc-hidden-channel-type-${channel.type}`
+						: " shc-locked-voice-channel";
+				}
 
-					const item = res?.props?.children?.props;
-					if (item?.className) {
-						item.className += ` shc-hidden-channel shc-hidden-channel-type-${instance.channel.type}`;
-					}
-
+				if (hidden && this.settings.hiddenChannelIcon) {
 					const children = Utilities.findInTree(
 						res,
 						(m) =>
@@ -631,7 +641,7 @@ export default (() => {
 						},
 					);
 
-					if (children.props?.children) {
+					if (children?.props?.children) {
 						children.props.children = [
 							React.createElement(HiddenChannelIcon, {
 								icon: this.settings.hiddenChannelIcon,
@@ -640,49 +650,47 @@ export default (() => {
 							}),
 						];
 					}
+				}
 
-					const isInCallInThisChannel =
-						instance.channel.type ===
-							DiscordConstants.ChannelTypes.GUILD_VOICE && !instance.connected;
-					if (!isInCallInThisChannel) {
-						return res;
-					}
-
-					const wrapper = Utilities.findInTree(
-						res,
-						(channel) =>
-							channel?.props?.className?.includes("shc-hidden-channel-type-2"),
-						{
-							walkable: ["props", "children", "child", "sibling"],
-							maxRecursion: 100,
-						},
-					);
-
-					if (!wrapper) {
-						return res;
-					}
-
-					wrapper.props.onMouseDown = () => {};
-					wrapper.props.onMouseUp = () => {};
-
-					const mainContent = wrapper?.props?.children[1]?.props?.children;
-
-					if (!mainContent) {
-						return res;
-					}
-
-					mainContent.props.onClick = () => {
-						if (instance.channel?.isGuildVocal()) {
-							NavigationUtils.transitionTo(
-								`/channels/${instance.channel.guild_id}/${instance.channel.id}`,
-							);
-						}
-					};
-					mainContent.props.href = null;
-
+				//* Open the voice channel view on click instead of trying to join
+				if (!channel.isGuildVocal() || instance.connected) {
 					return res;
-				});
-			}
+				}
+
+				const marker = hidden
+					? `shc-hidden-channel-type-${channel.type}`
+					: "shc-locked-voice-channel";
+				const wrapper = Utilities.findInTree(
+					res,
+					(node) => node?.props?.className?.includes(marker),
+					{
+						walkable: ["props", "children", "child", "sibling"],
+						maxRecursion: 100,
+					},
+				);
+
+				if (!wrapper) {
+					return res;
+				}
+
+				wrapper.props.onMouseDown = () => {};
+				wrapper.props.onMouseUp = () => {};
+
+				const mainContent = wrapper?.props?.children[1]?.props?.children;
+
+				if (!mainContent) {
+					return res;
+				}
+
+				mainContent.props.onClick = () => {
+					NavigationUtils.transitionTo(
+						`/channels/${channel.guild_id}/${channel.id}`,
+					);
+				};
+				mainContent.props.href = null;
+
+				return res;
+			});
 
 			//* Remove lock icon from hidden voice channels
 			if (!ChannelItemUtils?.icon) {
@@ -961,6 +969,18 @@ export default (() => {
 			if (["browse", "customize", "guide"].includes(channel.id)) return false;
 
 			return !this.can(DiscordConstants.Permissions.VIEW_CHANNEL, channel);
+		}
+
+		/**
+		 * A voice or stage channel you can see but not join.
+		 * @param {SHCChannel} channel
+		 * @returns {boolean}
+		 */
+		isLockedVoice(channel) {
+			if (!channel?.isGuildVocal?.() || this.isHidden(channel)) return false;
+
+			const { DiscordConstants } = require("./utils/modules").getModules();
+			return !this.can(DiscordConstants.Permissions.CONNECT, channel);
 		}
 
 		sortChannels(category) {

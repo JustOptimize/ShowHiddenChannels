@@ -13,7 +13,12 @@ const {
 	Components: { TextElement },
 } = getModules();
 
-export default function UserMentionsComponent({ channel, guild, settings }) {
+export default function UserMentionsComponent({
+	channel,
+	guild,
+	settings,
+	permission = DiscordConstants.Permissions.VIEW_CHANNEL,
+}) {
 	const [userMentionComponents, setUserMentionComponents] = React.useState([
 		"Loading...",
 	]);
@@ -50,7 +55,7 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
 		).filter((user) =>
 			Boolean(
 				PermissionUtils.can({
-					permission: DiscordConstants.Permissions.VIEW_CHANNEL,
+					permission,
 					user: UserStore.getUser(user.id),
 					context: channel,
 				}) && GuildMemberStore.isMember(guild.id, user.id),
@@ -79,14 +84,22 @@ export default function UserMentionsComponent({ channel, guild, settings }) {
 
 	React.useEffect(() => {
 		fetchMemberAndMap();
-	}, [channel.id, guild.id, settings.showPerms, channel.permissionOverwrites]);
+	}, [
+		channel.id,
+		guild.id,
+		settings.showPerms,
+		channel.permissionOverwrites,
+		permission,
+	]);
 
 	return (
 		<TextElement
 			color={TextElement.Colors.STANDARD}
 			size={TextElement.Sizes.SIZE_14}
 		>
-			Users that can see this channel:
+			{permission === DiscordConstants.Permissions.CONNECT
+				? "Users that can join this channel:"
+				: "Users that can see this channel:"}
 			<div
 				style={{
 					marginTop: 8,

@@ -9,6 +9,7 @@ import UserMentionsComponent from "./UserMentionsComponent";
 
 const {
 	Components: { TextElement },
+	DiscordConstants,
 	GuildStore,
 	GuildRoleStore,
 	React,
@@ -27,10 +28,11 @@ const CHANNEL_TYPES = {
 
 export const Lockscreen = React.memo(
 	(
-		/** @type {{ chat: string, channel: import('../discord').SHCChannel, settings: Record<string, any> }} */ {
+		/** @type {{ chat: string, channel: import('../discord').SHCChannel, settings: Record<string, any>, locked?: boolean }} */ {
 			chat,
 			channel,
 			settings,
+			locked = false,
 		},
 	) => {
 		const guild = GuildStore.getGuild(channel.guild_id);
@@ -38,6 +40,11 @@ export const Lockscreen = React.memo(
 		//* Discord strips obfuscated channels server-side: the name, topic, last
 		//* message, forum tags and permission overwrites are placeholders.
 		const obfuscated = channel.isObfuscated?.() ?? false;
+		//* Locked: a voice channel you can see but not join, so list who can join
+		const permission = locked
+			? DiscordConstants.Permissions.CONNECT
+			: DiscordConstants.Permissions.VIEW_CHANNEL;
+		const state = locked ? "locked" : "hidden";
 
 		return (
 			<div
@@ -71,8 +78,8 @@ export const Lockscreen = React.memo(
 						}}
 					>
 						{CHANNEL_TYPES[channel.type]
-							? `This is a hidden ${CHANNEL_TYPES[channel.type]} channel`
-							: "This is a hidden channel"}
+							? `This is a ${state} ${CHANNEL_TYPES[channel.type]} channel`
+							: `This is a ${state} channel`}
 					</TextElement>
 					<TextElement
 						color={TextElement.Colors.HEADER_SECONDARY}
@@ -81,7 +88,9 @@ export const Lockscreen = React.memo(
 							marginTop: 8,
 						}}
 					>
-						You cannot see the contents of this channel.
+						{locked
+							? "You cannot join this channel."
+							: "You cannot see the contents of this channel."}
 					</TextElement>
 
 					{/* Icon Emoji */}
@@ -207,6 +216,7 @@ export const Lockscreen = React.memo(
 								channel={channel}
 								guild={guild}
 								settings={settings}
+								permission={permission}
 							/>
 
 							{/* Channel Roles */}
@@ -215,6 +225,7 @@ export const Lockscreen = React.memo(
 								guild={guild}
 								settings={settings}
 								roles={guildRoles}
+								permission={permission}
 							/>
 
 							{/* Admin Roles */}

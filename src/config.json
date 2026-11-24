@@ -13,7 +13,8 @@
 			"title": "v6.16 - Obfuscated channels",
 			"type": "changed",
 			"items": [
-				"Discord now hides the name, topic and permissions of hidden channels server-side. The lock screen says so instead of showing placeholder permissions, bitrate and forum info."
+				"Discord now hides the name, topic and permissions of hidden channels server-side. The lock screen says so instead of showing placeholder permissions, bitrate and forum info.",
+				"Clicking a voice channel you can see but not join now opens a lock screen listing who can join it."
 			]
 		},
 		{
