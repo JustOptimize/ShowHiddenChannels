@@ -35,6 +35,9 @@ export const Lockscreen = React.memo(
 	) => {
 		const guild = GuildStore.getGuild(channel.guild_id);
 		const guildRoles = GuildRoleStore.getRolesSnapshot(guild?.id);
+		//* Discord strips obfuscated channels server-side: the name, topic, last
+		//* message, forum tags and permission overwrites are placeholders.
+		const obfuscated = channel.isObfuscated?.() ?? false;
 
 		return (
 			<div
@@ -125,7 +128,7 @@ export const Lockscreen = React.memo(
 					)}
 
 					{/* Bitrate */}
-					{channel.bitrate && channel.type === 2 && (
+					{!obfuscated && channel.bitrate && channel.type === 2 && (
 						<TextElement
 							color={TextElement.Colors.STANDARD}
 							size={TextElement.Sizes.SIZE_14}
@@ -155,8 +158,41 @@ export const Lockscreen = React.memo(
 						</TextElement>
 					)}
 
+					{/* Obfuscated: overwrites are a fake @everyone deny, only admin roles are real */}
+					{obfuscated && (
+						<div
+							style={{
+								margin: "16px auto 0 auto",
+								backgroundColor: "var(--bg-surface-raised)",
+								padding: 10,
+								borderRadius: 5,
+								color: "var(--text-default)",
+							}}
+						>
+							<TextElement
+								color={TextElement.Colors.STANDARD}
+								size={TextElement.Sizes.SIZE_14}
+							>
+								Discord no longer shares this channel's name, topic or
+								permissions.
+							</TextElement>
+
+							{settings.showPerms && (
+								<AdminRolesComponent
+									guild={guild}
+									settings={
+										settings.showAdmin === "channel"
+											? { ...settings, showAdmin: "include" }
+											: settings
+									}
+									roles={guildRoles}
+								/>
+							)}
+						</div>
+					)}
+
 					{/* Permissions */}
-					{settings.showPerms && channel.permissionOverwrites && (
+					{!obfuscated && settings.showPerms && channel.permissionOverwrites && (
 						<div
 							style={{
 								margin: "16px auto 0 auto",
@@ -191,7 +227,7 @@ export const Lockscreen = React.memo(
 					)}
 
 					{/* Forums */}
-					<ForumComponent channel={channel} />
+					{!obfuscated && <ForumComponent channel={channel} />}
 				</div>
 			</div>
 		);

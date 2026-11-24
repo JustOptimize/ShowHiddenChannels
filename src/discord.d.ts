@@ -3,6 +3,7 @@ import type DiscordChannel from "discord-types/general/Channel";
 export interface SHCChannel extends DiscordChannel {
 	isGuildVocal(): boolean;
 	isSpoilerChannel?(): boolean;
+	isObfuscated?(): boolean;
 	iconEmoji?: { name?: string; id?: string };
 }
 
